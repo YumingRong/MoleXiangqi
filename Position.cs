@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace XQWizardLight
+namespace MoleXiangqi
 {
     public partial class Position
     {

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace XQWizardLight
+namespace MoleXiangqi
 {
     public struct MOVE
     {

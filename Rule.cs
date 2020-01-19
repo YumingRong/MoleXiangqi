@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 //凡是以i开头的变量都是为了与图形界面沟通使用的
 
-namespace XQWizardLight
+namespace MoleXiangqi
 {
     partial class Position
     {

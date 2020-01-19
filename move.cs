@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace XQWizardLight
+namespace MoleXiangqi
 {
     public partial class Position
     {

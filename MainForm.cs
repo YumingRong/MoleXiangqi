@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Data;
 using System.Drawing;
 using System.Media;
-using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-
-namespace XQWizardLight
+namespace MoleXiangqi
 {
     public partial class MainForm : Form
     {
         bool App_bSound = true;
-        string App_szPath = @"J:\C#\XQWizardLight\Resources\";
+        string App_szPath = @"J:\C#\MoleXiangqi\Resources\";
         bool App_inGame;
         Point mvLastFrom, mvLastTo, ptSelected;
         int pcSelected, pcLast;
@@ -24,6 +24,11 @@ namespace XQWizardLight
         Position pos;
         const int gridSize = 57;
         SoundPlayer soundPlayer;
+        readonly static int[] cnPieceImages = {
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          1, 1, 2, 2, 3, 3, 4, 4, 4, 4, 4, 5, 6, 6, 7, 7,
+          8,8,9,9,10,10,11,11,11,11,11,12,13,13,14,14
+        };
 
         public MainForm()
         {
@@ -32,9 +37,10 @@ namespace XQWizardLight
             soundPlayer = new SoundPlayer();
         }
 
-        private void MainForm_Load(object sender, EventArgs e)
+        private void NewGameMenu_Click(object sender, EventArgs e)
         {
             NewGame();
+
         }
 
         private void NewGame()
@@ -66,25 +72,7 @@ namespace XQWizardLight
             App_inGame = true;
         }
 
-        public void DrawBoard(Point pt, Graphics g)
-        {
-            float xx = pt.X * gridSize;
-            float yy = pt.Y * gridSize;
-            RectangleF srcRect = new RectangleF(xx, yy, gridSize, gridSize);
-            g.DrawImage(panelBoard.BackgroundImage, xx, yy, srcRect, GraphicsUnit.Pixel);
-        }
-
-        public void DrawSelection(Point pt, Graphics g)
-        {
-            g.DrawImage(ilCPieces.Images[0], pt.X * gridSize, pt.Y * gridSize);
-        }
-
-        public void DrawPiece(Point pt, int pc, Graphics g)
-        {
-            g.DrawImage(ilCPieces.Images[pc], pt.X * gridSize, pt.Y * gridSize);
-        }
-
-        private void NewGameMenu_Click(object sender, EventArgs e)
+        private void MainForm_Load(object sender, EventArgs e)
         {
             NewGame();
         }
@@ -130,7 +118,7 @@ namespace XQWizardLight
                         sqFrom = Position.iXY2Coord(ptSelected.X, ptSelected.Y);
                         sqTo = Position.iXY2Coord(x, y);
                     }
-                    if (pos.LegalMove(sqFrom,sqTo))
+                    if (pos.LegalMove(sqFrom, sqTo))
                     {
                         if (FENStep > pos.nFENStep0)
                         {
@@ -152,7 +140,7 @@ namespace XQWizardLight
                         DrawPiece(mvLastTo, pcSelected, g);
                         bSelected = false;
                         int pcCaptured = pos.pcSquares[sqTo];
-                        pos.MakeMove(sqFrom,sqTo);
+                        pos.MakeMove(sqFrom, sqTo);
                         FENStep++;
                         listMove.Items.Add(FENStep.ToString() + "." + Position.Move2Coord(sqFrom, sqTo));
 
@@ -193,7 +181,7 @@ namespace XQWizardLight
                     {
                         Image image = ilCPieces.Images[piece];
                         if (bFlipped)
-                            DrawPiece(new Point(8-x, 9-y), piece, g);
+                            DrawPiece(new Point(8 - x, 9 - y), piece, g);
                         else
                             DrawPiece(new Point(x, y), piece, g);
                     }
@@ -202,6 +190,65 @@ namespace XQWizardLight
             {
                 DrawSelection(mvLastFrom, g);
                 DrawSelection(mvLastTo, g);
+            }
+        }
+
+        public void DrawBoard(Point pt, Graphics g)
+        {
+            float xx = pt.X * gridSize;
+            float yy = pt.Y * gridSize;
+            RectangleF srcRect = new RectangleF(xx, yy, gridSize, gridSize);
+            g.DrawImage(panelBoard.BackgroundImage, xx, yy, srcRect, GraphicsUnit.Pixel);
+        }
+
+        private void menuFlipBoard_Click(object sender, EventArgs e)
+        {
+            menuFlipBoard.Checked = !menuFlipBoard.Checked;
+            bFlipped = menuFlipBoard.Checked;
+            panelBoard.Refresh();
+        }
+
+        private void menuCopyFEN_Click(object sender, EventArgs e)
+        {
+            Clipboard.SetText(pos.ToFen());
+        }
+
+        private void menuPasteFEN_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                pos.FromFEN(Clipboard.GetText());
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("不能识别的局面");
+            }
+            NewFEN();
+        }
+
+        private void menuLoadFEN_Click(object sender, EventArgs e)
+        {
+            if (openFENDialog.ShowDialog() == DialogResult.OK)
+            {
+                var fileStream = openFENDialog.OpenFile();
+                using (StreamReader reader = new StreamReader(fileStream))
+                {
+                    string fen = reader.ReadToEnd();
+                    pos.FromFEN(fen);
+                    NewFEN();
+                }
+            }
+        }
+
+        private void menuSaveFEN_Click(object sender, EventArgs e)
+        {
+            if (saveFENDialog.ShowDialog() == DialogResult.OK)
+            {
+                var fileStream = saveFENDialog.OpenFile();
+                using (StreamWriter writer = new StreamWriter(fileStream))
+                {
+                    writer.WriteLine(pos.ToFen());
+                }
             }
         }
 
@@ -228,58 +275,17 @@ namespace XQWizardLight
 
         private void menuAboutEngine_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("引擎：松鼠象棋\n版本：0.1\n作者：荣宇明\n用户：测试人员","UCCI引擎");
+            MessageBox.Show("引擎：鼹鼠象棋\n版本：0.1\n作者：荣宇明\n用户：测试人员", "UCCI引擎");
         }
 
-        private void menuFlipBoard_Click(object sender, EventArgs e)
+        public void DrawSelection(Point pt, Graphics g)
         {
-            menuFlipBoard.Checked = !menuFlipBoard.Checked;
-            bFlipped = menuFlipBoard.Checked;
-            panelBoard.Refresh();
+            g.DrawImage(ilCPieces.Images[0], pt.X * gridSize, pt.Y * gridSize);
         }
 
-        private void menuLoadFEN_Click(object sender, EventArgs e)
+        public void DrawPiece(Point pt, int pc, Graphics g)
         {
-            if (openFENDialog.ShowDialog()==DialogResult.OK)
-            {
-                var fileStream = openFENDialog.OpenFile();
-                using(StreamReader reader = new StreamReader(fileStream) )
-                {
-                    string fen = reader.ReadToEnd();
-                    pos.FromFEN(fen);
-                    NewFEN();
-                }
-            }
-        }
-
-        private void menuSaveFEN_Click(object sender, EventArgs e)
-        {
-            if (saveFENDialog.ShowDialog()==DialogResult.OK)
-            {
-                var fileStream = saveFENDialog.OpenFile();
-                using(StreamWriter writer = new StreamWriter(fileStream))
-                {
-                    writer.WriteLine(pos.ToFen());
-                }
-            }
-        }
-
-        private void menuPasteFEN_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                pos.FromFEN(Clipboard.GetText());
-            }
-            catch (Exception)
-            {
-                MessageBox.Show("不能识别的局面");
-            }
-            NewFEN();
-        }
-
-        private void menuCopyFEN_Click(object sender, EventArgs e)
-        {
-            Clipboard.SetText(pos.ToFen());
+            g.DrawImage(ilCPieces.Images[pc], pt.X * gridSize, pt.Y * gridSize);
         }
 
         void PlaySound(string szWavFile)
@@ -297,11 +303,5 @@ namespace XQWizardLight
                 MessageBox.Show("Cannot find sound file");
             }
         }
-
-        readonly static int[] cnPieceImages = {
-          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-          1, 1, 2, 2, 3, 3, 4, 4, 4, 4, 4, 5, 6, 6, 7, 7,
-          8,8,9,9,10,10,11,11,11,11,11,12,13,13,14,14
-        };
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace XQWizardLight
+namespace MoleXiangqi
 {
     partial class Position
     {        
