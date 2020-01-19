@@ -7,6 +7,7 @@ using System.Media;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Text.RegularExpressions;
 
 namespace MoleXiangqi
 {
@@ -40,7 +41,6 @@ namespace MoleXiangqi
         private void NewGameMenu_Click(object sender, EventArgs e)
         {
             NewGame();
-
         }
 
         private void NewGame()
@@ -199,6 +199,17 @@ namespace MoleXiangqi
             float yy = pt.Y * gridSize;
             RectangleF srcRect = new RectangleF(xx, yy, gridSize, gridSize);
             g.DrawImage(panelBoard.BackgroundImage, xx, yy, srcRect, GraphicsUnit.Pixel);
+        }
+
+        private void OpenMenu_Click(object sender, EventArgs e)
+        {
+            PGNfile pGNfile = new PGNfile();
+            if (openPGNDialog.ShowDialog() == DialogResult.OK)
+            {
+                pGNfile.Read(openPGNDialog.FileName);
+            }
+
+
         }
 
         private void menuFlipBoard_Click(object sender, EventArgs e)

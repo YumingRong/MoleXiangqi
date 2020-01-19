@@ -54,6 +54,8 @@
             this.listMove = new System.Windows.Forms.ListBox();
             this.label1 = new System.Windows.Forms.Label();
             this.panelBoard = new System.Windows.Forms.Panel();
+            this.OpenMenu = new System.Windows.Forms.ToolStripMenuItem();
+            this.openPGNDialog = new System.Windows.Forms.OpenFileDialog();
             this.menuStrip1.SuspendLayout();
             this.panelBoard.SuspendLayout();
             this.SuspendLayout();
@@ -185,7 +187,8 @@
             // 文件ToolStripMenuItem
             // 
             this.文件ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.NewGameMenu});
+            this.NewGameMenu,
+            this.OpenMenu});
             this.文件ToolStripMenuItem.Name = "文件ToolStripMenuItem";
             this.文件ToolStripMenuItem.Size = new System.Drawing.Size(59, 20);
             this.文件ToolStripMenuItem.Text = "文件(&F)";
@@ -265,6 +268,17 @@
             this.panelBoard.Paint += new System.Windows.Forms.PaintEventHandler(this.panelBoard_Paint);
             this.panelBoard.MouseClick += new System.Windows.Forms.MouseEventHandler(this.panelBoard_MouseClick);
             // 
+            // OpenMenu
+            // 
+            this.OpenMenu.Name = "OpenMenu";
+            this.OpenMenu.Size = new System.Drawing.Size(180, 22);
+            this.OpenMenu.Text = "打开(&O)...";
+            this.OpenMenu.Click += new System.EventHandler(this.OpenMenu_Click);
+            // 
+            // openPGNDialog
+            // 
+            this.openPGNDialog.Filter = "象棋对局面文件(*.PGN)|*.PGN";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -274,6 +288,7 @@
             this.Controls.Add(this.panelBoard);
             this.Controls.Add(this.menuStrip1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
             this.MaximizeBox = false;
             this.Name = "MainForm";
@@ -315,5 +330,7 @@
         private System.Windows.Forms.ListBox listMove;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Panel panelBoard;
+        private System.Windows.Forms.ToolStripMenuItem OpenMenu;
+        private System.Windows.Forms.OpenFileDialog openPGNDialog;
     }
 }
