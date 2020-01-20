@@ -48,11 +48,11 @@ namespace MoleXiangqi
         const int GUARD_FROM = 14;
         const int GUARD_TO = 15;
 
-        const int RANK_TOP = 3;
-        const int RANK_BOTTOM = 12;
-        const int FILE_LEFT = 3;
-        const int FILE_CENTER = 7;
-        const int FILE_RIGHT = 11;
+        public const int RANK_TOP = 3;
+        public const int RANK_BOTTOM = 12;
+        public const int FILE_LEFT = 3;
+        public const int FILE_CENTER = 7;
+        public const int FILE_RIGHT = 11;
 
         /* 棋子序号对应的棋子类型，带颜色
          *

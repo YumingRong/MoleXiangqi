@@ -252,6 +252,7 @@
             this.listMove.Name = "listMove";
             this.listMove.Size = new System.Drawing.Size(103, 292);
             this.listMove.TabIndex = 0;
+            this.listMove.SelectedIndexChanged += new System.EventHandler(this.listMove_SelectedIndexChanged);
             // 
             // label1
             // 

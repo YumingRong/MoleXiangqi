@@ -142,7 +142,10 @@ namespace MoleXiangqi
                         int pcCaptured = pos.pcSquares[sqTo];
                         pos.MakeMove(sqFrom, sqTo);
                         FENStep++;
-                        listMove.Items.Add(FENStep.ToString() + "." + Position.Move2Coord(sqFrom, sqTo));
+                        if (FENStep%2 == 0)
+                            listMove.Items.Add((FENStep/2).ToString() + "." + Position.Move2Coord(sqFrom, sqTo));
+                        else
+                            listMove.Items.Add("  ." + Position.Move2Coord(sqFrom, sqTo));
 
                         if (piece > 0)
                             PlaySound("CAPTURE");
@@ -204,6 +207,7 @@ namespace MoleXiangqi
         private void OpenMenu_Click(object sender, EventArgs e)
         {
             PGNfile pGNfile = new PGNfile();
+
             string fileName = @"J:\C#\eleeye-master\XQFTOOLS\SAMPLE.PGN";
             pGNfile.Read(fileName);
             //if (openPGNDialog.ShowDialog() == DialogResult.OK)
@@ -289,6 +293,11 @@ namespace MoleXiangqi
         private void menuAboutEngine_Click(object sender, EventArgs e)
         {
             MessageBox.Show("引擎：鼹鼠象棋\n版本：0.1\n作者：荣宇明\n用户：测试人员", "UCCI引擎");
+        }
+
+        private void listMove_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
         }
 
         public void DrawSelection(Point pt, Graphics g)
