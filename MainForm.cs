@@ -204,10 +204,12 @@ namespace MoleXiangqi
         private void OpenMenu_Click(object sender, EventArgs e)
         {
             PGNfile pGNfile = new PGNfile();
-            if (openPGNDialog.ShowDialog() == DialogResult.OK)
-            {
-                pGNfile.Read(openPGNDialog.FileName);
-            }
+            string fileName = @"J:\C#\eleeye-master\XQFTOOLS\SAMPLE.PGN";
+            pGNfile.Read(fileName);
+            //if (openPGNDialog.ShowDialog() == DialogResult.OK)
+            //{
+            //    pGNfile.Read(openPGNDialog.FileName);
+            //}
 
 
         }
