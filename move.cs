@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Diagnostics;
 
 namespace MoleXiangqi
 {
@@ -80,6 +80,7 @@ namespace MoleXiangqi
 
         void MovePiece(MOVE mv)
         {
+            Debug.Assert(IN_BOARD[mv.sqDst]);
             sqPieces[mv.pcDst] = 0;
             sqPieces[mv.pcSrc] = mv.sqDst;
             pcSquares[mv.sqSrc] = 0;

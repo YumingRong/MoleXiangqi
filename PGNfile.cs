@@ -10,13 +10,13 @@ namespace MoleXiangqi
     class PGNfile
     {
         Position pos;
-        Dictionary<Char, int> PieceDict, FileDict;
+        Dictionary<Char, int> PieceDict, NumberDict;
 
         public PGNfile()
         {
             pos = new Position();
             PieceDict = new Dictionary<char, int>();
-            FileDict = new Dictionary<char, int>();
+            NumberDict = new Dictionary<char, int>();
             FillDictionary();
         }
 
@@ -171,26 +171,29 @@ namespace MoleXiangqi
             int pcType, sq, file0 = 0, file1;
 
             if (PieceDict.TryGetValue(word[0], out pcType))
-            {//Normal case
+            {//Normal case 炮八平五
                 file0 = FindFile(word[1]);
                 Tuple<int, int> t = FindPiece(pcType, file0);
                 mv.pcSrc = t.Item1;
                 mv.sqSrc = t.Item2;
             }
             else
-            {//special case
+            {//special case 前马退二
                 int[] pc_x = new int[16];
                 pcType = PieceDict[word[1]];
-                int x = 0;
+                int x = 0, y, pc;
                 //find doubled pieces on the same file
                 for (int i = pcFrom[pcType]; i <= pcTo[pcType]; i++)
                 {
-                    int pc = i + Position.SIDE_TAG(pos.sdPlayer);
+                    pc = i + Position.SIDE_TAG(pos.sdPlayer);
                     sq = pos.sqPieces[pc];
                     x = Position.FILE_X(sq);
                     pc_x[x]++;
                     if (pc_x[x] > 1)
+                    {
+                        file0 = x;
                         break;
+                    }
                 }
 
                 int dir = 1;
@@ -198,42 +201,28 @@ namespace MoleXiangqi
                     dir = 1;
                 else if (word[0] == '后')
                     dir = -1;
-                if (pos.sdPlayer == 0)
-                    //from red side point of view, the board is flipped
+                if (pos.sdPlayer == 1)
                     dir = -dir;
                 if (dir > 0)
-                {
-                    for (int y = Position.RANK_TOP; y <= Position.RANK_BOTTOM; y += 16)
-                    {
-                        sq = Position.XY2Coord(x, y);
-                        int pc = pos.pcSquares[sq];
-                        if (Position.cnPieceTypes[pc] == pcType + Position.SIDE_TAG(pos.sdPlayer))
-                        {
-                            mv.sqSrc = sq;
-                            mv.pcSrc = pc;
-                        }
-                    }
-                }
+                    y = Position.RANK_TOP;
                 else
+                    y = Position.RANK_BOTTOM;
+                do
                 {
-                    for (int y = Position.RANK_BOTTOM; y >= Position.RANK_TOP; y -= 16)
-                    {
-                        sq = Position.XY2Coord(x, y);
-                        int pc = pos.pcSquares[sq];
-                        if (Position.cnPieceTypes[pc] == pcType + Position.SIDE_TAG(pos.sdPlayer))
-                        {
-                            mv.sqSrc = sq;
-                            mv.pcSrc = pc;
-                        }
-                    }
+                    sq = Position.XY2Coord(x, y);
+                    pc = pos.pcSquares[sq];
+                    y += dir;
                 }
+                while (Position.cnPieceTypes[pc] != pcType + Position.SIDE_TAG(pos.sdPlayer));
+                mv.sqSrc = sq;
+                mv.pcSrc = pc;
             }
             if (word[2] == '平')
             {
                 file1 = FindFile(word[3]);
-                mv.sqDst = mv.sqSrc + 16 * (file1 - file0);
+                mv.sqDst = mv.sqSrc + file1 - file0;
             }
-            else 
+            else
             {
                 int dir = 1;
                 if (word[2] == '进')
@@ -244,22 +233,26 @@ namespace MoleXiangqi
                     Debug.Fail("Unrecoginized move 2 {0}", word);
                 if (pos.sdPlayer == 0)
                     dir = -dir;
-                if (pcType == 3 || pcType==6 ||pcType==7)
+                if (pcType == 3 || pcType == 6 || pcType == 7)
                 {//knight, bishop or guard
+                    int rank0 = Position.RANK_Y(mv.sqSrc);
+                    int rank1;
                     file1 = FindFile(word[3]);
-                    if (pcType ==3)
-                    {
-                        int rank1 = Position.RANK_Y(mv.sqSrc) + (3- Math.Abs(file1 - file0)) * dir;
-                        mv.sqDst = Position.XY2Coord(file1, rank1);
-                    }
+                    if (pcType == 3)
+                        rank1 = rank0 + (3 - Math.Abs(file1 - file0)) * dir;
+                    else if (pcType == 6)
+                        rank1 = rank0 + 2 * dir;
+                    else
+                        rank1 = rank0 + dir;
+                    mv.sqDst = Position.XY2Coord(file1, rank1);
                 }
                 else
                 {//rook, cannon, king or pawn
-                    mv.sqDst = mv.sqSrc + Convert.ToInt32(word[3]) * dir;
+                    mv.sqDst = mv.sqSrc + 16 * FindRank(word[3]) * dir;
                 }
             }
 
-            mv.pcDst = pos.pcSquares[mv.pcDst];
+            mv.pcDst = pos.pcSquares[mv.sqDst];
             return mv;
         }
 
@@ -267,15 +260,25 @@ namespace MoleXiangqi
         {
             int file;
             if (Char.IsDigit(c))
-                file = Convert.ToInt32(c) + 2;
+                file = (int)Char.GetNumericValue(c) + 2;
             else
-                file = 11 - FileDict[c];
+                file = 12 - NumberDict[c];
             return file;
         }
 
+        int FindRank(Char c)
+        {
+            int rank;
+            if (Char.IsDigit(c))
+                rank = (int)Char.GetNumericValue(c);
+            else
+                rank = NumberDict[c];
+            return rank;
+        }
+
         // 每种子力的开始序号和结束序号
-        int[] pcFrom = { 0, 2, 4, 6, 11, 12, 14 };
-        int[] pcTo = { 1, 3, 5, 10, 11, 13, 15 };
+        int[] pcFrom = { 0, 0, 2, 4, 6, 11, 12, 14 };
+        int[] pcTo = { 0, 1, 3, 5, 10, 11, 13, 15 };
 
         Tuple<int, int> FindPiece(int pcType, int file)
         {
@@ -286,6 +289,7 @@ namespace MoleXiangqi
                 if (Position.FILE_X(sq) == file)
                     return Tuple.Create(pc, sq);
             }
+            Debug.Fail("Cannot find the piece in the file");
             return null;
         }
 
@@ -302,15 +306,15 @@ namespace MoleXiangqi
             PieceDict.Add('象', 6);
             PieceDict.Add('仕', 7);
             PieceDict.Add('士', 7);
-            FileDict.Add('一', 1);
-            FileDict.Add('二', 2);
-            FileDict.Add('三', 3);
-            FileDict.Add('四', 4);
-            FileDict.Add('五', 5);
-            FileDict.Add('六', 6);
-            FileDict.Add('七', 7);
-            FileDict.Add('八', 8);
-            FileDict.Add('九', 9);
+            NumberDict.Add('一', 1);
+            NumberDict.Add('二', 2);
+            NumberDict.Add('三', 3);
+            NumberDict.Add('四', 4);
+            NumberDict.Add('五', 5);
+            NumberDict.Add('六', 6);
+            NumberDict.Add('七', 7);
+            NumberDict.Add('八', 8);
+            NumberDict.Add('九', 9);
 
         }
 
