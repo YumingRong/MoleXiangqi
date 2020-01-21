@@ -52,10 +52,15 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.ilCPieces = new System.Windows.Forms.ImageList(this.components);
             this.openFENDialog = new System.Windows.Forms.OpenFileDialog();
-            this.listMove = new System.Windows.Forms.ListBox();
+            this.listboxMove = new System.Windows.Forms.ListBox();
             this.label1 = new System.Windows.Forms.Label();
             this.panelBoard = new System.Windows.Forms.Panel();
             this.openPGNDialog = new System.Windows.Forms.OpenFileDialog();
+            this.labelEvent = new System.Windows.Forms.Label();
+            this.labelPlayer = new System.Windows.Forms.Label();
+            this.labelDateSite = new System.Windows.Forms.Label();
+            this.textBoxComment = new System.Windows.Forms.TextBox();
+            this.label2 = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             this.panelBoard.SuspendLayout();
             this.SuspendLayout();
@@ -213,7 +218,7 @@
             this.帮助HToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(678, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(748, 24);
             this.menuStrip1.TabIndex = 2;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -242,22 +247,22 @@
             this.openFENDialog.Filter = "象棋局面文件(*.FEN)|*.FEN";
             this.openFENDialog.Title = "从局面文件导入";
             // 
-            // listMove
+            // listboxMove
             // 
-            this.listMove.FormattingEnabled = true;
-            this.listMove.ItemHeight = 12;
-            this.listMove.Items.AddRange(new object[] {
+            this.listboxMove.FormattingEnabled = true;
+            this.listboxMove.ItemHeight = 12;
+            this.listboxMove.Items.AddRange(new object[] {
             "==开始=="});
-            this.listMove.Location = new System.Drawing.Point(531, 24);
-            this.listMove.Name = "listMove";
-            this.listMove.Size = new System.Drawing.Size(103, 292);
-            this.listMove.TabIndex = 0;
-            this.listMove.SelectedIndexChanged += new System.EventHandler(this.listMove_SelectedIndexChanged);
+            this.listboxMove.Location = new System.Drawing.Point(633, 119);
+            this.listboxMove.Name = "listboxMove";
+            this.listboxMove.Size = new System.Drawing.Size(103, 292);
+            this.listboxMove.TabIndex = 0;
+            this.listboxMove.SelectedIndexChanged += new System.EventHandler(this.listboxMove_SelectedIndexChanged);
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(529, 9);
+            this.label1.Location = new System.Drawing.Point(631, 104);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(53, 12);
             this.label1.TabIndex = 1;
@@ -269,13 +274,18 @@
             this.panelBoard.BackColor = System.Drawing.Color.LightGray;
             this.panelBoard.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("panelBoard.BackgroundImage")));
             this.panelBoard.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
+            this.panelBoard.Controls.Add(this.label2);
+            this.panelBoard.Controls.Add(this.textBoxComment);
+            this.panelBoard.Controls.Add(this.labelDateSite);
+            this.panelBoard.Controls.Add(this.labelPlayer);
+            this.panelBoard.Controls.Add(this.labelEvent);
             this.panelBoard.Controls.Add(this.label1);
-            this.panelBoard.Controls.Add(this.listMove);
+            this.panelBoard.Controls.Add(this.listboxMove);
             this.panelBoard.Cursor = System.Windows.Forms.Cursors.Arrow;
             this.panelBoard.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelBoard.Location = new System.Drawing.Point(0, 24);
             this.panelBoard.Name = "panelBoard";
-            this.panelBoard.Size = new System.Drawing.Size(678, 580);
+            this.panelBoard.Size = new System.Drawing.Size(748, 580);
             this.panelBoard.TabIndex = 3;
             this.panelBoard.Paint += new System.Windows.Forms.PaintEventHandler(this.panelBoard_Paint);
             this.panelBoard.MouseClick += new System.Windows.Forms.MouseEventHandler(this.panelBoard_MouseClick);
@@ -284,12 +294,56 @@
             // 
             this.openPGNDialog.Filter = "象棋对局面文件(*.PGN)|*.PGN";
             // 
+            // labelEvent
+            // 
+            this.labelEvent.AutoSize = true;
+            this.labelEvent.Location = new System.Drawing.Point(578, 18);
+            this.labelEvent.Name = "labelEvent";
+            this.labelEvent.Size = new System.Drawing.Size(41, 12);
+            this.labelEvent.TabIndex = 2;
+            this.labelEvent.Text = "label2";
+            // 
+            // labelPlayer
+            // 
+            this.labelPlayer.AutoSize = true;
+            this.labelPlayer.Location = new System.Drawing.Point(578, 39);
+            this.labelPlayer.Name = "labelPlayer";
+            this.labelPlayer.Size = new System.Drawing.Size(41, 12);
+            this.labelPlayer.TabIndex = 3;
+            this.labelPlayer.Text = "label2";
+            // 
+            // labelDateSite
+            // 
+            this.labelDateSite.AutoSize = true;
+            this.labelDateSite.Location = new System.Drawing.Point(578, 60);
+            this.labelDateSite.Name = "labelDateSite";
+            this.labelDateSite.Size = new System.Drawing.Size(41, 12);
+            this.labelDateSite.TabIndex = 4;
+            this.labelDateSite.Text = "label2";
+            // 
+            // textBoxComment
+            // 
+            this.textBoxComment.Location = new System.Drawing.Point(539, 430);
+            this.textBoxComment.Multiline = true;
+            this.textBoxComment.Name = "textBoxComment";
+            this.textBoxComment.Size = new System.Drawing.Size(197, 138);
+            this.textBoxComment.TabIndex = 5;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(549, 415);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(29, 12);
+            this.label2.TabIndex = 6;
+            this.label2.Text = "注释";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-            this.ClientSize = new System.Drawing.Size(678, 604);
+            this.ClientSize = new System.Drawing.Size(748, 604);
             this.Controls.Add(this.panelBoard);
             this.Controls.Add(this.menuStrip1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
@@ -331,10 +385,15 @@
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ImageList ilCPieces;
         private System.Windows.Forms.OpenFileDialog openFENDialog;
-        private System.Windows.Forms.ListBox listMove;
+        private System.Windows.Forms.ListBox listboxMove;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Panel panelBoard;
         private System.Windows.Forms.ToolStripMenuItem OpenMenu;
         private System.Windows.Forms.OpenFileDialog openPGNDialog;
+        private System.Windows.Forms.Label labelEvent;
+        private System.Windows.Forms.Label labelPlayer;
+        private System.Windows.Forms.Label labelDateSite;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.TextBox textBoxComment;
     }
 }

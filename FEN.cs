@@ -99,7 +99,6 @@ namespace MoleXiangqi
                 sdPlayer = 0;
 
             nHalfClockMove = Convert.ToInt32(subs[4]);
-            nFENStep0 = Convert.ToInt32(subs[5]);
             nStep = 0;
             moveRecords.Clear();
             zobristRecords[0] = CalculateZobrist();
@@ -145,11 +144,11 @@ namespace MoleXiangqi
             lpFen.Append(" - - ");
             lpFen.Append(nHalfClockMove);
             lpFen.Append(" ");
-            lpFen.Append(nStep + nFENStep0);
+            lpFen.Append(nStep);
             return lpFen.ToString();
         }
 
-        public static string Move2Coord(int from, int to)
+        public static string iMove2Coord(int from, int to)
         {      // 把着法转换成字符串
             char[] ret = new char[5];
             ret[0] = Convert.ToChar(FILE_X(from) - FILE_LEFT + 'A');

@@ -64,10 +64,12 @@ namespace MoleXiangqi
 
         void NewFEN()
         {
-            FENStep = pos.nFENStep0;
+            FENStep = 0;
             bSelected = false;
-            listMove.Items.Clear();
-            listMove.Items.Add("==开始==");
+            listboxMove.Items.Clear();
+            listboxMove.Items.Add("==开始==");
+            pos.PGNSteps.Clear();
+            pos.PGNSteps.Add(new PGNStepStruct());
             panelBoard.Refresh();
             App_inGame = true;
         }
@@ -120,7 +122,7 @@ namespace MoleXiangqi
                     }
                     if (pos.LegalMove(sqFrom, sqTo))
                     {
-                        if (FENStep > pos.nFENStep0)
+                        if (FENStep > 0)
                         {
                             //擦除上一步的起始和结束位置选择框
                             DrawBoard(mvLastFrom, g);
@@ -141,12 +143,19 @@ namespace MoleXiangqi
                         bSelected = false;
                         int pcCaptured = pos.pcSquares[sqTo];
                         pos.MakeMove(sqFrom, sqTo);
-                        FENStep++;
-                        if (FENStep%2 == 0)
-                            listMove.Items.Add((FENStep/2).ToString() + "." + Position.Move2Coord(sqFrom, sqTo));
-                        else
-                            listMove.Items.Add("  ." + Position.Move2Coord(sqFrom, sqTo));
 
+                        PGNStepStruct step;
+                        step.from = sqFrom;
+                        step.to = sqTo;
+                        step.comment = textBoxComment.Text;
+                        pos.PGNSteps.Add(step);
+
+                        FENStep++;
+                        string label = Position.iMove2Coord(sqFrom, sqTo);
+                        if (FENStep % 2 == 1)
+                            label = ((FENStep / 2 + 1).ToString() + "." + label);
+                        label = label.PadLeft(8);
+                        listboxMove.Items.Add(label);
                         if (piece > 0)
                             PlaySound("CAPTURE");
                         else
@@ -189,7 +198,7 @@ namespace MoleXiangqi
                             DrawPiece(new Point(x, y), piece, g);
                     }
                 }
-            if (FENStep > pos.nFENStep0)
+            if (FENStep > 0)
             {
                 DrawSelection(mvLastFrom, g);
                 DrawSelection(mvLastTo, g);
@@ -206,16 +215,56 @@ namespace MoleXiangqi
 
         private void OpenMenu_Click(object sender, EventArgs e)
         {
-            PGNfile pGNfile = new PGNfile();
-
             string fileName = @"J:\C#\eleeye-master\XQFTOOLS\SAMPLE.PGN";
-            pGNfile.Read(fileName);
+            pos.ReadPgnFile(fileName);
             //if (openPGNDialog.ShowDialog() == DialogResult.OK)
             //{
-            //    pGNfile.Read(openPGNDialog.FileName);
+            //    pos.ReadPgnFile(openPGNDialog.FileName);
             //}
+            labelEvent.Text = pos.PGN.Event;
+            string result;
+            switch (pos.PGN.Result)
+            {
+                case "1-0":
+                    result = "胜";
+                    break;
+                case "0-1":
+                    result = "负";
+                    break;
+                case "1/2-1/2":
+                    result = "和";
+                    break;
+                default:
+                    result = "*";
+                    break;
+            }
+            labelPlayer.Text = pos.PGN.Red + " (先" + result + ") " + pos.PGN.Black;
+            labelDateSite.Text = pos.PGN.Date + " 弈于 " + pos.PGN.Site;
 
 
+            listboxMove.Items.Clear();
+
+            if (pos.PGNSteps[0].comment.Length == 0)
+                listboxMove.Items.Add("==开始==");
+            else
+                listboxMove.Items.Add("==开始==*");
+
+            for (FENStep = 1; FENStep<pos.PGNSteps.Count; FENStep++)
+            {
+                PGNStepStruct step = pos.PGNSteps[FENStep];
+                string label = Position.iMove2Coord(step.from, step.to);
+                if (FENStep % 2 == 1)
+                    label = ((FENStep / 2 + 1).ToString() + "." + label);
+                label = label.PadLeft(8);
+                if (step.comment != null)
+                    label += "*";
+                listboxMove.Items.Add(label);
+            }
+            pos.FromFEN(pos.PGN.StartFEN);
+            FENStep = 0;
+            listboxMove.SelectedIndex = 0;
+            panelBoard.Refresh();
+            App_inGame = false;
         }
 
         private void menuFlipBoard_Click(object sender, EventArgs e)
@@ -295,9 +344,21 @@ namespace MoleXiangqi
             MessageBox.Show("引擎：鼹鼠象棋\n版本：0.1\n作者：荣宇明\n用户：测试人员", "UCCI引擎");
         }
 
-        private void listMove_SelectedIndexChanged(object sender, EventArgs e)
+        private void listboxMove_SelectedIndexChanged(object sender, EventArgs e)
         {
-
+            textBoxComment.Text = pos.PGNSteps[listboxMove.SelectedIndex].comment;
+            if(listboxMove.SelectedIndex>FENStep)
+            {
+                for (int i = FENStep+1; i <= listboxMove.SelectedIndex; i++)
+                    pos.MakeMove(pos.PGNSteps[i].from, pos.PGNSteps[i].to);
+            }
+            else
+            {
+                for (int i = FENStep-1; i >= listboxMove.SelectedIndex; i--)
+                    pos.UnmakeMove();
+            }
+            FENStep = listboxMove.SelectedIndex;
+            panelBoard.Refresh();
         }
 
         public void DrawSelection(Point pt, Graphics g)

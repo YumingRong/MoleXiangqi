@@ -36,7 +36,7 @@ namespace MoleXiangqi
             }
         };
 
-        Stack<MOVE> moveRecords;
+        Stack<MOVE> moveRecords;    //实际走子的堆栈，并不等于PGNSteps
         long[] zobristRecords;
     }
 

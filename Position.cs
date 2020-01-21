@@ -14,6 +14,7 @@ namespace MoleXiangqi
             sqPieces = new int[48];
             moveRecords = new Stack<MOVE>(120);
             zobristRecords = new long[300];//一局象棋棋一般不会超过300步
+            InitPGN();
         }
 
         // 基本成员
@@ -43,6 +44,7 @@ namespace MoleXiangqi
         const int PAWN_FROM = 6;
         const int PAWN_TO = 10;
         const int KING_FROM = 11;
+        const int KING_TO = 11;
         const int BISHOP_FROM = 12;
         const int BISHOP_TO = 13;
         const int GUARD_FROM = 14;

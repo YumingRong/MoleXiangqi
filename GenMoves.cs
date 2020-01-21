@@ -377,7 +377,7 @@ namespace MoleXiangqi
             mvs = GenerateMoves();
             foreach (MOVE mv in mvs)
             {
-                //Debug.WriteLine(Move2Coord(mv) + "," + SRC(mv) + "-" + DST(mv));
+                //Debug.WriteLine(iMove2Coord(mv) + "," + SRC(mv) + "-" + DST(mv));
                 MovePiece(mv);
                 if (!Checked(side))
                 {
