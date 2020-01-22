@@ -215,10 +215,13 @@ namespace MoleXiangqi
 
         private void menuOpen_Click(object sender, EventArgs e)
         {
-            if (openPGNDialog.ShowDialog() == DialogResult.OK)
-            {
-                pos.ReadPgnFile(openPGNDialog.FileName);
-            }
+            string fileName = @"J:\全国象棋赛\04GR0001.PGN";
+            pos.ReadPgnFile(fileName);
+
+            //if (openPGNDialog.ShowDialog() == DialogResult.OK)
+            //{
+            //    pos.ReadPgnFile(openPGNDialog.FileName);
+            //}
             labelEvent.Text = pos.PGN.Event;
             string result;
             switch (pos.PGN.Result)

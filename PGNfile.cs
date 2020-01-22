@@ -148,11 +148,11 @@ namespace MoleXiangqi
                         m = Regex.Match(s, pattern);
                         if (m.Success)
                         {//is a move number
-                            //Debug.WriteLine(Convert.ToInt32(m.Groups[1].Value));
+                            Debug.WriteLine(Convert.ToInt32(m.Groups[1].Value));
                         }
                         else if (s.Length == 4)
                         {//is a move
-                            //Debug.WriteLine(s);
+                            Debug.WriteLine(s);
                             MOVE mv = ParseWord(s);
                             MakeMove(mv);
                             iMoveList.Add(imv);
