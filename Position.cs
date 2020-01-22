@@ -22,6 +22,7 @@ namespace MoleXiangqi
         public int[] pcSquares;       // 每个格子放的棋子，0表示没有棋子, size = 256
         public int[] sqPieces;   // 每个棋子放的位置，0表示被吃, size = 48
         public int sqOwnKing, sqOppKing;
+        Stack<MOVE> moveStack;    //实际走子的堆栈，并不等于iMoveList
 
         // 每种子力的类型编号，按子力价值排序
         const int PIECE_EMPTY = 0;

@@ -16,7 +16,6 @@ namespace MoleXiangqi
               5, 5, 6, 6, 7, 7, 8, 8, 8, 8, 8, 8, 4, 4, 4, 4
             };
 
-
             static long[,] table = new long[9, 256];
 
             static Zobrist()
@@ -33,7 +32,6 @@ namespace MoleXiangqi
             }
         };
 
-        Stack<MOVE> moveStack;    //实际走子的堆栈，并不等于iMoveList
         long[] zobristRecords;
     }
 
