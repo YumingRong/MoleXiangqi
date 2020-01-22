@@ -141,7 +141,7 @@ namespace MoleXiangqi
         {
             if (pc >= 32)
                 return 1;
-            else if (pc > 0)
+            else if (pc >= 16)
                 return 0;
             else
                 return -1;

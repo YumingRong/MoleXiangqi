@@ -21,7 +21,7 @@ namespace MoleXiangqi
         private Dictionary<char, int> NumberDict;
 
         //统计棋子活动位置的数组
-        int[,] activeGrid = new int[16, 16];
+        public int[,] activeGrid = new int[2, 256];
 
         public void InitPGN()
         {
@@ -144,24 +144,26 @@ namespace MoleXiangqi
                     string[] words = content.Split(new char[] { ' ', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
                     foreach (string s in words)
                     {
-                        if (s.Length == 4)
+                        pattern = @"(\d+)\.";
+                        m = Regex.Match(s, pattern);
+                        if (m.Success)
+                        {//is a move number
+                            //Debug.WriteLine(Convert.ToInt32(m.Groups[1].Value));
+                        }
+                        else if (s.Length == 4)
                         {//is a move
-                            Debug.WriteLine(s);
+                            //Debug.WriteLine(s);
                             MOVE mv = ParseWord(s);
                             MakeMove(mv);
                             iMoveList.Add(imv);
                             imv = new iMOVE();
                             imv.from = mv.sqSrc;
                             imv.to = mv.sqDst;
+                            activeGrid[SIDE(mv.pcSrc), mv.sqDst]++;
                         }
                         else
                         {
-                            pattern = @"(\d+)\.";
-                            m = Regex.Match(s, pattern);
-                            if (m.Success)
-                            {//is a move number
-                                Debug.WriteLine(Convert.ToInt32(m.Groups[1].Value));
-                            }
+                            Debug.WriteLine(s);
                         }
                     }
                     Regex commentReg = new Regex(@"\{(.*)\}");
@@ -200,15 +202,17 @@ namespace MoleXiangqi
                 {
                     pc = i + SIDE_TAG(sdPlayer);
                     sq = sqPieces[pc];
-                    x = FILE_X(sq);
-                    pc_x[x]++;
-                    if (pc_x[x] > 1)
+                    if (sq > 0)
                     {
-                        file0 = x;
-                        break;
+                        x = FILE_X(sq);
+                        pc_x[x]++;
+                        if (pc_x[x] > 1)
+                        {
+                            file0 = x;
+                            break;
+                        }
                     }
                 }
-
                 int dir = 1;
                 if (word[0] == '前')
                     dir = 1;
@@ -248,6 +252,7 @@ namespace MoleXiangqi
                     dir = -dir;
                 if (pcType == PIECE_KNIGHT || pcType == PIECE_BISHOP || pcType == PIECE_GUARD)
                 {
+                SecondHalf:
                     int rank0 = RANK_Y(mv.sqSrc);
                     int rank1;
                     file1 = FindFile(word[3]);
@@ -258,6 +263,14 @@ namespace MoleXiangqi
                     else //PIECE_GUARD
                         rank1 = rank0 + dir;
                     mv.sqDst = XY2Coord(file1, rank1);
+                    if (!LegalMove(mv.sqSrc, mv.sqDst))
+                    {//有些棋谱会出现相、仕在同一列不用前后表示的情况
+                        Debug.WriteLine("不规范的记谱:" + word);
+                        mv.pcSrc++;
+                        mv.sqSrc = sqPieces[mv.pcSrc];
+                        Debug.Assert(FILE_X(sqPieces[mv.pcSrc]) == file0);
+                        goto SecondHalf;
+                    }
                 }
                 else
                 {//rook, cannon, king or pawn
@@ -329,5 +342,35 @@ namespace MoleXiangqi
             NumberDict.Add('八', 8);
             NumberDict.Add('九', 9);
         }
+
+        /// <summary>
+        /// 写入数据到CSV文件，覆盖形式
+        /// </summary>
+        /// <param name="csvPath">要写入的字符串表示的CSV文件</param>
+        /// <param name="LineDataList">要写入CSV文件的数据</param>
+        public static void Write2Csv(string csvPath, int[,] array)
+        {
+            using (FileStream fs = new FileStream(csvPath.Trim(), FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            {
+                using (StreamWriter sw = new StreamWriter(fs, Encoding.Default))
+                {
+                    sw.AutoFlush = false;
+                    for (int side = 0; side <= 1; side++)
+                    {
+                        for (int y = RANK_TOP; y <= RANK_BOTTOM; y++)//<--row
+                        {
+                            for (int x = FILE_LEFT; x <= FILE_RIGHT; x++)//<--col
+                            {
+                                sw.Write(string.Format("{0},", array[side, XY2Coord(x, y)]));
+                            }
+                            sw.Write('\n');
+                        }
+                        sw.WriteLine();
+                    }
+                    fs.Flush();
+                }
+            }
+        }
+
     }
 }

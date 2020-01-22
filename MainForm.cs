@@ -213,15 +213,12 @@ namespace MoleXiangqi
             g.DrawImage(panelBoard.BackgroundImage, xx, yy, srcRect, GraphicsUnit.Pixel);
         }
 
-        private void OpenMenu_Click(object sender, EventArgs e)
+        private void menuOpen_Click(object sender, EventArgs e)
         {
-            //string fileName = @"J:\C#\eleeye-master\XQFTOOLS\SAMPLE.PGN";
-            string fileName = @"J:\全国象棋赛\00GR0001.PGN";
-            pos.ReadPgnFile(fileName);
-            //if (openPGNDialog.ShowDialog() == DialogResult.OK)
-            //{
-            //    pos.ReadPgnFile(openPGNDialog.FileName);
-            //}
+            if (openPGNDialog.ShowDialog() == DialogResult.OK)
+            {
+                pos.ReadPgnFile(openPGNDialog.FileName);
+            }
             labelEvent.Text = pos.PGN.Event;
             string result;
             switch (pos.PGN.Result)
@@ -239,7 +236,17 @@ namespace MoleXiangqi
                     result = "*";
                     break;
             }
-            labelPlayer.Text = pos.PGN.Red + " (先" + result + ") " + pos.PGN.Black;
+            StringBuilder sb = new StringBuilder();
+            sb.Append(pos.PGN.RedTeam);
+            sb.Append(' ');
+            sb.Append(pos.PGN.Red);
+            sb.Append(" (先");
+            sb.Append(result);
+            sb.Append(") ");
+            sb.Append(pos.PGN.BlackTeam);
+            sb.Append(' ');
+            sb.Append(pos.PGN.Black);
+            labelPlayer.Text = sb.ToString();
             labelDateSite.Text = pos.PGN.Date + " 弈于 " + pos.PGN.Site;
 
 
@@ -362,6 +369,22 @@ namespace MoleXiangqi
             mvLastFrom = POSITION.iCoord2XY(pos.iMoveList[listboxMove.SelectedIndex].from, bFlipped);
             mvLastTo = POSITION.iCoord2XY(pos.iMoveList[listboxMove.SelectedIndex].to, bFlipped);
             panelBoard.Refresh();
+        }
+
+        private void menuActivePositionTest_Click(object sender, EventArgs e)
+        {
+            string sourceDirectory = @"J:\全国象棋赛";
+            IEnumerable<string> pgnFiles = Directory.EnumerateFiles(sourceDirectory, "*.PGN");
+            int nFile = 0;
+            pos.activeGrid = new int[2, 256];
+            foreach (string fileName in pgnFiles)
+            {
+                Console.WriteLine(fileName.Substring(sourceDirectory.Length + 1));
+                pos.ReadPgnFile(fileName);
+                nFile++;
+            }
+            POSITION.Write2Csv("movepiece.csv", pos.activeGrid);
+            MessageBox.Show(String.Format("Finish reading.Total {0} files", nFile));
         }
 
         public void DrawSelection(Point pt, Graphics g)
