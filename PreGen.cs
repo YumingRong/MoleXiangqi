@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace MoleXiangqi
 {
-    partial class Position
+    partial class POSITION
     {        
         // 判断棋子是否在棋盘中的数组
         public readonly static bool[] IN_BOARD = {

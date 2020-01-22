@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MoleXiangqi
 {
-    public partial class Position
+    public partial class POSITION
     {
         static class Zobrist
         {
@@ -36,11 +33,11 @@ namespace MoleXiangqi
             }
         };
 
-        Stack<MOVE> moveRecords;    //实际走子的堆栈，并不等于PGNSteps
+        Stack<MOVE> moveStack;    //实际走子的堆栈，并不等于iMoveList
         long[] zobristRecords;
     }
 
-    partial class Position
+    partial class POSITION
     {
         long CalculateZobrist()
         {

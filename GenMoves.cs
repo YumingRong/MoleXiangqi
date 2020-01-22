@@ -17,7 +17,7 @@ namespace MoleXiangqi
         }
     }
     
-    public partial class Position
+    public partial class POSITION
     {
 
         // 帅(将)的步长

@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace MoleXiangqi
 {
-    public partial class Position
+    public partial class POSITION
     {
         //Interface to graphic board. x, y is 0~9
         public static Tuple<int, int> GetMove(int x0, int y0, int x1, int y1)
@@ -98,7 +98,7 @@ namespace MoleXiangqi
         public void MakeMove(MOVE mv)
         {
             MovePiece(mv);
-            moveRecords.Push(mv);
+            moveStack.Push(mv);
             long zobrist = zobristRecords[nStep] ^ Zobrist.Get(mv.pcSrc, mv.sqSrc);
             zobrist ^= Zobrist.Get(mv.pcSrc, mv.sqDst);
             nStep++;
@@ -114,7 +114,7 @@ namespace MoleXiangqi
 
         public void UnmakeMove()
         {
-            MOVE mv = moveRecords.Pop();
+            MOVE mv = moveStack.Pop();
             UndoMovePiece(mv);
             nStep--;
 

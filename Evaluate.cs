@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MoleXiangqi
 {
-    partial class Position
+    partial class POSITION
     {
         //各种子力的价值
         const int MAT_KING = 1000;

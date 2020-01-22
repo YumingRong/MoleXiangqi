@@ -55,12 +55,12 @@
             this.listboxMove = new System.Windows.Forms.ListBox();
             this.label1 = new System.Windows.Forms.Label();
             this.panelBoard = new System.Windows.Forms.Panel();
-            this.openPGNDialog = new System.Windows.Forms.OpenFileDialog();
-            this.labelEvent = new System.Windows.Forms.Label();
-            this.labelPlayer = new System.Windows.Forms.Label();
-            this.labelDateSite = new System.Windows.Forms.Label();
-            this.textBoxComment = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
+            this.textBoxComment = new System.Windows.Forms.TextBox();
+            this.labelDateSite = new System.Windows.Forms.Label();
+            this.labelPlayer = new System.Windows.Forms.Label();
+            this.labelEvent = new System.Windows.Forms.Label();
+            this.openPGNDialog = new System.Windows.Forms.OpenFileDialog();
             this.menuStrip1.SuspendLayout();
             this.panelBoard.SuspendLayout();
             this.SuspendLayout();
@@ -290,36 +290,14 @@
             this.panelBoard.Paint += new System.Windows.Forms.PaintEventHandler(this.panelBoard_Paint);
             this.panelBoard.MouseClick += new System.Windows.Forms.MouseEventHandler(this.panelBoard_MouseClick);
             // 
-            // openPGNDialog
+            // label2
             // 
-            this.openPGNDialog.Filter = "象棋对局面文件(*.PGN)|*.PGN";
-            // 
-            // labelEvent
-            // 
-            this.labelEvent.AutoSize = true;
-            this.labelEvent.Location = new System.Drawing.Point(578, 18);
-            this.labelEvent.Name = "labelEvent";
-            this.labelEvent.Size = new System.Drawing.Size(41, 12);
-            this.labelEvent.TabIndex = 2;
-            this.labelEvent.Text = "label2";
-            // 
-            // labelPlayer
-            // 
-            this.labelPlayer.AutoSize = true;
-            this.labelPlayer.Location = new System.Drawing.Point(578, 39);
-            this.labelPlayer.Name = "labelPlayer";
-            this.labelPlayer.Size = new System.Drawing.Size(41, 12);
-            this.labelPlayer.TabIndex = 3;
-            this.labelPlayer.Text = "label2";
-            // 
-            // labelDateSite
-            // 
-            this.labelDateSite.AutoSize = true;
-            this.labelDateSite.Location = new System.Drawing.Point(578, 60);
-            this.labelDateSite.Name = "labelDateSite";
-            this.labelDateSite.Size = new System.Drawing.Size(41, 12);
-            this.labelDateSite.TabIndex = 4;
-            this.labelDateSite.Text = "label2";
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(549, 415);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(29, 12);
+            this.label2.TabIndex = 6;
+            this.label2.Text = "注释";
             // 
             // textBoxComment
             // 
@@ -329,14 +307,36 @@
             this.textBoxComment.Size = new System.Drawing.Size(197, 138);
             this.textBoxComment.TabIndex = 5;
             // 
-            // label2
+            // labelDateSite
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(549, 415);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(29, 12);
-            this.label2.TabIndex = 6;
-            this.label2.Text = "注释";
+            this.labelDateSite.AutoSize = true;
+            this.labelDateSite.Location = new System.Drawing.Point(578, 60);
+            this.labelDateSite.Name = "labelDateSite";
+            this.labelDateSite.Size = new System.Drawing.Size(71, 12);
+            this.labelDateSite.TabIndex = 4;
+            this.labelDateSite.Text = "Date && Site";
+            // 
+            // labelPlayer
+            // 
+            this.labelPlayer.AutoSize = true;
+            this.labelPlayer.Location = new System.Drawing.Point(578, 39);
+            this.labelPlayer.Name = "labelPlayer";
+            this.labelPlayer.Size = new System.Drawing.Size(23, 12);
+            this.labelPlayer.TabIndex = 3;
+            this.labelPlayer.Text = "VS.";
+            // 
+            // labelEvent
+            // 
+            this.labelEvent.AutoSize = true;
+            this.labelEvent.Location = new System.Drawing.Point(578, 18);
+            this.labelEvent.Name = "labelEvent";
+            this.labelEvent.Size = new System.Drawing.Size(35, 12);
+            this.labelEvent.TabIndex = 2;
+            this.labelEvent.Text = "Event";
+            // 
+            // openPGNDialog
+            // 
+            this.openPGNDialog.Filter = "象棋对局面文件(*.PGN)|*.PGN";
             // 
             // MainForm
             // 

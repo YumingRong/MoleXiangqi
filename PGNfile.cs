@@ -8,14 +8,14 @@ using System.Diagnostics;
 namespace MoleXiangqi
 {
 
-    public struct PGNStepStruct
+    public struct iMOVE
     {
         public int from;
         public int to;
         public string comment;
     }
 
-    partial class Position
+    partial class POSITION
     {
         private Dictionary<char, int> PieceDict;
         private Dictionary<char, int> NumberDict;
@@ -25,7 +25,7 @@ namespace MoleXiangqi
             PieceDict = new Dictionary<char, int>();
             NumberDict = new Dictionary<char, int>();
             FillDictionary();
-            PGNSteps = new List<PGNStepStruct>();
+            iMoveList = new List<iMOVE>();
         }
 
         public struct PgnFileStruct
@@ -35,18 +35,16 @@ namespace MoleXiangqi
             public string BlackTeam, Black, BlackElo;
             public string ECCO, Opening, Variation, Result;
             public string Format, StartFEN;
-            public MOVE[] MoveList;
-            public string[] CommentList;
         }
 
         public PgnFileStruct PGN;
-        public List<PGNStepStruct> PGNSteps;
+        public List<iMOVE> iMoveList;
 
         public bool ReadPgnFile(string szFileName)
         {
             FromFEN(cszStartFen);
             PGN.StartFEN = cszStartFen;
-            PGNSteps.Clear();
+            iMoveList.Clear();
 
             using (StreamReader fp = new StreamReader(szFileName, Encoding.GetEncoding("GB2312")))
             {
@@ -127,7 +125,7 @@ namespace MoleXiangqi
                     }
                 }
                 int index;
-                PGNStepStruct step = new PGNStepStruct();
+                iMOVE step = new iMOVE();
                 do
                 {
                     //get move list till next comment
@@ -146,8 +144,8 @@ namespace MoleXiangqi
                             Debug.WriteLine(s);
                             MOVE mv = ParseWord(s);
                             MakeMove(mv);
-                            PGNSteps.Add(step);
-                            step = new PGNStepStruct();
+                            iMoveList.Add(step);
+                            step = new iMOVE();
                             step.from = mv.sqSrc;
                             step.to = mv.sqDst;
                         }

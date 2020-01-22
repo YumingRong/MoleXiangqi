@@ -22,7 +22,7 @@ namespace MoleXiangqi
         bool bFlipped = false;
         bool bSelected;
 
-        Position pos;
+        POSITION pos;
         const int gridSize = 57;
         SoundPlayer soundPlayer;
         readonly static int[] cnPieceImages = {
@@ -34,7 +34,7 @@ namespace MoleXiangqi
         public MainForm()
         {
             InitializeComponent();
-            pos = new Position();
+            pos = new POSITION();
             soundPlayer = new SoundPlayer();
         }
 
@@ -58,7 +58,7 @@ namespace MoleXiangqi
                 menuAIBlack.Checked = true;
                 bFlipped = true;
             }
-            pos.FromFEN(Position.cszStartFen);
+            pos.FromFEN(POSITION.cszStartFen);
             NewFEN();
         }
 
@@ -68,8 +68,8 @@ namespace MoleXiangqi
             bSelected = false;
             listboxMove.Items.Clear();
             listboxMove.Items.Add("==开始==");
-            pos.PGNSteps.Clear();
-            pos.PGNSteps.Add(new PGNStepStruct());
+            pos.iMoveList.Clear();
+            pos.iMoveList.Add(new iMOVE());
             panelBoard.Refresh();
             App_inGame = true;
         }
@@ -97,7 +97,7 @@ namespace MoleXiangqi
             Graphics g = panelBoard.CreateGraphics();
             if (bSelected)
             {
-                if (Position.SIDE(piece) == pos.sdPlayer && ptSelected != new Point(x, y))
+                if (POSITION.SIDE(piece) == pos.sdPlayer && ptSelected != new Point(x, y))
                 //又选择别的己方子
                 {
                     DrawBoard(ptSelected, g);
@@ -112,13 +112,13 @@ namespace MoleXiangqi
                     int sqFrom, sqTo;
                     if (bFlipped)
                     {
-                        sqFrom = Position.iXY2Coord(8 - ptSelected.X, 9 - ptSelected.Y);
-                        sqTo = Position.iXY2Coord(8 - x, 9 - y);
+                        sqFrom = POSITION.iXY2Coord(8 - ptSelected.X, 9 - ptSelected.Y);
+                        sqTo = POSITION.iXY2Coord(8 - x, 9 - y);
                     }
                     else
                     {
-                        sqFrom = Position.iXY2Coord(ptSelected.X, ptSelected.Y);
-                        sqTo = Position.iXY2Coord(x, y);
+                        sqFrom = POSITION.iXY2Coord(ptSelected.X, ptSelected.Y);
+                        sqTo = POSITION.iXY2Coord(x, y);
                     }
                     if (pos.LegalMove(sqFrom, sqTo))
                     {
@@ -144,14 +144,14 @@ namespace MoleXiangqi
                         int pcCaptured = pos.pcSquares[sqTo];
                         pos.MakeMove(sqFrom, sqTo);
 
-                        PGNStepStruct step;
+                        iMOVE step;
                         step.from = sqFrom;
                         step.to = sqTo;
                         step.comment = textBoxComment.Text;
-                        pos.PGNSteps.Add(step);
+                        pos.iMoveList.Add(step);
 
                         FENStep++;
-                        string label = Position.iMove2Coord(sqFrom, sqTo);
+                        string label = POSITION.iMove2Coord(sqFrom, sqTo);
                         if (FENStep % 2 == 1)
                             label = ((FENStep / 2 + 1).ToString() + "." + label);
                         label = label.PadLeft(8);
@@ -161,7 +161,7 @@ namespace MoleXiangqi
                         else
                             PlaySound("MOVE");
 
-                        if (Position.PIECE_INDEX(pcCaptured) == 11 || pos.IsMate(pos.sdPlayer))
+                        if (POSITION.PIECE_INDEX(pcCaptured) == 11 || pos.IsMate(pos.sdPlayer))
                         {//直接吃王或者绝杀
                             MessageBox.Show("祝贺你取得胜利！");
                             PlaySound("WIN");
@@ -172,7 +172,7 @@ namespace MoleXiangqi
                     //    PlaySound("ILLEGAL");
                 }
             }
-            else if (Position.SIDE(piece) == pos.sdPlayer)
+            else if (POSITION.SIDE(piece) == pos.sdPlayer)
             {
                 ptSelected = new Point(x, y);
                 pcSelected = cnPieceImages[piece];
@@ -244,15 +244,15 @@ namespace MoleXiangqi
 
             listboxMove.Items.Clear();
 
-            if (pos.PGNSteps[0].comment.Length == 0)
+            if (pos.iMoveList[0].comment.Length == 0)
                 listboxMove.Items.Add("==开始==");
             else
                 listboxMove.Items.Add("==开始==*");
 
-            for (FENStep = 1; FENStep<pos.PGNSteps.Count; FENStep++)
+            for (FENStep = 1; FENStep < pos.iMoveList.Count; FENStep++)
             {
-                PGNStepStruct step = pos.PGNSteps[FENStep];
-                string label = Position.iMove2Coord(step.from, step.to);
+                iMOVE step = pos.iMoveList[FENStep];
+                string label = POSITION.iMove2Coord(step.from, step.to);
                 if (FENStep % 2 == 1)
                     label = ((FENStep / 2 + 1).ToString() + "." + label);
                 label = label.PadLeft(8);
@@ -346,18 +346,20 @@ namespace MoleXiangqi
 
         private void listboxMove_SelectedIndexChanged(object sender, EventArgs e)
         {
-            textBoxComment.Text = pos.PGNSteps[listboxMove.SelectedIndex].comment;
-            if(listboxMove.SelectedIndex>FENStep)
+            textBoxComment.Text = pos.iMoveList[listboxMove.SelectedIndex].comment;
+            if (listboxMove.SelectedIndex > FENStep)
             {
-                for (int i = FENStep+1; i <= listboxMove.SelectedIndex; i++)
-                    pos.MakeMove(pos.PGNSteps[i].from, pos.PGNSteps[i].to);
+                for (int i = FENStep + 1; i <= listboxMove.SelectedIndex; i++)
+                    pos.MakeMove(pos.iMoveList[i].from, pos.iMoveList[i].to);
             }
             else
             {
-                for (int i = FENStep-1; i >= listboxMove.SelectedIndex; i--)
+                for (int i = FENStep - 1; i >= listboxMove.SelectedIndex; i--)
                     pos.UnmakeMove();
             }
             FENStep = listboxMove.SelectedIndex;
+            mvLastFrom = POSITION.iCoord2XY(pos.iMoveList[listboxMove.SelectedIndex].from, bFlipped);
+            mvLastTo = POSITION.iCoord2XY(pos.iMoveList[listboxMove.SelectedIndex].to, bFlipped);
             panelBoard.Refresh();
         }
 

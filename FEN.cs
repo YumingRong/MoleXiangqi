@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 namespace MoleXiangqi
 {
-    public partial class Position
+    public partial class POSITION
     {
         public const string cszStartFen = "rnbgkgbnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBGKGBNR w - - 0 0";
 
@@ -100,7 +100,7 @@ namespace MoleXiangqi
 
             nHalfClockMove = Convert.ToInt32(subs[4]);
             nStep = 0;
-            moveRecords.Clear();
+            moveStack.Clear();
             zobristRecords[0] = CalculateZobrist();
         }
 

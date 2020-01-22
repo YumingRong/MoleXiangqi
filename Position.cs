@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace MoleXiangqi
 {
-    public partial class Position
+    public partial class POSITION
     {
-        public Position()
+        public POSITION()
         {
             pcSquares = new int[256];
             sqPieces = new int[48];
-            moveRecords = new Stack<MOVE>(120);
+            moveStack = new Stack<MOVE>(120);
             zobristRecords = new long[300];//一局象棋棋一般不会超过300步
             InitPGN();
         }
@@ -62,7 +62,7 @@ namespace MoleXiangqi
          * 每方的棋子顺序依次是：车车炮炮马马兵兵兵兵兵帅相相仕仕(车车炮炮马马卒卒卒卒卒将象象士士)
          * 提示：判断棋子是红子用"pc < 32"，黑子用"pc >= 32"
          */
-         public readonly static int[] cnPieceTypes = {
+        public readonly static int[] cnPieceTypes = {
           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
           17,17,18,18,19,19,20,20,20,20,20,21,22,22,23,23,
           33,33,34,34,35,35,36,36,36,36,36,37,38,38,39,39
@@ -92,6 +92,13 @@ namespace MoleXiangqi
         public static int iXY2Coord(int x, int y)
         {
             return XY2Coord(x + FILE_LEFT, y + RANK_TOP);
+        }
+
+        public static System.Drawing.Point iCoord2XY(int sq, bool flipped)
+        {
+            if (flipped)
+                sq = SQUARE_FLIP(sq);
+            return new System.Drawing.Point(FILE_X(sq) - FILE_LEFT, RANK_Y(sq) - RANK_TOP);
         }
 
         public static int SQUARE_FLIP(int sq)
