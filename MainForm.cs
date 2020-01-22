@@ -215,7 +215,8 @@ namespace MoleXiangqi
 
         private void OpenMenu_Click(object sender, EventArgs e)
         {
-            string fileName = @"J:\C#\eleeye-master\XQFTOOLS\SAMPLE.PGN";
+            //string fileName = @"J:\C#\eleeye-master\XQFTOOLS\SAMPLE.PGN";
+            string fileName = @"J:\全国象棋赛\00GR0001.PGN";
             pos.ReadPgnFile(fileName);
             //if (openPGNDialog.ShowDialog() == DialogResult.OK)
             //{
@@ -244,7 +245,7 @@ namespace MoleXiangqi
 
             listboxMove.Items.Clear();
 
-            if (pos.iMoveList[0].comment.Length == 0)
+            if (pos.iMoveList[0].comment == null)
                 listboxMove.Items.Add("==开始==");
             else
                 listboxMove.Items.Add("==开始==*");

@@ -20,6 +20,9 @@ namespace MoleXiangqi
         private Dictionary<char, int> PieceDict;
         private Dictionary<char, int> NumberDict;
 
+        //统计棋子活动位置的数组
+        int[,] activeGrid = new int[16, 16];
+
         public void InitPGN()
         {
             PieceDict = new Dictionary<char, int>();
@@ -125,13 +128,15 @@ namespace MoleXiangqi
                     }
                 }
                 int index;
-                iMOVE step = new iMOVE();
+                iMOVE imv = new iMOVE();
                 do
                 {
                     //get move list till next comment
                     index = line.IndexOf('{');
-                    string content = "";
-                    if (index > 0)
+                    string content;
+                    if (index < 0)
+                        content = line;
+                    else
                     {
                         content = line.Substring(0, index);
                         line = line.Substring(index);
@@ -144,10 +149,10 @@ namespace MoleXiangqi
                             Debug.WriteLine(s);
                             MOVE mv = ParseWord(s);
                             MakeMove(mv);
-                            iMoveList.Add(step);
-                            step = new iMOVE();
-                            step.from = mv.sqSrc;
-                            step.to = mv.sqDst;
+                            iMoveList.Add(imv);
+                            imv = new iMOVE();
+                            imv.from = mv.sqSrc;
+                            imv.to = mv.sqDst;
                         }
                         else
                         {
@@ -163,7 +168,7 @@ namespace MoleXiangqi
                     m = commentReg.Match(line);
                     if (m.Success)
                     {//is comment
-                        step.comment = m.Groups[1].Value;
+                        imv.comment = m.Groups[1].Value;
                         line = line.Substring(m.Groups[1].Value.Length + 2);
                     }
 
