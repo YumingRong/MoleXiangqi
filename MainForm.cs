@@ -215,7 +215,7 @@ namespace MoleXiangqi
 
         private void menuOpen_Click(object sender, EventArgs e)
         {
-            string fileName = @"J:\全国象棋赛\04GR0001.PGN";
+            string fileName = @"J:\C#\eleeye-master\XQFTOOLS\SAMPLE.PGN";
             pos.ReadPgnFile(fileName);
 
             //if (openPGNDialog.ShowDialog() == DialogResult.OK)
@@ -357,6 +357,8 @@ namespace MoleXiangqi
 
         private void listboxMove_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (listboxMove.SelectedIndex < 0)
+                return;
             textBoxComment.Text = pos.iMoveList[listboxMove.SelectedIndex].comment;
             if (listboxMove.SelectedIndex > FENStep)
             {
@@ -376,17 +378,27 @@ namespace MoleXiangqi
 
         private void menuActivePositionTest_Click(object sender, EventArgs e)
         {
-            string sourceDirectory = @"J:\全国象棋赛";
-            IEnumerable<string> pgnFiles = Directory.EnumerateFiles(sourceDirectory, "*.PGN");
+            string sourceDirectory = @"J:\全局\1-23届五羊杯";
+            IEnumerable<string> pgnFiles = Directory.EnumerateFiles(sourceDirectory, "*.PGN", SearchOption.AllDirectories);
             int nFile = 0;
             pos.activeGrid = new int[2, 256];
+            int[] gameLength = new int[500];
+
             foreach (string fileName in pgnFiles)
             {
                 Console.WriteLine(fileName.Substring(sourceDirectory.Length + 1));
-                pos.ReadPgnFile(fileName);
+                if (!pos.ReadPgnFile(fileName))
+                    Console.WriteLine("Fail to read!");
                 nFile++;
+                gameLength[pos.iMoveList.Count]++;
+                if (pos.iMoveList.Count < 30)
+                {
+                    Console.WriteLine(fileName.Substring(sourceDirectory.Length + 1) + "\t" + pos.iMoveList.Count);
+                    //File.Delete(fileName);
+                }
             }
-            POSITION.Write2Csv("movepiece.csv", pos.activeGrid);
+            POSITION.Write2Csv(@"J:\xqtest\kingmove.csv", pos.activeGrid);
+            Write2Csv(@"J:\xqtest\gamelength.csv", gameLength);
             MessageBox.Show(String.Format("Finish reading.Total {0} files", nFile));
         }
 
@@ -415,5 +427,22 @@ namespace MoleXiangqi
                 MessageBox.Show("Cannot find sound file");
             }
         }
+
+        void Write2Csv(string csvPath, int[] array)
+        {
+            using (FileStream fs = new FileStream(csvPath.Trim(), FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            {
+                using (StreamWriter sw = new StreamWriter(fs, Encoding.Default))
+                {
+                    sw.AutoFlush = false;
+                    foreach (int i in array)
+                    {
+                        sw.WriteLine(i);
+                    }
+                    fs.Flush();
+                }
+            }
+        }
+
     }
 }

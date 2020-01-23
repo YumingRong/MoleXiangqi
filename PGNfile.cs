@@ -124,11 +124,12 @@ namespace MoleXiangqi
                     else
                     {
                         //Now comes the move and comment list
-                        line += fp.ReadToEnd();
+                        line += "\n" + fp.ReadToEnd();
                     }
                 }
                 int index;
                 iMOVE imv = new iMOVE();
+                //int phase = 2; //phase = 0是序号，1是move#1，2是 move#2
                 do
                 {
                     //get move list till next comment
@@ -136,42 +137,56 @@ namespace MoleXiangqi
                     string content;
                     if (index < 0)
                         content = line;
+                    else if (index == 0)
+                    {
+                        int index1 = line.IndexOf('}');
+                        if (index1 > 0)
+                        {//is comment
+                            imv.comment = line.Substring(1, index1 - 1);
+                            line = line.Substring(index1 + 1);
+                        }
+                        continue;
+                    }
                     else
                     {
                         content = line.Substring(0, index);
                         line = line.Substring(index);
                     }
-                    string[] words = content.Split(new char[] { ' ', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+                    string[] words = content.Split(new char[] { ' ', '\n', '\r', '.' }, StringSplitOptions.RemoveEmptyEntries);
                     foreach (string s in words)
                     {
-                        pattern = @"(\d+)\.";
+                        pattern = @"\A(\d+)\Z";
                         m = Regex.Match(s, pattern);
                         if (m.Success)
                         {//is a move number
-                            Debug.WriteLine(Convert.ToInt32(m.Groups[1].Value));
+                            //Debug.WriteLine(m.Groups[1].Value);
+                            //if (phase != 2 && m.Groups[1].Value != "2")//第一回合如果黑方先走，只有move#2
+                            //{
+                            //    Console.WriteLine("棋谱错误，缺少着法");
+                            //    return false;
+                            //}
+                            //phase = 0;
                         }
                         else if (s.Length == 4)
                         {//is a move
-                            Debug.WriteLine(s);
+                            //Debug.WriteLine(s);
                             MOVE mv = ParseWord(s);
+                            if (mv.pcSrc == 0)
+                                return false;
                             MakeMove(mv);
                             iMoveList.Add(imv);
                             imv = new iMOVE();
                             imv.from = mv.sqSrc;
                             imv.to = mv.sqDst;
                             activeGrid[SIDE(mv.pcSrc), mv.sqDst]++;
+                            //phase++;
                         }
                         else
                         {
-                            Debug.WriteLine(s);
+                            if (s != PGN.Result)
+                                Debug.WriteLine(s);
+                            return true;
                         }
-                    }
-                    Regex commentReg = new Regex(@"\{(.*)\}");
-                    m = commentReg.Match(line);
-                    if (m.Success)
-                    {//is comment
-                        imv.comment = m.Groups[1].Value;
-                        line = line.Substring(m.Groups[1].Value.Length + 2);
                     }
 
                 } while (line.Length > 0 & index >= 0);
@@ -189,6 +204,8 @@ namespace MoleXiangqi
             {//Normal case 炮八平五
                 file0 = FindFile(word[1]);
                 Tuple<int, int> t = FindPiece(pcType, file0);
+                if (t == null)
+                    return mv;
                 mv.pcSrc = t.Item1;
                 mv.sqSrc = t.Item2;
             }
@@ -265,7 +282,7 @@ namespace MoleXiangqi
                     mv.sqDst = XY2Coord(file1, rank1);
                     if (!LegalMove(mv.sqSrc, mv.sqDst))
                     {//有些棋谱会出现相、仕在同一列不用前后表示的情况
-                        Debug.WriteLine("不规范的记谱:" + word);
+                        //Debug.WriteLine("不规范的记谱:" + word);
                         mv.pcSrc++;
                         mv.sqSrc = sqPieces[mv.pcSrc];
                         Debug.Assert(FILE_X(sqPieces[mv.pcSrc]) == file0);
@@ -315,7 +332,7 @@ namespace MoleXiangqi
                 if (FILE_X(sq) == file)
                     return Tuple.Create(pc, sq);
             }
-            Debug.Fail("Cannot find the piece in the file");
+            Debug.WriteLine("Cannot find the piece in the file");
             return null;
         }
 
