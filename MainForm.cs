@@ -391,11 +391,11 @@ namespace MoleXiangqi
                     Console.WriteLine("Fail to read!");
                 nFile++;
                 gameLength[pos.iMoveList.Count]++;
-                if (pos.iMoveList.Count < 30)
-                {
-                    Console.WriteLine(fileName.Substring(sourceDirectory.Length + 1) + "\t" + pos.iMoveList.Count);
-                    //File.Delete(fileName);
-                }
+                //if (pos.iMoveList.Count < 30)
+                //{
+                //    Console.WriteLine(fileName.Substring(sourceDirectory.Length + 1) + "\t" + pos.iMoveList.Count);
+                //    //File.Delete(fileName);
+                //}
             }
             POSITION.Write2Csv(@"J:\xqtest\kingmove.csv", pos.activeGrid);
             Write2Csv(@"J:\xqtest\gamelength.csv", gameLength);
@@ -439,7 +439,7 @@ namespace MoleXiangqi
                     {
                         sw.WriteLine(i);
                     }
-                    fs.Flush();
+                    sw.Flush();
                 }
             }
         }
