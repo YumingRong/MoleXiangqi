@@ -215,7 +215,7 @@ namespace MoleXiangqi
 
         private void menuOpen_Click(object sender, EventArgs e)
         {
-            string fileName = @"J:\C#\eleeye-master\XQFTOOLS\SAMPLE.PGN";
+            string fileName = @"J:\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
             pos.ReadPgnFile(fileName);
 
             //if (openPGNDialog.ShowDialog() == DialogResult.OK)
@@ -400,6 +400,12 @@ namespace MoleXiangqi
             POSITION.Write2Csv(@"J:\xqtest\kingmove.csv", pos.activeGrid);
             Write2Csv(@"J:\xqtest\gamelength.csv", gameLength);
             MessageBox.Show(String.Format("Finish reading.Total {0} files", nFile));
+        }
+
+        private void menuEvaluate_Click(object sender, EventArgs e)
+        {
+            string fileName = @"J:\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
+            pos.ReadPgnFile(fileName);
         }
 
         public void DrawSelection(Point pt, Graphics g)

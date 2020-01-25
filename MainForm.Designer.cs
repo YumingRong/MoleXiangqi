@@ -50,6 +50,8 @@
             this.文件ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuOpen = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.测试ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuActivePositionTest = new System.Windows.Forms.ToolStripMenuItem();
             this.ilCPieces = new System.Windows.Forms.ImageList(this.components);
             this.openFENDialog = new System.Windows.Forms.OpenFileDialog();
             this.listboxMove = new System.Windows.Forms.ListBox();
@@ -61,8 +63,7 @@
             this.labelPlayer = new System.Windows.Forms.Label();
             this.labelEvent = new System.Windows.Forms.Label();
             this.openPGNDialog = new System.Windows.Forms.OpenFileDialog();
-            this.测试ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.menuActivePositionTest = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuEvaluate = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.panelBoard.SuspendLayout();
             this.SuspendLayout();
@@ -75,7 +76,7 @@
             // menuAboutEngine
             // 
             this.menuAboutEngine.Name = "menuAboutEngine";
-            this.menuAboutEngine.Size = new System.Drawing.Size(180, 22);
+            this.menuAboutEngine.Size = new System.Drawing.Size(153, 22);
             this.menuAboutEngine.Text = "关于UCCI引擎";
             this.menuAboutEngine.Click += new System.EventHandler(this.menuAboutEngine_Click);
             // 
@@ -90,21 +91,21 @@
             // menuPonder
             // 
             this.menuPonder.Name = "menuPonder";
-            this.menuPonder.Size = new System.Drawing.Size(180, 22);
+            this.menuPonder.Size = new System.Drawing.Size(141, 22);
             this.menuPonder.Text = "后台思考(&P)";
             this.menuPonder.Click += new System.EventHandler(this.menuPonder_Click);
             // 
             // menuAIBlack
             // 
             this.menuAIBlack.Name = "menuAIBlack";
-            this.menuAIBlack.Size = new System.Drawing.Size(180, 22);
+            this.menuAIBlack.Size = new System.Drawing.Size(141, 22);
             this.menuAIBlack.Text = "电脑执黑(&B)";
             this.menuAIBlack.Click += new System.EventHandler(this.menuAIBlack_Click);
             // 
             // menuAIRed
             // 
             this.menuAIRed.Name = "menuAIRed";
-            this.menuAIRed.Size = new System.Drawing.Size(180, 22);
+            this.menuAIRed.Size = new System.Drawing.Size(141, 22);
             this.menuAIRed.Text = "电脑执红(&R)";
             this.menuAIRed.Click += new System.EventHandler(this.menuAIRed_Click);
             // 
@@ -225,6 +226,22 @@
             this.menuStrip1.TabIndex = 2;
             this.menuStrip1.Text = "menuStrip1";
             // 
+            // 测试ToolStripMenuItem
+            // 
+            this.测试ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.menuActivePositionTest,
+            this.menuEvaluate});
+            this.测试ToolStripMenuItem.Name = "测试ToolStripMenuItem";
+            this.测试ToolStripMenuItem.Size = new System.Drawing.Size(45, 20);
+            this.测试ToolStripMenuItem.Text = "测试";
+            // 
+            // menuActivePositionTest
+            // 
+            this.menuActivePositionTest.Name = "menuActivePositionTest";
+            this.menuActivePositionTest.Size = new System.Drawing.Size(180, 22);
+            this.menuActivePositionTest.Text = "棋子活动范围";
+            this.menuActivePositionTest.Click += new System.EventHandler(this.menuActivePositionTest_Click);
+            // 
             // ilCPieces
             // 
             this.ilCPieces.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("ilCPieces.ImageStream")));
@@ -341,20 +358,12 @@
             // 
             this.openPGNDialog.Filter = "象棋对局面文件(*.PGN)|*.PGN";
             // 
-            // 测试ToolStripMenuItem
+            // menuEvaluate
             // 
-            this.测试ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.menuActivePositionTest});
-            this.测试ToolStripMenuItem.Name = "测试ToolStripMenuItem";
-            this.测试ToolStripMenuItem.Size = new System.Drawing.Size(45, 20);
-            this.测试ToolStripMenuItem.Text = "测试";
-            // 
-            // menuActivePositionTest
-            // 
-            this.menuActivePositionTest.Name = "menuActivePositionTest";
-            this.menuActivePositionTest.Size = new System.Drawing.Size(180, 22);
-            this.menuActivePositionTest.Text = "棋子活动范围";
-            this.menuActivePositionTest.Click += new System.EventHandler(this.menuActivePositionTest_Click);
+            this.menuEvaluate.Name = "menuEvaluate";
+            this.menuEvaluate.Size = new System.Drawing.Size(180, 22);
+            this.menuEvaluate.Text = "审局";
+            this.menuEvaluate.Click += new System.EventHandler(this.menuEvaluate_Click);
             // 
             // MainForm
             // 
@@ -415,5 +424,6 @@
         private System.Windows.Forms.TextBox textBoxComment;
         private System.Windows.Forms.ToolStripMenuItem 测试ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem menuActivePositionTest;
+        private System.Windows.Forms.ToolStripMenuItem menuEvaluate;
     }
 }

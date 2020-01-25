@@ -127,6 +127,8 @@ namespace MoleXiangqi
                         line += "\n" + fp.ReadToEnd();
                     }
                 }
+                Console.WriteLine("Simple {0}", Simple_Evaluate());
+                Console.WriteLine("Complex {0}", Complex_Evaluate());
                 int index;
                 iMOVE imv = new iMOVE();
                 //int phase = 2; //phase = 0是序号，1是move#1，2是 move#2
@@ -159,7 +161,7 @@ namespace MoleXiangqi
                         m = Regex.Match(s, pattern);
                         if (m.Success)
                         {//is a move number
-                            //Debug.WriteLine(m.Groups[1].Value);
+                            Debug.WriteLine(m.Groups[1].Value);
                             //if (phase != 2 && m.Groups[1].Value != "2")//第一回合如果黑方先走，只有move#2
                             //{
                             //    Console.WriteLine("棋谱错误，缺少着法");
@@ -169,7 +171,7 @@ namespace MoleXiangqi
                         }
                         else if (s.Length == 4)
                         {//is a move
-                            //Debug.WriteLine(s);
+                            Debug.WriteLine(s);
                             MOVE mv = ParseWord(s);
                             if (mv.pcSrc == 0)
                                 return false;
@@ -178,6 +180,8 @@ namespace MoleXiangqi
                             imv = new iMOVE();
                             imv.from = mv.sqSrc;
                             imv.to = mv.sqDst;
+                            Console.WriteLine("Simple {0}", Simple_Evaluate());
+                            Console.WriteLine("Complex {0}", Complex_Evaluate());
                             if (nStep > 14) //只统计中残局强子的活动范围
                                 for (int sd = 0; sd <= 1; sd++)
                                     for (int pc = KNIGHT_FROM; pc <= KNIGHT_TO; pc++)

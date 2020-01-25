@@ -98,7 +98,7 @@ namespace MoleXiangqi
                 for (int j = 0; j < 4; j++)
                 {
                     int sqPin = sqSrc + ccKingDelta[j];
-                    if (pcSquares[sqPin] == 0)
+                    if (IN_BOARD[sqPin] && pcSquares[sqPin] == 0)
                     {
                         sqDst = sqSrc + ccKnightDelta[j, 0];
                         pcDst = pcSquares[sqDst];
@@ -252,7 +252,7 @@ namespace MoleXiangqi
                 for (int j = 0; j < 4; j++)
                 {
                     int sqPin = sqSrc + ccKingDelta[j];
-                    if (pcSquares[sqPin] == 0)
+                    if (IN_BOARD[sqPin] && pcSquares[sqPin] == 0)
                     {
                         sqDst = sqSrc + ccKnightDelta[j, 0];
                         pcDst = pcSquares[sqDst];

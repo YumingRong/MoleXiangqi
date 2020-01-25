@@ -15,6 +15,7 @@ namespace MoleXiangqi
             moveStack = new Stack<MOVE>(120);
             zobristRecords = new long[500];//一局象棋棋一般不会超过300步
             InitPGN();
+            InitEval();
         }
 
         // 基本成员

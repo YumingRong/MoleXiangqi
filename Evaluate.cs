@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 
 namespace MoleXiangqi
 {
@@ -67,17 +67,15 @@ namespace MoleXiangqi
                 int[] pos = new int[256];
                 for (int y = 0; y < 10; y++)
                 {
-                    for (int x = 0; x < 5; x++)
-                        pos[iXY2Coord(x, y)] = pos[iXY2Coord(9 - x, y)] = origin[x + y * 5];
-                    pos[iXY2Coord(5, y)] = origin[5 + y * 5];
+                    for (int x = 0; x < 4; x++)
+                        pos[iXY2Coord(x, y)] = pos[iXY2Coord(8 - x, y)] = origin[x + y * 5];
+                    pos[iXY2Coord(4, y)] = origin[4 + y * 5];
                 }
-
                 return pos;
             }
             cKingPawnValue = InitEvalArray(cKingPawnHalfValue);
             cKnightValue = InitEvalArray(cKnightHalfValue);
             cBishopGuardValue = InitEvalArray(cBishopGuardHalfValue);
-
         }
 
         public int Simple_Evaluate()
@@ -92,20 +90,19 @@ namespace MoleXiangqi
             {
                 int bas = SIDE_TAG(sd);
                 int sqOppKing = sqPieces[OPP_SIDE_TAG(sd) + KING_FROM];
+                if (sd==1)
+                    sqOppKing = SQUARE_FLIP(sqOppKing);
                 for (int i = bas; i < bas + 16; i++)
                 {
-                    int pcKind = cnPieceKinds[i];
-                    if (pcKind > 0)
+                    int sq = sqPieces[i];
+                    if (sq > 0)
                     {
-                        int sq = sqPieces[i];
+                        int pcKind = cnPieceKinds[i];
                         if (sd == 1)
-                        {
                             sq = SQUARE_FLIP(sq);
-                            sqOppKing = SQUARE_FLIP(sqOppKing);
-                        }
                         totalPieces++;
                         nP[sd, pcKind]++;
-                        materialValue[sd] += cnPieceValue[cnPieceKinds[i]];
+                        materialValue[sd] += cnPieceValue[pcKind];
                         switch (pcKind)
                         {
                             case PIECE_ROOK:
@@ -123,9 +120,16 @@ namespace MoleXiangqi
                                 //检查绊马腿
                                 for (int j = 0; j < 4; j++)
                                 {
-                                    int pin = pcSquares[sq + ccKingDelta[j]];
-                                    if (pin > 0)
-                                        positionValue[sd] -= 10;
+                                    int sqPin = sq + ccKingDelta[j];
+                                    if (IN_BOARD[sqPin] && pcSquares[sqPin] == 0)
+                                    {
+                                        int sqDst = sq + ccKnightDelta[j, 0];
+                                        if (IN_BOARD[sqDst])
+                                            positionValue[sd] += 5;
+                                        sqDst = sq + ccKnightDelta[j, 1];
+                                        if (IN_BOARD[sqDst])
+                                            positionValue[sd] += 5;
+                                    }
                                 }
                                 break;
                             case PIECE_PAWN:
@@ -164,20 +168,20 @@ namespace MoleXiangqi
             {
                 int bas = SIDE_TAG(sd);
                 int sqOppKing = sqPieces[OPP_SIDE_TAG(sd) + KING_FROM];
+                if (sd == 1)
+                    sqOppKing = SQUARE_FLIP(sqOppKing);
                 for (int i = bas; i < bas + 16; i++)
                 {
-                    int pcKind = cnPieceKinds[i];
-                    if (pcKind > 0)
+                    int sqSrc = sqPieces[i];
+                    if (sqSrc > 0)
                     {
-                        int sqSrc = sqPieces[i];
+                        int pcKind = cnPieceKinds[i];
                         if (sd == 1)
-                        {
                             sqSrc = SQUARE_FLIP(sqSrc);
-                            sqOppKing = SQUARE_FLIP(sqOppKing);
-                        }
+                        Debug.Assert(IN_BOARD[sqSrc]);
                         totalPieces++;
                         nP[sd, pcKind]++;
-                        materialValue[sd] += cnPieceValue[cnPieceKinds[i]];
+                        materialValue[sd] += cnPieceValue[pcKind];
                         int sqDst, pcDst;
                         switch (pcKind)
                         {
