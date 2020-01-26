@@ -154,7 +154,7 @@ namespace MoleXiangqi
             return materialValue[0] - materialValue[1] + positionValue[0] - positionValue[1];
         }
 
-        public int[,] vpc = new int[300, 32]; //统计每一步各个棋子的位置分
+        public int[,] vpc = new int[300, 34]; //统计每一步各个棋子的位置分
         public int Complex_Evaluate()
         {
             int totalPieces = 0;
@@ -284,10 +284,12 @@ namespace MoleXiangqi
                                 positionValue[sd] += cBishopGuardValue[sqMirror];
                                 break;
                         }
-                        vpc[nStep, pc - 16] = positionValue[sd] - posv0;
+                        vpc[nStep, pc - 14] = positionValue[sd] - posv0;
                     }
                 }
             }
+            vpc[nStep, 0] = materialValue[0];
+            vpc[nStep, 1] = materialValue[1];
             return materialValue[0] - materialValue[1] + positionValue[0] - positionValue[1];
         }
     }

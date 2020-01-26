@@ -461,7 +461,7 @@ namespace MoleXiangqi
                     sw.AutoFlush = false;
                     for (int n=0;n< pos.iMoveList.Count; n++)
                     {
-                        for (int pc = 0; pc < 32; pc++)
+                        for (int pc = 0; pc < 34; pc++)
                         {
                             sw.Write("{0},", pos.vpc[n, pc]);
                         }
