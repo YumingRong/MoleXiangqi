@@ -28,10 +28,10 @@ namespace MoleXiangqi
             1,   3,   5,   7,   9,
             15,  20,  34,  42,  60,
             23,  27,  32,  37,  40,
-            22,  25,  27,  29,  35,
-            20,  22,  25,  25,  28,
-            7,   0,   15,  0,   16,
-            0,   0,   5,   0,   10,
+            22,  25,  27,  30,  35,
+            20,  22,  25,  27,  28,
+            10,   0,  15,  0,   15,
+            5,   0,   5,   0,   10,
             0,   0,   0,   0,   0,
             0,   0,   0,   5,   2,
             0,   0,   0,   11,  15,
@@ -57,8 +57,8 @@ namespace MoleXiangqi
              0,   0,   0,   0,   0,
              0,   0, -10,   0,   0,
              0,   0,   0,   0,   0,
-             -5,   0,  0,  -5,  20,
-             0,   0,   0,   0,  15,
+             -5,   0,  0,  -5,  10,
+             0,   0,   0,   0,  12,
              0,   0,   0,   0,   0};
 
 
@@ -90,16 +90,15 @@ namespace MoleXiangqi
             {
                 int bas = SIDE_TAG(sd);
                 int sqOppKing = sqPieces[OPP_SIDE_TAG(sd) + KING_FROM];
-                if (sd==1)
-                    sqOppKing = SQUARE_FLIP(sqOppKing);
+                int sqMirror, sqOppKingMirror;
+                sqOppKingMirror = sd==0? sqOppKing: SQUARE_FLIP(sqOppKing);
                 for (int i = bas; i < bas + 16; i++)
                 {
                     int sq = sqPieces[i];
                     if (sq > 0)
                     {
                         int pcKind = cnPieceKinds[i];
-                        if (sd == 1)
-                            sq = SQUARE_FLIP(sq);
+                        sqMirror = sd==0? sq: SQUARE_FLIP(sq);
                         totalPieces++;
                         nP[sd, pcKind]++;
                         materialValue[sd] += cnPieceValue[pcKind];
@@ -116,7 +115,7 @@ namespace MoleXiangqi
                                     positionValue[sd] += 20;
                                 break;
                             case PIECE_KNIGHT:
-                                positionValue[sd] += cKnightValue[sq];
+                                positionValue[sd] += cKnightValue[sqMirror];
                                 //检查绊马腿
                                 for (int j = 0; j < 4; j++)
                                 {
@@ -134,11 +133,11 @@ namespace MoleXiangqi
                                 break;
                             case PIECE_PAWN:
                             case PIECE_KING:
-                                positionValue[sd] += cKingPawnValue[sq];
+                                positionValue[sd] += cKingPawnValue[sqMirror];
                                 break;
                             case PIECE_BISHOP:
                             case PIECE_GUARD:
-                                positionValue[sd] += cBishopGuardValue[sq];
+                                positionValue[sd] += cBishopGuardValue[sqMirror];
                                 break;
                         }
                     }
@@ -155,7 +154,7 @@ namespace MoleXiangqi
             return materialValue[0] - materialValue[1] + positionValue[0] - positionValue[1];
         }
 
-
+        public int[,] vpc = new int[300, 32]; //统计每一步各个棋子的位置分
         public int Complex_Evaluate()
         {
             int totalPieces = 0;
@@ -168,89 +167,124 @@ namespace MoleXiangqi
             {
                 int bas = SIDE_TAG(sd);
                 int sqOppKing = sqPieces[OPP_SIDE_TAG(sd) + KING_FROM];
-                if (sd == 1)
-                    sqOppKing = SQUARE_FLIP(sqOppKing);
-                for (int i = bas; i < bas + 16; i++)
+                for (int pc = bas; pc < bas + 16; pc++)
                 {
-                    int sqSrc = sqPieces[i];
+                    int sqSrc = sqPieces[pc];
                     if (sqSrc > 0)
                     {
-                        int pcKind = cnPieceKinds[i];
-                        if (sd == 1)
-                            sqSrc = SQUARE_FLIP(sqSrc);
+                        int pcKind = cnPieceKinds[pc];
                         Debug.Assert(IN_BOARD[sqSrc]);
                         totalPieces++;
                         nP[sd, pcKind]++;
                         materialValue[sd] += cnPieceValue[pcKind];
                         int sqDst, pcDst;
+                        int posv0 = positionValue[sd];
                         switch (pcKind)
                         {
                             //车的机动性
                             case PIECE_ROOK:
                                 if (FILE_X(sqSrc) == FILE_X(sqOppKing) || RANK_Y(sqSrc) == RANK_Y(sqOppKing))
                                     positionValue[sd] += 20;
-                                for (int j = 0; j < 4; j++)
+                                for (int i = 0; i < 4; i++)
                                 {
-                                    int nDelta = ccKingDelta[j];
+                                    int nDelta = ccKingDelta[i];
                                     for (sqDst = sqSrc + nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
                                     {
                                         pcDst = pcSquares[sqDst];
                                         if (pcDst == 0)
-                                            positionValue[sd] += 3;
+                                            positionValue[sd] += 2;
                                         else
                                         {
-                                            positionValue[sd] += 3;
+                                            positionValue[sd] += 2;
                                             break;
                                         }
                                     }
                                 }
                                 break;
                             case PIECE_CANNON:
-                                if (FILE_X(sqSrc) == FILE_X(sqOppKing))
-                                    positionValue[sd] += 40;
-                                else if (RANK_Y(sqSrc) == RANK_Y(sqOppKing))
-                                    positionValue[sd] += 20;
+                                for (int j = 0; j < 4; j++)
+                                {
+                                    int nDelta = ccKingDelta[j];
+                                    for (sqDst = sqSrc + nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
+                                    {
+                                        pcDst = pcSquares[sqDst];
+                                        if (pcDst != 0)
+                                        {
+                                            if (sqDst == sqOppKing) //炮与将之间是禁区
+                                                positionValue[sd] += (sqDst - sqSrc) / nDelta * 2;
+                                            break;
+                                        }
+                                    }
+                                    for (sqDst += nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
+                                    {
+                                        pcDst = pcSquares[sqDst];
+                                        if (pcDst != 0)
+                                        {
+                                            if (SIDE(pcDst) != sd)
+                                                positionValue[sd] += 4;
+                                            for (sqDst += nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
+                                            {
+                                                pcDst = pcSquares[sqDst];
+                                                if (pcDst != 0)
+                                                {
+                                                    if (SIDE(pcDst) == 1 - sd)
+                                                    {
+                                                        positionValue[sd] += 3;
+                                                        if (sqDst == sqOppKing)
+                                                            positionValue[sd] += 15;
+                                                    }
+                                                    break;
+                                                }
+                                                else
+                                                    positionValue[sd] += 2;
+                                            }
+                                            break;
+                                        }
+                                    }
+                                }
                                 break;
                             case PIECE_KNIGHT:
                                 //马的机动性
-                                for (int j = 0; j < 4; j++)
+                                for (int i = 0; i < 4; i++)
                                 {
-                                    int sqPin = sqSrc + ccKingDelta[j];
-                                    if (pcSquares[sqPin] == 0)
+                                    int sqPin = sqSrc + ccKingDelta[i];
+                                    if (IN_BOARD[sqPin] && pcSquares[sqPin] == 0)
                                     {
-                                        sqDst = sqSrc + ccKnightDelta[j, 0];
+                                        sqDst = sqSrc + ccKnightDelta[i, 0];
                                         if (IN_BOARD[sqDst])
-                                            positionValue[sd] += 5;
-                                        sqDst = sqSrc + ccKnightDelta[j, 1];
+                                            positionValue[sd] += 3;
+                                        sqDst = sqSrc + ccKnightDelta[i, 1];
                                         if (IN_BOARD[sqDst])
-                                            positionValue[sd] += 5;
+                                            positionValue[sd] += 3;
                                     }
                                 }
                                 //到王的距离
-                                positionValue[sd] += (13 - Math.Abs(FILE_X(sqSrc) - FILE_X(sqOppKing)) + Math.Abs(RANK_Y(sqSrc) - RANK_Y(sqOppKing)))*2;
+                                positionValue[sd] += (13 - Math.Abs(FILE_X(sqSrc) - FILE_X(sqOppKing)) - Math.Abs(RANK_Y(sqSrc) - RANK_Y(sqOppKing)))*3;
                                 break;
                             case PIECE_PAWN:
-                                //到王的距离
-                                positionValue[sd] += (10 - Math.Abs(FILE_X(sqSrc) - FILE_X(sqOppKing)) + Math.Abs(RANK_Y(sqSrc) - RANK_Y(sqOppKing))) * 5;
-                                if (RANK_Y(sqSrc) > RANK_Y(sqOppKing))
-                                    positionValue[sd] -= 20;
+                                int sqMirror = sd == 0 ? sqSrc : SQUARE_FLIP(sqSrc);
+                                positionValue[sd] += cKingPawnValue[sqMirror];
                                 break;
                             case PIECE_KING:
-                                positionValue[sd] += cKingPawnValue[sqSrc];
+                                sqMirror = sd == 0 ? sqSrc : SQUARE_FLIP(sqSrc);
+                                positionValue[sd] += cKingPawnValue[sqMirror];
                                 break;
                             case PIECE_BISHOP:
-                                for (int j = 0; j < 4; j++)
+                                for (int i = 0; i < 4; i++)
                                 {
-                                    sqDst = sqSrc + ccGuardDelta[j];
-                                    if ((IN_BOARD[sqDst] && HOME_HALF(sqDst, sdPlayer) && pcSquares[sqDst] == 0))
-                                        positionValue[sd] += 7;
+                                    sqDst = sqSrc + ccGuardDelta[i];
+                                    if ((IN_BOARD[sqDst] && HOME_HALF(sqDst, sd) && pcSquares[sqDst] == 0))
+                                        positionValue[sd] += 4;
                                 }
-                                positionValue[sd] += cBishopGuardValue[sqSrc];
+                                sqMirror = sd == 0 ? sqSrc : SQUARE_FLIP(sqSrc);
+                                positionValue[sd] += cBishopGuardValue[sqMirror];
                                 break;
                             case PIECE_GUARD:
-                                positionValue[sd] += cBishopGuardValue[sqSrc];
+                                sqMirror = sd == 0 ? sqSrc : SQUARE_FLIP(sqSrc);
+                                positionValue[sd] += cBishopGuardValue[sqMirror];
                                 break;
                         }
+                        vpc[nStep, pc - 16] = positionValue[sd] - posv0;
                     }
                 }
             }

@@ -127,7 +127,7 @@ namespace MoleXiangqi
                         line += "\n" + fp.ReadToEnd();
                     }
                 }
-                Console.WriteLine("Simple {0}", Simple_Evaluate());
+                //Console.WriteLine("Simple {0}", Simple_Evaluate());
                 Console.WriteLine("Complex {0}", Complex_Evaluate());
                 int index;
                 iMOVE imv = new iMOVE();
@@ -180,7 +180,7 @@ namespace MoleXiangqi
                             imv = new iMOVE();
                             imv.from = mv.sqSrc;
                             imv.to = mv.sqDst;
-                            Console.WriteLine("Simple {0}", Simple_Evaluate());
+                            //Console.WriteLine("Simple {0}", Simple_Evaluate());
                             Console.WriteLine("Complex {0}", Complex_Evaluate());
                             if (nStep > 14) //只统计中残局强子的活动范围
                                 for (int sd = 0; sd <= 1; sd++)
