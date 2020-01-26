@@ -55,7 +55,7 @@ namespace MoleXiangqi
              0,   0,   0,   0,   0,
              0,   0,   0,   0,   0,
              0,   0,   0,   0,   0,
-             0,   0, -10,   0,   0,
+             0,   0,  -5,   0,   0,
              0,   0,   0,   0,   0,
              -5,   0,  0,  -5,  10,
              0,   0,   0,   0,  12,
@@ -177,7 +177,7 @@ namespace MoleXiangqi
                         totalPieces++;
                         nP[sd, pcKind]++;
                         materialValue[sd] += cnPieceValue[pcKind];
-                        int sqDst, pcDst;
+                        int sqDst, pcDst, sdDst;
                         int posv0 = positionValue[sd];
                         switch (pcKind)
                         {
@@ -190,12 +190,17 @@ namespace MoleXiangqi
                                     int nDelta = ccKingDelta[i];
                                     for (sqDst = sqSrc + nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
                                     {
-                                        pcDst = pcSquares[sqDst];
-                                        if (pcDst == 0)
-                                            positionValue[sd] += 2;
+                                        sdDst = pcSquares[sqDst] & 0b00110000;
+                                        if (sdDst == 0)
+                                            positionValue[sd] += 2; //车控制空白区域
+                                        else if (sdDst == bas)
+                                        {
+                                            positionValue[sd] += 3; //车保护己方棋子
+                                            break;
+                                        }
                                         else
                                         {
-                                            positionValue[sd] += 2;
+                                            positionValue[sd] += 4; //车攻击对方棋子
                                             break;
                                         }
                                     }
@@ -211,7 +216,7 @@ namespace MoleXiangqi
                                         if (pcDst != 0)
                                         {
                                             if (sqDst == sqOppKing) //炮与将之间是禁区
-                                                positionValue[sd] += (sqDst - sqSrc) / nDelta * 2;
+                                                positionValue[sd] += (sqDst - sqSrc) / nDelta * 4;
                                             break;
                                         }
                                     }
@@ -221,7 +226,9 @@ namespace MoleXiangqi
                                         if (pcDst != 0)
                                         {
                                             if (SIDE(pcDst) != sd)
-                                                positionValue[sd] += 4;
+                                                positionValue[sd] += 5; //炮直瞄对方棋子
+                                            else
+                                                positionValue[sd] += 3;  //炮保护己方棋子
                                             for (sqDst += nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
                                             {
                                                 pcDst = pcSquares[sqDst];
@@ -229,17 +236,17 @@ namespace MoleXiangqi
                                                 {
                                                     if (SIDE(pcDst) == 1 - sd)
                                                     {
-                                                        positionValue[sd] += 3;
+                                                        positionValue[sd] += 3; //炮间接瞄准位置
                                                         if (sqDst == sqOppKing)
                                                             positionValue[sd] += 15;
                                                     }
                                                     break;
                                                 }
-                                                else
-                                                    positionValue[sd] += 2;
                                             }
                                             break;
                                         }
+                                        else
+                                            positionValue[sd] += 1;  //炮瞄准的空白区域
                                     }
                                 }
                                 break;
@@ -250,12 +257,20 @@ namespace MoleXiangqi
                                     int sqPin = sqSrc + ccKingDelta[i];
                                     if (IN_BOARD[sqPin] && pcSquares[sqPin] == 0)
                                     {
-                                        sqDst = sqSrc + ccKnightDelta[i, 0];
-                                        if (IN_BOARD[sqDst])
-                                            positionValue[sd] += 3;
-                                        sqDst = sqSrc + ccKnightDelta[i, 1];
-                                        if (IN_BOARD[sqDst])
-                                            positionValue[sd] += 3;
+                                        for (int j= 0;j<2;j++)
+                                        {
+                                            sqDst = sqSrc + ccKnightDelta[j, 0];
+                                            if (IN_BOARD[sqDst])
+                                            {
+                                                sdDst = pcSquares[sqDst] & 0b00110000;
+                                                if (sdDst == 0)
+                                                    positionValue[sd] += 2;
+                                                else if (sdDst == sd)
+                                                    positionValue[sd] += 3;
+                                                else
+                                                    positionValue[sd] += 5;
+                                            }
+                                        }
                                     }
                                 }
                                 //到王的距离
