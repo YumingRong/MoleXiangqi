@@ -154,7 +154,7 @@ namespace MoleXiangqi
             return materialValue[0] - materialValue[1] + positionValue[0] - positionValue[1];
         }
 
-        public int[,] vpc = new int[300, 34]; //统计每一步各个棋子的位置分
+        public int[,] ivpc = new int[300, 34]; //统计每一步各个棋子的位置分
         public int Middle_Evaluate()
         {
             int totalPieces = 0;
@@ -299,12 +299,12 @@ namespace MoleXiangqi
                                 positionValue[sd] += cBishopGuardValue[sqMirror];
                                 break;
                         }
-                        vpc[nStep, pc - 14] = positionValue[sd] - posv0;
+                        ivpc[nStep, pc - 14] = positionValue[sd] - posv0;
                     }
                 }
             }
-            vpc[nStep, 0] = materialValue[0];
-            vpc[nStep, 1] = materialValue[1];
+            ivpc[nStep, 0] = materialValue[0];
+            ivpc[nStep, 1] = materialValue[1];
             return materialValue[0] - materialValue[1] + positionValue[0] - positionValue[1];
         }
 
@@ -476,7 +476,7 @@ namespace MoleXiangqi
                                 {
                                     pcDst = pcSquares[sqDst];
                                     attackMap[sd, sqDst]++;
-                                    if (SIDE(pcDst) != 0)
+                                    if (pcDst != 0)
                                         break;
                                 }
                             }
@@ -485,8 +485,12 @@ namespace MoleXiangqi
                             for (int j = 0; j < 4; j++)
                             {
                                 int nDelta = ccKingDelta[j];
+                                for (sqDst = sqSrc + nDelta; IN_BOARD[sqDst] && pcSquares[sqDst] == 0; sqDst += nDelta)
+                                {
+                                }
                                 for (sqDst = sqSrc + nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
                                 {
+                                    attackMap[sd, sqDst]++;
                                     pcDst = pcSquares[sqDst];
                                     if (pcDst != 0)
                                         break;
@@ -494,7 +498,7 @@ namespace MoleXiangqi
                             }
                             break;
                         case PIECE_KNIGHT:
-                                        for (int j = 0; j < 4; j++)
+                            for (int j = 0; j < 4; j++)
                             {
                                 int sqPin = sqSrc + ccKingDelta[j];
                                 if (IN_BOARD[sqPin] && pcSquares[sqPin] == 0)
@@ -505,25 +509,21 @@ namespace MoleXiangqi
                             }
                             break;
                         case PIECE_PAWN:
-                            sqDst = SQUARE_FORWARD(sqSrc, sdPlayer);
+                            sqDst = SQUARE_FORWARD(sqSrc, sd);
                             attackMap[sd, sqDst]++;
-                            if (AWAY_HALF(sqSrc, sdPlayer))
+                            if (AWAY_HALF(sqSrc, sd))
                             {
-                                for (delta = -1; delta <= 1; delta += 2)
-                                {
-                                    sqDst = sqSrc + delta;
-                                    attackMap[sd, sqDst]++;
-                                }
+                                attackMap[sd, sqSrc + 1]++;
+                                attackMap[sd, sqSrc - 1]++;
                             }
                             break;
                         case PIECE_BISHOP:
                             for (int j = 0; j < 4; j++)
                             {
                                 sqDst = sqSrc + ccGuardDelta[j];
-                                if (IN_BOARD[sqDst] && HOME_HALF(sqDst, sdPlayer) && pcSquares[sqDst] == 0)
+                                if (IN_BOARD[sqDst] && HOME_HALF(sqDst, sd) && pcSquares[sqDst] == 0)
                                 {
-                                    sqDst += ccGuardDelta[j];
-                                    attackMap[sd, sqDst]++;
+                                    attackMap[sd, sqDst + ccGuardDelta[j]]++;
                                 }
                             }
                             break;
@@ -543,13 +543,57 @@ namespace MoleXiangqi
                                     attackMap[sd, sqDst]++;
                             }
                             break;
-
+                        default:
+                            Debug.Fail("Unknown piece type");
+                            break;
                     }
                 }
             }
 
-            vpc[nStep, 0] = materialValue[0];
-            vpc[nStep, 1] = materialValue[1];
+            for (int sd = 0; sd < 2; sd++)
+            {
+                //棋盘上的子越多，炮的威力越大，马的威力越小
+                materialValue[sd] += (int)(2.4 * totalPieces * nP[sd, PIECE_CANNON]);  //可调系数
+                materialValue[sd] -= (int)(0.9 * totalPieces * nP[sd, PIECE_KNIGHT]);  //可调系数
+                //兵种不全扣分
+                if (nP[sd, PIECE_ROOK] == 0)
+                    materialValue[sd] -= 30; //有车胜无车
+                if (nP[sd, PIECE_CANNON] == 0)
+                    materialValue[sd] -= 20;
+                if (nP[sd, PIECE_KNIGHT] == 0)
+                    materialValue[sd] -= 20;
+                //缺相怕炮
+                materialValue[sd] += (nP[sd, PIECE_BISHOP] - nP[1 - sd, PIECE_CANNON]) * 15;
+                //缺仕怕车
+                materialValue[sd] += (nP[sd, PIECE_GUARD] - nP[1 - sd, PIECE_ROOK]) * 15;
+            }
+
+            for (int y = RANK_TOP; y <= RANK_BOTTOM; y++)
+                for (int x = FILE_LEFT; x <= FILE_RIGHT; x++)
+                {
+                    int sq = XY2Coord(x, y);
+                    int pc = pcSquares[sq];
+                    int sd = SIDE(pc);
+                    if (sd != 0)
+                    {
+                        //受保护分数不重复计算
+                        if (attackMap[sd, sq] > 0)
+                            positionValue[sd] += 3;
+                        //攻击分数
+                        positionValue[1 - sd] += attackMap[1 - sd, sq] * 5;
+                    }
+                    else
+                    {//机动性
+                        positionValue[sd] += attackMap[sd, sq] * 2;
+                        positionValue[1 - sd] += attackMap[1 - sd, sq] * 2;
+                    }
+                }
+
+            ivpc[nStep, 0] = nStep;
+            ivpc[nStep, 1] = materialValue[0];
+            ivpc[nStep, 2] = materialValue[1];
+            ivpc[nStep, 3] = positionValue[0];
+            ivpc[nStep, 4] = positionValue[1];
             return materialValue[0] - materialValue[1] + positionValue[0] - positionValue[1];
         }
 

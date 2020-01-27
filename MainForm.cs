@@ -406,7 +406,7 @@ namespace MoleXiangqi
         {
             string fileName = @"J:\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第02局-柳大华(红先胜)杨官麟.PGN";
             pos.ReadPgnFile(fileName);
-            Write2Csv(@"J:\xqtest\eval.csv", pos.vpc);
+            Write2Csv(@"J:\xqtest\eval.csv", pos.ivpc, pos.iMoveList.Count, 5);
 
         }
 
@@ -452,18 +452,18 @@ namespace MoleXiangqi
             }
         }
 
-        void Write2Csv(string csvPath, int[,] array)
+        void Write2Csv(string csvPath, int[,] array, int nrow, int ncol)
         {
-            using (FileStream fs = new FileStream(csvPath.Trim(), FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            using (FileStream fs = new FileStream(csvPath.Trim(), FileMode.OpenOrCreate, FileAccess.Write))
             {
                 using (StreamWriter sw = new StreamWriter(fs, Encoding.Default))
                 {
                     sw.AutoFlush = false;
-                    for (int n=0;n< pos.iMoveList.Count; n++)
+                    for (int row = 0; row < nrow; row++)
                     {
-                        for (int pc = 0; pc < 34; pc++)
+                        for (int col = 0; col < ncol; col++)
                         {
-                            sw.Write("{0},", pos.vpc[n, pc]);
+                            sw.Write("{0},", pos.ivpc[row, col]);
                         }
                         sw.WriteLine();
                     }
