@@ -26,8 +26,8 @@ namespace MoleXiangqi
             //只列出左半边位置分数数组，以方便修改
             int[] cKingPawnHalfValue = {
             1,   3,   5,   7,   9,
-            15,  20,  34,  42,  60,
-            23,  27,  32,  37,  40,
+            15,  20,  34,  40,  50,
+            23,  27,  32,  35,  40,
             22,  25,  27,  30,  35,
             20,  22,  25,  27,  28,
             10,   0,  15,  0,   15,
@@ -259,7 +259,7 @@ namespace MoleXiangqi
                                     {
                                         for (int j= 0;j<2;j++)
                                         {
-                                            sqDst = sqSrc + ccKnightDelta[j, 0];
+                                            sqDst = sqSrc + ccKnightDelta[i, j];
                                             if (IN_BOARD[sqDst])
                                             {
                                                 sdDst = pcSquares[sqDst] & 0b00110000;
