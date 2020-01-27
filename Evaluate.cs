@@ -581,15 +581,17 @@ namespace MoleXiangqi
                     if (sd != -1)
                     {
                         //受保护分数不重复计算
-                        if (attackMap[sd, sq] > 0)
-                            positionValue[sd] += 3;
+                        int[] protects = { 0, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+                        positionValue[sd] += protects[attackMap[sd, sq]] * 3;
                         //攻击分数
                         positionValue[1 - sd] += attackMap[1 - sd, sq] * 5;
                     }
                     else
-                    {//机动性
-                        positionValue[0] += attackMap[0, sq] * 2;
-                        positionValue[1] += attackMap[1, sq] * 2;
+                    {
+                        int[] mobilitys = { 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2 };
+                        //机动性，重复计算不超过2
+                        positionValue[0] += mobilitys[attackMap[0, sq]] * 2;
+                        positionValue[1] += mobilitys[attackMap[1, sq]] * 2;
                     }
                 }
 
