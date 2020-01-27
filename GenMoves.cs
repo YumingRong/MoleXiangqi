@@ -470,14 +470,14 @@ namespace MoleXiangqi
             // 2. 判断是否被对方的马将军(以仕(士)的步长当作马腿)
             for (i = 0; i < 4; i++)
             {
-                if (pcSquares[sqSrc + ccGuardDelta[i]] != 0)
-                    continue;
-                for (j = 0; j < 2; j++)
-                {
-                    pcDst = pcSquares[sqSrc + ccKnightCheckDelta[i, j]];
-                    if (cnPieceTypes[pcDst] == pcOppSide + PIECE_KNIGHT)
-                        return true;
-                }
+                int sqPin = sqSrc + ccGuardDelta[i];
+                if (IN_BOARD[sqPin] && pcSquares[sqPin] == 0)
+                    for (j = 0; j < 2; j++)
+                    {
+                        pcDst = pcSquares[sqSrc + ccKnightCheckDelta[i, j]];
+                        if (cnPieceTypes[pcDst] == pcOppSide + PIECE_KNIGHT)
+                            return true;
+                    }
             }
 
             // 3. 判断是否被对方的车或炮将军

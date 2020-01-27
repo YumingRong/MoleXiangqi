@@ -128,7 +128,7 @@ namespace MoleXiangqi
                     }
                 }
                 //Console.WriteLine("Simple {0}", Simple_Evaluate());
-                Console.WriteLine("Complex {0}", Complex_Evaluate());
+                Console.WriteLine("Complex {0}", Middle_Evaluate());
                 int index;
                 iMOVE imv = new iMOVE();
                 //int phase = 2; //phase = 0是序号，1是move#1，2是 move#2
@@ -181,7 +181,7 @@ namespace MoleXiangqi
                             imv.from = mv.sqSrc;
                             imv.to = mv.sqDst;
                             //Console.WriteLine("Simple {0}", Simple_Evaluate());
-                            Console.WriteLine("Complex {0}", Complex_Evaluate());
+                            Console.WriteLine("Complex {0}", Middle_Evaluate());
                             if (nStep > 14) //只统计中残局强子的活动范围
                                 for (int sd = 0; sd <= 1; sd++)
                                     for (int pc = KNIGHT_FROM; pc <= KNIGHT_TO; pc++)

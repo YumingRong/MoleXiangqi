@@ -404,7 +404,7 @@ namespace MoleXiangqi
 
         private void menuEvaluate_Click(object sender, EventArgs e)
         {
-            string fileName = @"J:\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
+            string fileName = @"J:\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第02局-柳大华(红先胜)杨官麟.PGN";
             pos.ReadPgnFile(fileName);
             Write2Csv(@"J:\xqtest\eval.csv", pos.vpc);
 

@@ -55,7 +55,7 @@ namespace MoleXiangqi
              0,   0,   0,   0,   0,
              0,   0,   0,   0,   0,
              0,   0,   0,   0,   0,
-             0,   0,  -5,   0,   0,
+             0,   0,  -3,   0,   0,
              0,   0,   0,   0,   0,
              -5,   0,  0,  -5,  10,
              0,   0,   0,   0,  12,
@@ -91,14 +91,14 @@ namespace MoleXiangqi
                 int bas = SIDE_TAG(sd);
                 int sqOppKing = sqPieces[OPP_SIDE_TAG(sd) + KING_FROM];
                 int sqMirror, sqOppKingMirror;
-                sqOppKingMirror = sd==0? sqOppKing: SQUARE_FLIP(sqOppKing);
+                sqOppKingMirror = sd == 0 ? sqOppKing : SQUARE_FLIP(sqOppKing);
                 for (int i = bas; i < bas + 16; i++)
                 {
                     int sq = sqPieces[i];
                     if (sq > 0)
                     {
                         int pcKind = cnPieceKinds[i];
-                        sqMirror = sd==0? sq: SQUARE_FLIP(sq);
+                        sqMirror = sd == 0 ? sq : SQUARE_FLIP(sq);
                         totalPieces++;
                         nP[sd, pcKind]++;
                         materialValue[sd] += cnPieceValue[pcKind];
@@ -155,7 +155,7 @@ namespace MoleXiangqi
         }
 
         public int[,] vpc = new int[300, 34]; //统计每一步各个棋子的位置分
-        public int Complex_Evaluate()
+        public int Middle_Evaluate()
         {
             int totalPieces = 0;
             int[,] nP = new int[2, 8];
@@ -257,7 +257,7 @@ namespace MoleXiangqi
                                     int sqPin = sqSrc + ccKingDelta[i];
                                     if (IN_BOARD[sqPin] && pcSquares[sqPin] == 0)
                                     {
-                                        for (int j= 0;j<2;j++)
+                                        for (int j = 0; j < 2; j++)
                                         {
                                             sqDst = sqSrc + ccKnightDelta[i, j];
                                             if (IN_BOARD[sqDst])
@@ -273,8 +273,8 @@ namespace MoleXiangqi
                                         }
                                     }
                                 }
-                                //到王的距离
-                                positionValue[sd] += (13 - Math.Abs(FILE_X(sqSrc) - FILE_X(sqOppKing)) - Math.Abs(RANK_Y(sqSrc) - RANK_Y(sqOppKing)))*3;
+                                //到王的距离 King Tropism
+                                positionValue[sd] += (13 - Math.Abs(FILE_X(sqSrc) - FILE_X(sqOppKing)) - Math.Abs(RANK_Y(sqSrc) - RANK_Y(sqOppKing))) * 3;
                                 break;
                             case PIECE_PAWN:
                                 int sqMirror = sd == 0 ? sqSrc : SQUARE_FLIP(sqSrc);
@@ -307,5 +307,251 @@ namespace MoleXiangqi
             vpc[nStep, 1] = materialValue[1];
             return materialValue[0] - materialValue[1] + positionValue[0] - positionValue[1];
         }
+
+        public int[,] attackMap = new int[2, 256];
+        public int Complex_Evaluate()
+        {
+            int totalPieces = 0;
+            int[,] nP = new int[2, 8];
+            int[] materialValue = new int[2];
+            int[] positionValue = new int[2];
+            materialValue[0] = materialValue[1] = 0;
+
+            //find absolute pin.举例：当头炮与对方的帅之间隔了自己的马和对方的相，
+            //自己的马就放在DiscoveredAttack里，对方的相就在PinnedPieces里
+            SortedSet<int> PinnedPieces = new SortedSet<int>();
+            SortedSet<int> DiscoveredAttack = new SortedSet<int>();
+            SortedSet<int>[] BannedGrids = new SortedSet<int>[2];
+            BannedGrids[0] = new SortedSet<int>();
+            BannedGrids[1] = new SortedSet<int>();
+            int sqSrc, sqDst, pcDst, delta;
+            for (int sd = 0; sd < 2; sd++)
+            {
+                int bas = SIDE_TAG(sd);
+                int sqOppKing = sqPieces[OPP_SIDE_TAG(sd) + KING_FROM];
+
+                for (int pc = bas + ROOK_FROM; pc <= bas + ROOK_TO; pc++)
+                {
+                    sqSrc = sqPieces[pc];
+                    if (FILE_X(sqSrc) == FILE_X(sqOppKing))
+                    {
+                        delta = Math.Sign(sqOppKing - sqSrc) * 16;
+                        int pcBlocker = 0, nblock = 0;
+                        for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
+                        {
+                            if (pcSquares[sq] != 0)
+                            {
+                                pcBlocker = pcSquares[sq];
+                                nblock++;
+                            }
+                        }
+                        if (nblock == 1)
+                        {
+                            if (SIDE(pcBlocker) == sd)
+                                DiscoveredAttack.Add(pcBlocker);
+                            else
+                                PinnedPieces.Add(pcBlocker);
+                        }
+                    }
+
+                    if (RANK_Y(sqSrc) == RANK_Y(sqOppKing))
+                    {
+                        delta = Math.Sign(sqOppKing - sqSrc);
+                        int pcBlocker = 0, nblock = 0;
+                        for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
+                        {
+                            if (pcSquares[sq] != 0)
+                            {
+                                pcBlocker = pcSquares[sq];
+                                nblock++;
+                            }
+                        }
+                        if (nblock == 1)
+                        {
+                            if (SIDE(pcBlocker) == sd)
+                                DiscoveredAttack.Add(pcBlocker);
+                            else
+                                PinnedPieces.Add(pcBlocker);
+                        }
+                    }
+                }
+
+                for (int pc = bas + CANNON_FROM; pc <= bas + CANNON_TO; pc++)
+                {
+                    sqSrc = sqPieces[pc];
+                    if (FILE_X(sqSrc) == FILE_X(sqOppKing))
+                    {
+                        delta = Math.Sign(sqOppKing - sqSrc) * 16;
+                        int pcBlocker = 0, nblock = 0;
+                        for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
+                        {
+                            if (pcSquares[sq] != 0)
+                            {
+                                nblock++;
+                            }
+                        }
+                        if (nblock == 2)
+                            for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
+                            {
+                                pcBlocker = pcSquares[sq];
+                                if (SIDE(pcBlocker) == sd)
+                                    DiscoveredAttack.Add(pcBlocker);
+                                else
+                                    PinnedPieces.Add(pcBlocker);
+                            }
+                        else if (nblock == 0) //空心炮
+                        {
+                            for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
+                                BannedGrids[sd].Add(sq);
+                        }
+                    }
+                    if (RANK_Y(sqSrc) == RANK_Y(sqOppKing))
+                    {
+                        delta = Math.Sign(sqOppKing - sqSrc);
+                        int pcBlocker = 0, nblock = 0;
+                        for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
+                        {
+                            if (pcSquares[sq] != 0)
+                            {
+                                nblock++;
+                            }
+                        }
+                        if (nblock == 2)
+                            for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
+                            {
+                                pcBlocker = pcSquares[sq];
+                                if (SIDE(pcBlocker) == sd)
+                                    DiscoveredAttack.Add(pcBlocker);
+                                else
+                                    PinnedPieces.Add(pcBlocker);
+                            }
+                        else if (nblock == 0) //空心炮
+                        {
+                            for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
+                                BannedGrids[sd].Add(sq);
+                        }
+                    }
+                }
+
+                // 3. 判断对方的将是否被马威胁(以仕(士)的步长当作马腿)
+                for (int i = 0; i < 4; i++)
+                {
+                    int pcBlocker = pcSquares[sqOppKing + ccGuardDelta[i]];
+                    if (pcBlocker != 0)
+                        for (int j = 0; j < 2; j++)
+                        {
+                            pcDst = pcSquares[sqOppKing + ccKnightCheckDelta[i, j]];
+                            if (cnPieceTypes[pcDst] == bas + PIECE_KNIGHT)
+                                if (SIDE(pcBlocker) == sd)
+                                    DiscoveredAttack.Add(pcBlocker);
+                                else
+                                    PinnedPieces.Add(pcBlocker);
+                        }
+                }
+            }
+
+            for (int sd = 0; sd < 2; sd++)
+            {
+                int bas = SIDE_TAG(sd);
+                for (int pc = bas; pc < bas + 16; pc++)
+                {
+                    sqSrc = sqPieces[pc];
+                    if (sqSrc == 0)
+                        continue;
+                    int pcKind = cnPieceKinds[pc];
+                    totalPieces++;
+                    nP[sd, pcKind]++;
+                    materialValue[sd] += cnPieceValue[pcKind];
+                    //对于pinned的棋子，不考虑其攻击力。
+                    //这是一种简化的计算，实际上pin是有方向的，但这样太过复杂
+                    if (PinnedPieces.Contains(pc))
+                        continue;
+                    switch (pcKind)
+                    {
+                        case PIECE_ROOK:
+                            for (int j = 0; j < 4; j++)
+                            {
+                                delta = ccKingDelta[j];
+                                for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
+                                {
+                                    pcDst = pcSquares[sqDst];
+                                    attackMap[sd, sqDst]++;
+                                    if (SIDE(pcDst) != 0)
+                                        break;
+                                }
+                            }
+                            break;
+                        case PIECE_CANNON:
+                            for (int j = 0; j < 4; j++)
+                            {
+                                int nDelta = ccKingDelta[j];
+                                for (sqDst = sqSrc + nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
+                                {
+                                    pcDst = pcSquares[sqDst];
+                                    if (pcDst != 0)
+                                        break;
+                                }
+                            }
+                            break;
+                        case PIECE_KNIGHT:
+                                        for (int j = 0; j < 4; j++)
+                            {
+                                int sqPin = sqSrc + ccKingDelta[j];
+                                if (IN_BOARD[sqPin] && pcSquares[sqPin] == 0)
+                                {
+                                    attackMap[sd, sqSrc + ccKnightDelta[j, 0]]++;
+                                    attackMap[sd, sqSrc + ccKnightDelta[j, 1]]++;
+                                }
+                            }
+                            break;
+                        case PIECE_PAWN:
+                            sqDst = SQUARE_FORWARD(sqSrc, sdPlayer);
+                            attackMap[sd, sqDst]++;
+                            if (AWAY_HALF(sqSrc, sdPlayer))
+                            {
+                                for (delta = -1; delta <= 1; delta += 2)
+                                {
+                                    sqDst = sqSrc + delta;
+                                    attackMap[sd, sqDst]++;
+                                }
+                            }
+                            break;
+                        case PIECE_BISHOP:
+                            for (int j = 0; j < 4; j++)
+                            {
+                                sqDst = sqSrc + ccGuardDelta[j];
+                                if (IN_BOARD[sqDst] && HOME_HALF(sqDst, sdPlayer) && pcSquares[sqDst] == 0)
+                                {
+                                    sqDst += ccGuardDelta[j];
+                                    attackMap[sd, sqDst]++;
+                                }
+                            }
+                            break;
+                        case PIECE_GUARD:
+                            for (int j = 0; j < 4; j++)
+                            {
+                                sqDst = sqSrc + ccGuardDelta[j];
+                                if (IN_FORT[sqDst])
+                                    attackMap[sd, sqDst]++;
+                            }
+                            break;
+                        case PIECE_KING:
+                            for (int i = 0; i < 4; i++)
+                            {
+                                sqDst = sqSrc + ccKingDelta[i];
+                                if (IN_FORT[sqDst])
+                                    attackMap[sd, sqDst]++;
+                            }
+                            break;
+
+                    }
+                }
+            }
+
+            vpc[nStep, 0] = materialValue[0];
+            vpc[nStep, 1] = materialValue[1];
+            return materialValue[0] - materialValue[1] + positionValue[0] - positionValue[1];
+        }
+
     }
 }
