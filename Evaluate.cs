@@ -308,7 +308,7 @@ namespace MoleXiangqi
             return materialValue[0] - materialValue[1] + positionValue[0] - positionValue[1];
         }
 
-        public int[,] attackMap = new int[2, 256];
+        public int[,] attackMap;
         public int Complex_Evaluate()
         {
             int totalPieces = 0;
@@ -316,7 +316,7 @@ namespace MoleXiangqi
             int[] materialValue = new int[2];
             int[] positionValue = new int[2];
             materialValue[0] = materialValue[1] = 0;
-
+            attackMap = new int[2, 256];
             //find absolute pin.举例：当头炮与对方的帅之间隔了自己的马和对方的相，
             //自己的马就放在DiscoveredAttack里，对方的相就在PinnedPieces里
             SortedSet<int> PinnedPieces = new SortedSet<int>();
@@ -485,16 +485,20 @@ namespace MoleXiangqi
                             for (int j = 0; j < 4; j++)
                             {
                                 int nDelta = ccKingDelta[j];
-                                for (sqDst = sqSrc + nDelta; IN_BOARD[sqDst] && pcSquares[sqDst] == 0; sqDst += nDelta)
-                                {
-                                }
                                 for (sqDst = sqSrc + nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
                                 {
-                                    attackMap[sd, sqDst]++;
-                                    pcDst = pcSquares[sqDst];
-                                    if (pcDst != 0)
-                                        break;
+                                    if (pcSquares[sqDst] != 0)
+                                    {
+                                        for (sqDst += nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
+                                        {
+                                            attackMap[sd, sqDst]++;
+                                            if (pcSquares[sqDst] != 0)
+                                                goto NextFor;
+                                        }
+                                    }
                                 }
+                            NextFor:;
+
                             }
                             break;
                         case PIECE_KNIGHT:
@@ -574,7 +578,7 @@ namespace MoleXiangqi
                     int sq = XY2Coord(x, y);
                     int pc = pcSquares[sq];
                     int sd = SIDE(pc);
-                    if (sd != 0)
+                    if (sd != -1)
                     {
                         //受保护分数不重复计算
                         if (attackMap[sd, sq] > 0)
@@ -584,8 +588,8 @@ namespace MoleXiangqi
                     }
                     else
                     {//机动性
-                        positionValue[sd] += attackMap[sd, sq] * 2;
-                        positionValue[1 - sd] += attackMap[1 - sd, sq] * 2;
+                        positionValue[0] += attackMap[0, sq] * 2;
+                        positionValue[1] += attackMap[1, sq] * 2;
                     }
                 }
 

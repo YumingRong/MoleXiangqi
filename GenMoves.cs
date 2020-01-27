@@ -227,8 +227,7 @@ namespace MoleXiangqi
                     nDelta = ccKingDelta[j];
                     for (sqDst = sqSrc + nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
                     {
-                        pcDst = pcSquares[sqDst];
-                        if (pcDst != 0)
+                        if (pcSquares[sqDst] != 0)
                             break;
                     }
                     for (sqDst += nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
@@ -404,36 +403,18 @@ namespace MoleXiangqi
                 // 7. 如果是炮，判断起来和车一样
                 case PIECE_CANNON:
                     if (SAME_RANK(sqSrc, sqDst))
-                    {
                         nDelta = (sqDst < sqSrc ? -1 : 1);
-                    }
                     else if (SAME_FILE(sqSrc, sqDst))
-                    {
                         nDelta = (sqDst < sqSrc ? -16 : 16);
-                    }
                     else
-                    {
                         return false;
-                    }
-                    if (pcCaptured > 0)
+                    int nPin = 0;
+                    for (sqPin = sqSrc + nDelta; sqPin != sqDst; sqPin += nDelta)
                     {
-                        int nPin = 0;
-                        for (sqPin = sqSrc + nDelta; sqPin != sqDst; sqPin += nDelta)
-                        {
-                            if (pcSquares[sqPin] > 0)
-                                nPin++;
-                        }
-                        return nPin == 1;
+                        if (pcSquares[sqPin] > 0)
+                            nPin++;
                     }
-                    else
-                    {
-                        for (sqPin = sqSrc + nDelta; sqPin != sqDst; sqPin += nDelta)
-                        {
-                            if (pcSquares[sqPin] > 0)
-                                return false;
-                        }
-                        return true;
-                    }
+                    return pcCaptured > 0 && nPin == 1 || pcCaptured == 0 && nPin == 0;
 
                 // 8. 如果是兵(卒)，则按红方和黑方分情况讨论
                 default:

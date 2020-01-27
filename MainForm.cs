@@ -404,10 +404,11 @@ namespace MoleXiangqi
 
         private void menuEvaluate_Click(object sender, EventArgs e)
         {
-            string fileName = @"J:\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第02局-柳大华(红先胜)杨官麟.PGN";
-            pos.ReadPgnFile(fileName);
-            Write2Csv(@"J:\xqtest\eval.csv", pos.ivpc, pos.iMoveList.Count, 5);
-
+            //string fileName = @"J:\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第02局-柳大华(红先胜)杨官麟.PGN";
+            //pos.ReadPgnFile(fileName);
+            //Write2Csv(@"J:\xqtest\eval.csv", pos.ivpc, pos.iMoveList.Count, 5);
+            pos.Complex_Evaluate();
+            WriteAttackMap2Csv(@"J:\xqtest\eval.csv");
         }
 
         public void DrawSelection(Point pt, Graphics g)
@@ -463,7 +464,31 @@ namespace MoleXiangqi
                     {
                         for (int col = 0; col < ncol; col++)
                         {
-                            sw.Write("{0},", pos.ivpc[row, col]);
+                            sw.Write("{0},", array[row, col]);
+                        }
+                        sw.WriteLine();
+                    }
+                    sw.Flush();
+                }
+            }
+        }
+
+        void WriteAttackMap2Csv(string csvPath)
+        {
+            using (FileStream fs = new FileStream(csvPath.Trim(), FileMode.OpenOrCreate, FileAccess.Write))
+            {
+                using (StreamWriter sw = new StreamWriter(fs, Encoding.Default))
+                {
+                    sw.AutoFlush = false;
+                    for (int sd = 0; sd < 2; sd++)
+                    {
+                        for (int y = 0; y < 10; y++)
+                        {
+                            for (int x = 0; x < 9; x++)
+                            {
+                                sw.Write("{0},", pos.attackMap[sd, POSITION.iXY2Coord(x, y)]);
+                            }
+                            sw.WriteLine();
                         }
                         sw.WriteLine();
                     }
