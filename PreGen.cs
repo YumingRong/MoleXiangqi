@@ -4,7 +4,7 @@ using System.Diagnostics;
 namespace MoleXiangqi
 {
     partial class POSITION
-    {        
+    {
         // 判断棋子是否在棋盘中的数组
         public readonly static bool[] IN_BOARD = {
                 false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
@@ -43,6 +43,47 @@ namespace MoleXiangqi
   false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
   false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false
 };
+
+        // 是否未过河
+        static readonly bool[,] HOME_HALF =
+        {
+            {
+  false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+  false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+  false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+  false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+  false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+  false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+  false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+  false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+  false, false, false, true, true, true, true, true, true, true, true, true, false, false, false, false,
+  false, false, false, true, true, true, true, true, true, true, true, true, false, false, false, false,
+  false, false, false, true, true, true, true, true, true, true, true, true, false, false, false, false,
+  false, false, false, true, true, true, true, true, true, true, true, true, false, false, false, false,
+  false, false, false, true, true, true, true, true, true, true, true, true, false, false, false, false,
+  false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+  false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+  false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false
+},
+            {
+              false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+  false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+  false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+  false, false, false, true, true, true, true, true, true, true, true, true, false, false, false, false,
+  false, false, false, true, true, true, true, true, true, true, true, true, false, false, false, false,
+  false, false, false, true, true, true, true, true, true, true, true, true, false, false, false, false,
+  false, false, false, true, true, true, true, true, true, true, true, true, false, false, false, false,
+  false, false, false, true, true, true, true, true, true, true, true, true, false, false, false, false,
+  false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+  false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+  false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+  false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+  false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+  false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+  false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+  false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false
+            }
+        };
 
         // 判断步长是否符合特定走法的数组，1=帅(将)，2=仕(士)，3=相(象)
         readonly static int[] ccLegalSpan = {

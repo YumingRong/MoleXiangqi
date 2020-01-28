@@ -90,8 +90,7 @@ namespace MoleXiangqi
             {
                 int bas = SIDE_TAG(sd);
                 int sqOppKing = sqPieces[OPP_SIDE_TAG(sd) + KING_FROM];
-                int sqMirror, sqOppKingMirror;
-                sqOppKingMirror = sd == 0 ? sqOppKing : SQUARE_FLIP(sqOppKing);
+                int sqMirror;
                 for (int i = bas; i < bas + 16; i++)
                 {
                     int sq = sqPieces[i];
@@ -281,7 +280,7 @@ namespace MoleXiangqi
                                 for (int i = 0; i < 4; i++)
                                 {
                                     sqDst = sqSrc + ccGuardDelta[i];
-                                    if ((IN_BOARD[sqDst] && HOME_HALF(sqDst, sd) && pcSquares[sqDst] == 0))
+                                    if ((HOME_HALF[sd, sqDst] && pcSquares[sqDst] == 0))
                                         positionValue[sd] += 4;
                                 }
                                 sqMirror = sd == 0 ? sqSrc : SQUARE_FLIP(sqSrc);
@@ -497,8 +496,7 @@ namespace MoleXiangqi
                         case PIECE_KNIGHT:
                             for (int j = 0; j < 4; j++)
                             {
-                                int sqPin = sqSrc + ccKingDelta[j];
-                                if (pcSquares[sqPin] == 0)
+                                if (pcSquares[sqSrc + ccKingDelta[j]] == 0)
                                 {
                                     attackMap[sd, sqSrc + ccKnightDelta[j, 0]]++;
                                     attackMap[sd, sqSrc + ccKnightDelta[j, 1]]++;
@@ -508,7 +506,7 @@ namespace MoleXiangqi
                         case PIECE_PAWN:
                             sqDst = SQUARE_FORWARD(sqSrc, sd);
                             attackMap[sd, sqDst]++;
-                            if (AWAY_HALF(sqSrc, sd))
+                            if (HOME_HALF[1 - sd, sqSrc])
                             {
                                 attackMap[sd, sqSrc + 1]++;
                                 attackMap[sd, sqSrc - 1]++;
@@ -518,7 +516,7 @@ namespace MoleXiangqi
                             for (int j = 0; j < 4; j++)
                             {
                                 sqDst = sqSrc + ccGuardDelta[j];
-                                if (IN_BOARD[sqDst] && HOME_HALF(sqDst, sd) && pcSquares[sqDst] == 0)
+                                if (HOME_HALF[sd, sqDst] && pcSquares[sqDst] == 0)
                                 {
                                     attackMap[sd, sqDst + ccGuardDelta[j]]++;
                                 }

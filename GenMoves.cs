@@ -124,7 +124,7 @@ namespace MoleXiangqi
                     if ((pcDst & pcSelfSide) == 0)
                         mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
                 }
-                if (AWAY_HALF(sqSrc, sdPlayer))
+                if (HOME_HALF[1- sdPlayer, sqSrc])
                 {
                     for (nDelta = -1; nDelta <= 1; nDelta += 2)
                     {
@@ -147,7 +147,7 @@ namespace MoleXiangqi
                 for (int j = 0; j < 4; j++)
                 {
                     sqDst = sqSrc + ccGuardDelta[j];
-                    if (!(IN_BOARD[sqDst] && HOME_HALF(sqDst, sdPlayer) && pcSquares[sqDst] == 0))
+                    if (!(HOME_HALF[sdPlayer, sqDst] && pcSquares[sqDst] == 0))
                         continue;
                     sqDst += ccGuardDelta[j];
                     pcDst = pcSquares[sqDst];
@@ -277,7 +277,7 @@ namespace MoleXiangqi
                     if ((pcDst & pcOppSide) != 0)
                         mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
                 }
-                if (AWAY_HALF(sqSrc, sdPlayer))
+                if (HOME_HALF[1- sdPlayer, sqSrc])
                 {
                     for (nDelta = -1; nDelta <= 1; nDelta += 2)
                     {
@@ -300,7 +300,7 @@ namespace MoleXiangqi
                 for (int j = 0; j < 4; j++)
                 {
                     sqDst = sqSrc + ccGuardDelta[j];
-                    if (!(IN_BOARD[sqDst] && HOME_HALF(sqDst, sdPlayer) && pcSquares[sqDst] == 0))
+                    if (!(HOME_HALF[sdPlayer, sqDst] && pcSquares[sqDst] == 0))
                         continue;
                     sqDst += ccGuardDelta[j];
                     pcDst = pcSquares[sqDst];
@@ -318,9 +318,7 @@ namespace MoleXiangqi
                 {
                     sqDst = sqSrc + ccGuardDelta[j];
                     if (!IN_FORT[sqDst])
-                    {
                         continue;
-                    }
                     pcDst = pcSquares[sqDst];
                     if ((pcDst & pcOppSide) != 0)
                         mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
@@ -418,14 +416,12 @@ namespace MoleXiangqi
 
                 // 8. 如果是兵(卒)，则按红方和黑方分情况讨论
                 default:
-                    if (AWAY_HALF(sqDst, sdPlayer) && (sqDst == sqSrc - 1 || sqDst == sqSrc + 1))
-                    {
+                    if( sqDst == SQUARE_FORWARD(sqSrc, sdPlayer))
                         return true;
-                    }
+                    if (HOME_HALF[1 - sdPlayer, sqSrc] && (sqDst == sqSrc - 1 || sqDst == sqSrc + 1))
+                        return true;
                     else
-                    {
-                        return sqDst == SQUARE_FORWARD(sqSrc, sdPlayer);
-                    }
+                        return false;
             }
         }
 

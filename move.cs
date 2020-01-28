@@ -43,18 +43,6 @@ namespace MoleXiangqi
             return sqSrc + ccKnightPin[sqDst - sqSrc + 256];
         }
 
-        // 是否未过河
-        static bool HOME_HALF(int sq, int sd)
-        {
-            return (sq & 0x80) != (sd << 7);
-        }
-
-        // 是否已过河
-        static bool AWAY_HALF(int sq, int sd)
-        {
-            return (sq & 0x80) == (sd << 7);
-        }
-
         // 是否在河的同一边
         static bool SAME_HALF(int sqSrc, int sqDst)
         {
