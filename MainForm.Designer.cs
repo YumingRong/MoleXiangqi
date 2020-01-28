@@ -52,6 +52,7 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.测试ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuActivePositionTest = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuEvaluate = new System.Windows.Forms.ToolStripMenuItem();
             this.ilCPieces = new System.Windows.Forms.ImageList(this.components);
             this.openFENDialog = new System.Windows.Forms.OpenFileDialog();
             this.listboxMove = new System.Windows.Forms.ListBox();
@@ -63,7 +64,8 @@
             this.labelPlayer = new System.Windows.Forms.Label();
             this.labelEvent = new System.Windows.Forms.Label();
             this.openPGNDialog = new System.Windows.Forms.OpenFileDialog();
-            this.menuEvaluate = new System.Windows.Forms.ToolStripMenuItem();
+            this.连续审局ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuContinuousEval = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.panelBoard.SuspendLayout();
             this.SuspendLayout();
@@ -177,6 +179,7 @@
             this.局面ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.menuFlipBoard,
             this.toolStripMenuItem1,
+            this.连续审局ToolStripMenuItem,
             this.menuEditFEN,
             this.toolStripMenuItem2,
             this.menuCopyFEN,
@@ -230,7 +233,8 @@
             // 
             this.测试ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.menuActivePositionTest,
-            this.menuEvaluate});
+            this.menuEvaluate,
+            this.menuContinuousEval});
             this.测试ToolStripMenuItem.Name = "测试ToolStripMenuItem";
             this.测试ToolStripMenuItem.Size = new System.Drawing.Size(45, 20);
             this.测试ToolStripMenuItem.Text = "测试";
@@ -241,6 +245,13 @@
             this.menuActivePositionTest.Size = new System.Drawing.Size(180, 22);
             this.menuActivePositionTest.Text = "棋子活动范围";
             this.menuActivePositionTest.Click += new System.EventHandler(this.menuActivePositionTest_Click);
+            // 
+            // menuEvaluate
+            // 
+            this.menuEvaluate.Name = "menuEvaluate";
+            this.menuEvaluate.Size = new System.Drawing.Size(180, 22);
+            this.menuEvaluate.Text = "审局";
+            this.menuEvaluate.Click += new System.EventHandler(this.menuEvaluate_Click);
             // 
             // ilCPieces
             // 
@@ -358,12 +369,18 @@
             // 
             this.openPGNDialog.Filter = "象棋对局面文件(*.PGN)|*.PGN";
             // 
-            // menuEvaluate
+            // 连续审局ToolStripMenuItem
             // 
-            this.menuEvaluate.Name = "menuEvaluate";
-            this.menuEvaluate.Size = new System.Drawing.Size(180, 22);
-            this.menuEvaluate.Text = "审局";
-            this.menuEvaluate.Click += new System.EventHandler(this.menuEvaluate_Click);
+            this.连续审局ToolStripMenuItem.Name = "连续审局ToolStripMenuItem";
+            this.连续审局ToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
+            this.连续审局ToolStripMenuItem.Text = "连续审局";
+            // 
+            // menuContinuousEval
+            // 
+            this.menuContinuousEval.Name = "menuContinuousEval";
+            this.menuContinuousEval.Size = new System.Drawing.Size(180, 22);
+            this.menuContinuousEval.Text = "连续审局";
+            this.menuContinuousEval.Click += new System.EventHandler(this.menuContinuousEval_Click);
             // 
             // MainForm
             // 
@@ -425,5 +442,7 @@
         private System.Windows.Forms.ToolStripMenuItem 测试ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem menuActivePositionTest;
         private System.Windows.Forms.ToolStripMenuItem menuEvaluate;
+        private System.Windows.Forms.ToolStripMenuItem 连续审局ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem menuContinuousEval;
     }
 }

@@ -146,7 +146,7 @@ namespace MoleXiangqi
             return materialValue[0] - materialValue[1] + positionValue[0] - positionValue[1];
         }
 
-        public int[,] ivpc = new int[300, 37]; //统计每一步各个棋子的位置分
+        public int[,] ivpc = new int[300, 48]; //统计每一步各个棋子的位置分
         public int Middle_Evaluate()
         {
             int totalPieces = 0;
@@ -309,11 +309,12 @@ namespace MoleXiangqi
             int[] positionValue = new int[2];
             materialValue[0] = materialValue[1] = 0;
             attackMap = new int[2, 256];
+
             //find absolute pin.举例：当头炮与对方的帅之间隔了自己的马和对方的相，
             //自己的马就放在DiscoveredAttack里，对方的相就在PinnedPieces里
             bool[] PinnedPieces = new bool[48];
             bool[] DiscoveredAttack = new bool[48];
-            bool[,] BannedGrids = new bool[2,256];
+            bool[,] BannedGrids = new bool[2, 256];
             int sqSrc, sqDst, pcDst, delta;
             for (int sd = 0; sd < 2; sd++)
             {
@@ -440,6 +441,7 @@ namespace MoleXiangqi
                 }
             }
 
+            int posv0;
             for (int sd = 0; sd < 2; sd++)
             {
                 int bas = SIDE_TAG(sd);
@@ -449,14 +451,19 @@ namespace MoleXiangqi
                     if (sqSrc == 0)
                         continue;
                     int pcKind = cnPieceKinds[pc];
+                    int sqSrcMirror = sd == 0 ? sqSrc : SQUARE_FLIP(sqSrc);
+
                     totalPieces++;
                     nP[sd, pcKind]++;
                     materialValue[sd] += cnPieceValue[pcKind];
-                    int posv0 = positionValue[sd];
                     //对于pinned的棋子，不考虑其攻击力。
                     //这是一种简化的计算，实际上pin是有方向的，但这样太过复杂
                     if (PinnedPieces[pc])
+                    {
+                        ivpc[nStep, pc] = 0;
                         continue;
+                    }
+                    posv0 = positionValue[sd];
                     switch (pcKind)
                     {
                         case PIECE_ROOK:
@@ -466,7 +473,7 @@ namespace MoleXiangqi
                                 for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
                                 {
                                     pcDst = pcSquares[sqDst];
-                                    attackMap[sd, sqDst]++;
+                                    attackMap[sd, sqDst]+=2;
                                     if (pcDst != 0)
                                         break;
                                 }
@@ -478,18 +485,28 @@ namespace MoleXiangqi
                                 int nDelta = ccKingDelta[j];
                                 for (sqDst = sqSrc + nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
                                 {
-                                    if (pcSquares[sqDst] != 0)
+                                    if (pcSquares[sqDst] != 0) //炮架
                                     {
                                         for (sqDst += nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
                                         {
-                                            attackMap[sd, sqDst]++;
-                                            if (pcSquares[sqDst] != 0)
-                                                goto NextFor;
+                                            attackMap[sd, sqDst]+=1;
+                                            if (pcSquares[sqDst] != 0) //直瞄点
+                                            {
+                                                attackMap[sd, sqDst] += 3;
+                                                for (sqDst += nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
+                                                {
+                                                    if (pcSquares[sqDst] != 0)  //间瞄点
+                                                    {
+                                                        attackMap[sd, sqDst] += 2;
+                                                        goto NextFor;
+                                                    }
+
+                                                }
+                                            }
                                         }
                                     }
                                 }
                             NextFor:;
-
                             }
                             break;
                         case PIECE_KNIGHT:
@@ -497,39 +514,39 @@ namespace MoleXiangqi
                             {
                                 if (pcSquares[sqSrc + ccKingDelta[j]] == 0)
                                 {
-                                    attackMap[sd, sqSrc + ccKnightDelta[j, 0]]++;
-                                    attackMap[sd, sqSrc + ccKnightDelta[j, 1]]++;
+                                    attackMap[sd, sqSrc + ccKnightDelta[j, 0]]+=3;
+                                    attackMap[sd, sqSrc + ccKnightDelta[j, 1]]+=3;
                                 }
                             }
-                            positionValue[sd] += cKnightValue[sqSrc];
+                            positionValue[sd] += cKnightValue[sqSrcMirror];
                             break;
                         case PIECE_PAWN:
                             sqDst = SQUARE_FORWARD(sqSrc, sd);
                             attackMap[sd, sqDst]++;
                             if (HOME_HALF[1 - sd, sqSrc])
                             {
-                                attackMap[sd, sqSrc + 1]++;
-                                attackMap[sd, sqSrc - 1]++;
+                                attackMap[sd, sqSrc + 1]+=4;
+                                attackMap[sd, sqSrc - 1]+=4;
                             }
-                            positionValue[sd] += cKingPawnValue[sqSrc];
+                            positionValue[sd] += cKingPawnValue[sqSrcMirror];
                             break;
                         case PIECE_BISHOP:
                             for (int j = 0; j < 4; j++)
                             {
                                 sqDst = sqSrc + ccGuardDelta[j];
                                 if (HOME_HALF[sd, sqDst] && pcSquares[sqDst] == 0)
-                                    attackMap[sd, sqDst + ccGuardDelta[j]]++;
+                                    attackMap[sd, sqDst + ccGuardDelta[j]]+=4;
                             }
-                            positionValue[sd] += cBishopGuardValue[sqSrc];
+                            positionValue[sd] += cBishopGuardValue[sqSrcMirror];
                             break;
                         case PIECE_GUARD:
                             for (int j = 0; j < 4; j++)
                             {
                                 sqDst = sqSrc + ccGuardDelta[j];
                                 if (IN_FORT[sqDst])
-                                    attackMap[sd, sqDst]++;
+                                    attackMap[sd, sqDst]+=4;
                             }
-                            positionValue[sd] += cBishopGuardValue[sqSrc];
+                            positionValue[sd] += cBishopGuardValue[sqSrcMirror];
                             break;
                         case PIECE_KING:
                             for (int i = 0; i < 4; i++)
@@ -538,34 +555,36 @@ namespace MoleXiangqi
                                 if (IN_FORT[sqDst])
                                     attackMap[sd, sqDst]++;
                             }
-                            positionValue[sd] += cKingPawnValue[sqSrc];
+                            positionValue[sd] += cKingPawnValue[sqSrcMirror];
                             break;
                         default:
                             Debug.Fail("Unknown piece type");
                             break;
                     }
-                    ivpc[nStep, pc - 11] = positionValue[sd] - posv0;
+                    ivpc[nStep, pc] = positionValue[sd] - posv0;
                 }
             }
 
+            int[] pair = new int[2];
             for (int sd = 0; sd < 2; sd++)
             {
                 //棋盘上的子越多，炮的威力越大，马的威力越小
-                materialValue[sd] += (int)(2.4 * totalPieces * nP[sd, PIECE_CANNON]);  //可调系数
-                materialValue[sd] -= (int)(0.9 * totalPieces * nP[sd, PIECE_KNIGHT]);  //可调系数
+                pair[sd] += (int)(2.4 * totalPieces * nP[sd, PIECE_CANNON]);  //可调系数
+                pair[sd] -= (int)(0.9 * totalPieces * nP[sd, PIECE_KNIGHT]);  //可调系数
                 //兵种不全扣分
                 if (nP[sd, PIECE_ROOK] == 0)
-                    materialValue[sd] -= 30; //有车胜无车
+                    pair[sd] -= 30; //有车胜无车
                 if (nP[sd, PIECE_CANNON] == 0)
-                    materialValue[sd] -= 20;
+                    pair[sd] -= 20;
                 if (nP[sd, PIECE_KNIGHT] == 0)
-                    materialValue[sd] -= 20;
+                    pair[sd] -= 20;
                 //缺相怕炮
-                materialValue[sd] += (nP[sd, PIECE_BISHOP] - nP[1 - sd, PIECE_CANNON]) * 15;
+                pair[sd] += (nP[sd, PIECE_BISHOP] - nP[1 - sd, PIECE_CANNON]) * 15;
                 //缺仕怕车
-                materialValue[sd] += (nP[sd, PIECE_GUARD] - nP[1 - sd, PIECE_ROOK]) * 15;
+                pair[sd] += (nP[sd, PIECE_GUARD] - nP[1 - sd, PIECE_ROOK]) * 15;
             }
 
+            int[] connectivity = new int[2];
             for (int y = RANK_TOP; y <= RANK_BOTTOM; y++)
                 for (int x = FILE_LEFT; x <= FILE_RIGHT; x++)
                 {
@@ -574,27 +593,36 @@ namespace MoleXiangqi
                     int sd = SIDE(pc);
                     if (sd != -1)
                     {
-                        //受保护分数不重复计算
-                        int[] protects = { 0, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-                        positionValue[sd] += protects[attackMap[sd, sq]] * 3;
+                        //受保护分数
+                        connectivity[sd] += attackMap[sd, sq];
                         //攻击分数
-                        positionValue[1 - sd] += attackMap[1 - sd, sq] * 5;
+                        connectivity[1 - sd] += attackMap[1 - sd, sq] * 2;
                     }
                     else
                     {
-                        int[] mobilitys = { 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2 };
-                        //机动性，重复计算不超过2
-                        positionValue[0] += mobilitys[attackMap[0, sq]] * 2;
-                        positionValue[1] += mobilitys[attackMap[1, sq]] * 2;
+                        //机动性，重复计算不超过2次
+                        connectivity[0] += Math.Min(attackMap[0, sq], 6);
+                        connectivity[1] += Math.Min(attackMap[1, sq], 6);
                     }
                 }
 
+            int scoreRed = materialValue[0] + positionValue[0] + pair[0] + connectivity[0];
+            int scoreBlack = materialValue[1] + positionValue[1] + pair[1] + connectivity[1];
+
+            int total = scoreRed - scoreBlack;
             ivpc[nStep, 0] = nStep;
-            ivpc[nStep, 1] = materialValue[0];
-            ivpc[nStep, 2] = materialValue[1];
-            ivpc[nStep, 3] = positionValue[0];
-            ivpc[nStep, 4] = positionValue[1];
-            return materialValue[0] - materialValue[1] + positionValue[0] - positionValue[1];
+            ivpc[nStep, 1] = total;
+            ivpc[nStep, 2] = scoreRed;
+            ivpc[nStep, 3] = scoreBlack;
+            ivpc[nStep, 4] = materialValue[0];
+            ivpc[nStep, 5] = materialValue[1];
+            ivpc[nStep, 6] = positionValue[0];
+            ivpc[nStep, 7] = positionValue[1];
+            ivpc[nStep, 8] = connectivity[0];
+            ivpc[nStep, 9] = connectivity[1];
+            ivpc[nStep, 10] = pair[0];
+            ivpc[nStep, 11] = pair[1];
+            return total;
         }
 
     }

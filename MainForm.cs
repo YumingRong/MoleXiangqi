@@ -404,11 +404,15 @@ namespace MoleXiangqi
 
         private void menuEvaluate_Click(object sender, EventArgs e)
         {
-            //string fileName = @"J:\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第02局-柳大华(红先胜)杨官麟.PGN";
-            //pos.ReadPgnFile(fileName);
-            //Write2Csv(@"J:\xqtest\eval.csv", pos.ivpc, pos.iMoveList.Count, 5);
             pos.Complex_Evaluate();
-            WriteAttackMap2Csv(@"J:\xqtest\eval.csv");
+            WriteAttackMap2Csv(@"J:\xqtest\attack.csv");
+        }
+
+        private void menuContinuousEval_Click(object sender, EventArgs e)
+        {
+            string fileName = @"J:\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
+            pos.ReadPgnFile(fileName);
+            Write2Csv(@"J:\xqtest\eval.csv", pos.ivpc, pos.iMoveList.Count, 48);
         }
 
         public void DrawSelection(Point pt, Graphics g)
@@ -460,6 +464,8 @@ namespace MoleXiangqi
                 using (StreamWriter sw = new StreamWriter(fs, Encoding.Default))
                 {
                     sw.AutoFlush = false;
+                    sw.Write("Step, Total, Total R, Total B, MAT R, MAT B, POS R, POS B, Conn R, Conn B, Pair R, Pair B,,,,,");
+                    sw.WriteLine("车,车,炮,炮,马,马,兵,兵,兵,兵,兵,帅,相,相,仕,仕,车,车,炮,炮,马,马,兵,兵,兵,兵,兵,帅,相,相,仕,仕");
                     for (int row = 0; row < nrow; row++)
                     {
                         for (int col = 0; col < ncol; col++)
