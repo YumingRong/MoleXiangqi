@@ -120,15 +120,8 @@ namespace MoleXiangqi
                                 for (int j = 0; j < 4; j++)
                                 {
                                     int sqPin = sq + ccKingDelta[j];
-                                    if (IN_BOARD[sqPin] && pcSquares[sqPin] == 0)
-                                    {
-                                        int sqDst = sq + ccKnightDelta[j, 0];
-                                        if (IN_BOARD[sqDst])
-                                            positionValue[sd] += 5;
-                                        sqDst = sq + ccKnightDelta[j, 1];
-                                        if (IN_BOARD[sqDst])
-                                            positionValue[sd] += 5;
-                                    }
+                                    if (pcSquares[sqPin] != 0)
+                                        positionValue[sd] -= 10;
                                 }
                                 break;
                             case PIECE_PAWN:
@@ -255,7 +248,7 @@ namespace MoleXiangqi
                                 for (int i = 0; i < 4; i++)
                                 {
                                     int sqPin = sqSrc + ccKingDelta[i];
-                                    if (IN_BOARD[sqPin] && pcSquares[sqPin] == 0)
+                                    if (pcSquares[sqPin] == 0)
                                     {
                                         for (int j = 0; j < 2; j++)
                                         {
@@ -505,7 +498,7 @@ namespace MoleXiangqi
                             for (int j = 0; j < 4; j++)
                             {
                                 int sqPin = sqSrc + ccKingDelta[j];
-                                if (IN_BOARD[sqPin] && pcSquares[sqPin] == 0)
+                                if (pcSquares[sqPin] == 0)
                                 {
                                     attackMap[sd, sqSrc + ccKnightDelta[j, 0]]++;
                                     attackMap[sd, sqSrc + ccKnightDelta[j, 1]]++;
