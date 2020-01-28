@@ -146,7 +146,7 @@ namespace MoleXiangqi
             return materialValue[0] - materialValue[1] + positionValue[0] - positionValue[1];
         }
 
-        public int[,] ivpc = new int[300, 34]; //统计每一步各个棋子的位置分
+        public int[,] ivpc = new int[300, 37]; //统计每一步各个棋子的位置分
         public int Middle_Evaluate()
         {
             int totalPieces = 0;
@@ -311,8 +311,8 @@ namespace MoleXiangqi
             attackMap = new int[2, 256];
             //find absolute pin.举例：当头炮与对方的帅之间隔了自己的马和对方的相，
             //自己的马就放在DiscoveredAttack里，对方的相就在PinnedPieces里
-            bool[] PinnedPieces = new bool[36];
-            bool[] DiscoveredAttack = new bool[36];
+            bool[] PinnedPieces = new bool[48];
+            bool[] DiscoveredAttack = new bool[48];
             bool[,] BannedGrids = new bool[2,256];
             int sqSrc, sqDst, pcDst, delta;
             for (int sd = 0; sd < 2; sd++)
