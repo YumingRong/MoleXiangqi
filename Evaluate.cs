@@ -311,11 +311,9 @@ namespace MoleXiangqi
             attackMap = new int[2, 256];
             //find absolute pin.举例：当头炮与对方的帅之间隔了自己的马和对方的相，
             //自己的马就放在DiscoveredAttack里，对方的相就在PinnedPieces里
-            SortedSet<int> PinnedPieces = new SortedSet<int>();
-            SortedSet<int> DiscoveredAttack = new SortedSet<int>();
-            SortedSet<int>[] BannedGrids = new SortedSet<int>[2];
-            BannedGrids[0] = new SortedSet<int>();
-            BannedGrids[1] = new SortedSet<int>();
+            bool[] PinnedPieces = new bool[36];
+            bool[] DiscoveredAttack = new bool[36];
+            bool[,] BannedGrids = new bool[2,256];
             int sqSrc, sqDst, pcDst, delta;
             for (int sd = 0; sd < 2; sd++)
             {
@@ -340,9 +338,9 @@ namespace MoleXiangqi
                         if (nblock == 1)
                         {
                             if (SIDE(pcBlocker) == sd)
-                                DiscoveredAttack.Add(pcBlocker);
+                                DiscoveredAttack[pcBlocker] = true;
                             else
-                                PinnedPieces.Add(pcBlocker);
+                                PinnedPieces[pcBlocker] = true;
                         }
                     }
 
@@ -361,9 +359,9 @@ namespace MoleXiangqi
                         if (nblock == 1)
                         {
                             if (SIDE(pcBlocker) == sd)
-                                DiscoveredAttack.Add(pcBlocker);
+                                DiscoveredAttack[pcBlocker] = true;
                             else
-                                PinnedPieces.Add(pcBlocker);
+                                PinnedPieces[pcBlocker] = true;
                         }
                     }
                 }
@@ -387,14 +385,14 @@ namespace MoleXiangqi
                             {
                                 pcBlocker = pcSquares[sq];
                                 if (SIDE(pcBlocker) == sd)
-                                    DiscoveredAttack.Add(pcBlocker);
+                                    DiscoveredAttack[pcBlocker] = true;
                                 else
-                                    PinnedPieces.Add(pcBlocker);
+                                    PinnedPieces[pcBlocker] = true;
                             }
                         else if (nblock == 0) //空心炮
                         {
                             for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
-                                BannedGrids[sd].Add(sq);
+                                BannedGrids[sd, sq] = true;
                         }
                     }
                     if (RANK_Y(sqSrc) == RANK_Y(sqOppKing))
@@ -413,14 +411,14 @@ namespace MoleXiangqi
                             {
                                 pcBlocker = pcSquares[sq];
                                 if (SIDE(pcBlocker) == sd)
-                                    DiscoveredAttack.Add(pcBlocker);
+                                    DiscoveredAttack[pcBlocker] = true;
                                 else
-                                    PinnedPieces.Add(pcBlocker);
+                                    PinnedPieces[pcBlocker] = true;
                             }
                         else if (nblock == 0) //空心炮
                         {
                             for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
-                                BannedGrids[sd].Add(sq);
+                                BannedGrids[sd, sq] = true;
                         }
                     }
                 }
@@ -435,9 +433,9 @@ namespace MoleXiangqi
                             pcDst = pcSquares[sqOppKing + ccKnightCheckDelta[i, j]];
                             if (cnPieceTypes[pcDst] == bas + PIECE_KNIGHT)
                                 if (SIDE(pcBlocker) == sd)
-                                    DiscoveredAttack.Add(pcBlocker);
+                                    DiscoveredAttack[pcBlocker] = true;
                                 else
-                                    PinnedPieces.Add(pcBlocker);
+                                    PinnedPieces[pcBlocker] = true;
                         }
                 }
             }
@@ -454,9 +452,10 @@ namespace MoleXiangqi
                     totalPieces++;
                     nP[sd, pcKind]++;
                     materialValue[sd] += cnPieceValue[pcKind];
+                    int posv0 = positionValue[sd];
                     //对于pinned的棋子，不考虑其攻击力。
                     //这是一种简化的计算，实际上pin是有方向的，但这样太过复杂
-                    if (PinnedPieces.Contains(pc))
+                    if (PinnedPieces[pc])
                         continue;
                     switch (pcKind)
                     {
@@ -502,6 +501,7 @@ namespace MoleXiangqi
                                     attackMap[sd, sqSrc + ccKnightDelta[j, 1]]++;
                                 }
                             }
+                            positionValue[sd] += cKnightValue[sqSrc];
                             break;
                         case PIECE_PAWN:
                             sqDst = SQUARE_FORWARD(sqSrc, sd);
@@ -511,16 +511,16 @@ namespace MoleXiangqi
                                 attackMap[sd, sqSrc + 1]++;
                                 attackMap[sd, sqSrc - 1]++;
                             }
+                            positionValue[sd] += cKingPawnValue[sqSrc];
                             break;
                         case PIECE_BISHOP:
                             for (int j = 0; j < 4; j++)
                             {
                                 sqDst = sqSrc + ccGuardDelta[j];
                                 if (HOME_HALF[sd, sqDst] && pcSquares[sqDst] == 0)
-                                {
                                     attackMap[sd, sqDst + ccGuardDelta[j]]++;
-                                }
                             }
+                            positionValue[sd] += cBishopGuardValue[sqSrc];
                             break;
                         case PIECE_GUARD:
                             for (int j = 0; j < 4; j++)
@@ -529,6 +529,7 @@ namespace MoleXiangqi
                                 if (IN_FORT[sqDst])
                                     attackMap[sd, sqDst]++;
                             }
+                            positionValue[sd] += cBishopGuardValue[sqSrc];
                             break;
                         case PIECE_KING:
                             for (int i = 0; i < 4; i++)
@@ -537,11 +538,13 @@ namespace MoleXiangqi
                                 if (IN_FORT[sqDst])
                                     attackMap[sd, sqDst]++;
                             }
+                            positionValue[sd] += cKingPawnValue[sqSrc];
                             break;
                         default:
                             Debug.Fail("Unknown piece type");
                             break;
                     }
+                    ivpc[nStep, pc - 11] = positionValue[sd] - posv0;
                 }
             }
 
