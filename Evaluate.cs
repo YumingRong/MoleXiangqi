@@ -103,13 +103,13 @@ namespace MoleXiangqi
                         switch (pcKind)
                         {
                             case PIECE_ROOK:
-                                if (FILE_X(sq) == FILE_X(sqOppKing) || RANK_Y(sq) == RANK_Y(sqOppKing))
+                                if (SAME_FILE(sq, sqOppKing) || SAME_RANK(sq, sqOppKing))
                                     positionValue[sd] += 15;
                                 break;
                             case PIECE_CANNON:
-                                if (FILE_X(sq) == FILE_X(sqOppKing))
+                                if (SAME_FILE(sq, sqOppKing))
                                     positionValue[sd] += 20;
-                                else if (RANK_Y(sq) == RANK_Y(sqOppKing))
+                                else if (SAME_RANK(sq, sqOppKing))
                                     positionValue[sd] += 12;
                                 break;
                             case PIECE_KNIGHT:
@@ -370,7 +370,7 @@ namespace MoleXiangqi
                 for (int pc = bas + ROOK_FROM; pc <= bas + ROOK_TO; pc++)
                 {
                     sqSrc = sqPieces[pc];
-                    if (FILE_X(sqSrc) == FILE_X(sqOppKing))
+                    if (SAME_FILE(sqSrc, sqOppKing))
                     {
                         delta = Math.Sign(sqOppKing - sqSrc) * 16;
                         int pcBlocker = 0, nblock = 0;
@@ -386,7 +386,7 @@ namespace MoleXiangqi
                             CheckBlocker(sd, pcBlocker);
                     }
 
-                    if (RANK_Y(sqSrc) == RANK_Y(sqOppKing))
+                    if (SAME_RANK(sqSrc,sqOppKing))
                     {
                         delta = Math.Sign(sqOppKing - sqSrc);
                         int pcBlocker = 0, nblock = 0;
@@ -406,7 +406,7 @@ namespace MoleXiangqi
                 for (int pc = bas + CANNON_FROM; pc <= bas + CANNON_TO; pc++)
                 {
                     sqSrc = sqPieces[pc];
-                    if (FILE_X(sqSrc) == FILE_X(sqOppKing))
+                    if (SAME_FILE(sqSrc, sqOppKing))
                     {
                         delta = Math.Sign(sqOppKing - sqSrc) * 16;
                         int nblock = 0;
@@ -424,7 +424,7 @@ namespace MoleXiangqi
                                 BannedGrids[sd, sq] = true;
                         }
                     }
-                    if (RANK_Y(sqSrc) == RANK_Y(sqOppKing))
+                    if (SAME_RANK(sqSrc, sqOppKing))
                     {
                         delta = Math.Sign(sqOppKing - sqSrc);
                         int nblock = 0;

@@ -487,7 +487,7 @@ namespace MoleXiangqi
             //4. 判断是否将帅对脸
             sqSrc = sqPieces[32 + KING_FROM];
             sqDst = sqPieces[16 + KING_FROM];
-            if (FILE_X(sqSrc) == FILE_X(sqDst))
+            if (SAME_FILE(sqSrc, sqDst))
             {
                 for (i = sqSrc + 16; i < sqDst; i += 16)
                     if (pcSquares[i] > 0)
