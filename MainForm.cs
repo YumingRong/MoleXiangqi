@@ -412,6 +412,15 @@ namespace MoleXiangqi
         {
             string fileName = @"J:\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
             pos.ReadPgnFile(fileName);
+            pos.FromFEN(pos.PGN.StartFEN);
+            pos.Complex_Evaluate();
+            for (FENStep = 1; FENStep < pos.iMoveList.Count; FENStep++)
+            {
+                iMOVE step = pos.iMoveList[FENStep];
+                pos.MakeMove(step.from, step.to);
+                pos.Complex_Evaluate();
+            }
+
             Write2Csv(@"J:\xqtest\eval.csv", pos.ivpc, pos.iMoveList.Count, 48);
         }
 

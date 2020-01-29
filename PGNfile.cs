@@ -127,8 +127,6 @@ namespace MoleXiangqi
                         line += "\n" + fp.ReadToEnd();
                     }
                 }
-                //Console.WriteLine("Simple {0}", Simple_Evaluate());
-                Console.WriteLine("Complex {0}", Complex_Evaluate());
                 int index;
                 iMOVE imv = new iMOVE();
                 //int phase = 2; //phase = 0是序号，1是move#1，2是 move#2
@@ -180,16 +178,14 @@ namespace MoleXiangqi
                             imv = new iMOVE();
                             imv.from = mv.sqSrc;
                             imv.to = mv.sqDst;
-                            //Console.WriteLine("Simple {0}", Simple_Evaluate());
-                            Console.WriteLine("Complex {0}", Complex_Evaluate());
-                            if (nStep > 14) //只统计中残局强子的活动范围
-                                for (int sd = 0; sd <= 1; sd++)
-                                    for (int pc = KNIGHT_FROM; pc <= KNIGHT_TO; pc++)
-                                    {
-                                        int sq = sqPieces[pc + SIDE_TAG(sd)];
-                                        if (sq > 0)
-                                            activeGrid[sd, sq]++;
-                                    }
+                            //if (nStep > 14) //只统计中残局强子的活动范围
+                            //    for (int sd = 0; sd <= 1; sd++)
+                            //        for (int pc = KNIGHT_FROM; pc <= KNIGHT_TO; pc++)
+                            //        {
+                            //            int sq = sqPieces[pc + SIDE_TAG(sd)];
+                            //            if (sq > 0)
+                            //                activeGrid[sd, sq]++;
+                            //        }
                             //phase++;
                         }
                         else
@@ -301,7 +297,8 @@ namespace MoleXiangqi
                     }
                 }
                 else
-                {//rook, cannon, king or pawn
+                {
+                    //rook, cannon, king or pawn
                     mv.sqDst = mv.sqSrc + 16 * FindRank(word[3]) * dir;
                 }
             }

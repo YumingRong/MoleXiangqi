@@ -8,7 +8,7 @@ namespace MoleXiangqi
     {
         //各种子力的价值
         const int MAT_KING = 2000;
-        const int MAT_ROOK = 140;
+        const int MAT_ROOK = 130;
         const int MAT_CANNON = 50;
         const int MAT_KNIGHT = 69;
         const int MAT_PAWN = 10;
@@ -430,7 +430,6 @@ namespace MoleXiangqi
                 }
             }
 
-            int posv0;
             for (int sd = 0; sd < 2; sd++)
             {
                 int bas = SIDE_TAG(sd);
@@ -452,7 +451,7 @@ namespace MoleXiangqi
                         ivpc[nStep, pc] = 0;
                         continue;
                     }
-                    posv0 = positionValue[sd];
+                    int posv0 = positionValue[sd];
                     switch (pcKind)
                     {
                         case PIECE_ROOK:
