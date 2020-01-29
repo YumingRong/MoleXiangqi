@@ -313,9 +313,27 @@ namespace MoleXiangqi
             //find absolute pin.举例：当头炮与对方的帅之间隔了自己的马和对方的相，
             //自己的马就放在DiscoveredAttack里，对方的相就在PinnedPieces里
             bool[] PinnedPieces = new bool[48];
-            bool[] DiscoveredAttack = new bool[48];
             bool[,] BannedGrids = new bool[2, 256];
             int sqSrc, sqDst, pcDst, delta;
+
+            void CheckBlocker(int side, int blocker)
+            {
+                int blockerSide = SIDE(blocker);
+                int pcKind = cnPieceKinds[blocker];
+                //未过河兵没有牵制和闪击
+                if (pcKind == PIECE_PAWN && HOME_HALF[blockerSide, sqPieces[blocker]])
+                        return;
+                if (blockerSide == side)
+                {
+                    //闪击加分，根据兵种不同
+                    int[] v = { 0, 25, 20, 20, 7, 1, 3, 3 };
+                    positionValue[side] += v[pcKind];
+                }
+                else
+                    PinnedPieces[blocker] = true;
+
+            }
+
             for (int sd = 0; sd < 2; sd++)
             {
                 int bas = SIDE_TAG(sd);
@@ -337,12 +355,7 @@ namespace MoleXiangqi
                             }
                         }
                         if (nblock == 1)
-                        {
-                            if (SIDE(pcBlocker) == sd)
-                                DiscoveredAttack[pcBlocker] = true;
-                            else
-                                PinnedPieces[pcBlocker] = true;
-                        }
+                            CheckBlocker(sd, pcBlocker);
                     }
 
                     if (RANK_Y(sqSrc) == RANK_Y(sqOppKing))
@@ -358,12 +371,7 @@ namespace MoleXiangqi
                             }
                         }
                         if (nblock == 1)
-                        {
-                            if (SIDE(pcBlocker) == sd)
-                                DiscoveredAttack[pcBlocker] = true;
-                            else
-                                PinnedPieces[pcBlocker] = true;
-                        }
+                            CheckBlocker(sd, pcBlocker);
                     }
                 }
 
@@ -373,23 +381,15 @@ namespace MoleXiangqi
                     if (FILE_X(sqSrc) == FILE_X(sqOppKing))
                     {
                         delta = Math.Sign(sqOppKing - sqSrc) * 16;
-                        int pcBlocker = 0, nblock = 0;
+                        int nblock = 0;
                         for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
                         {
                             if (pcSquares[sq] != 0)
-                            {
                                 nblock++;
-                            }
                         }
                         if (nblock == 2)
                             for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
-                            {
-                                pcBlocker = pcSquares[sq];
-                                if (SIDE(pcBlocker) == sd)
-                                    DiscoveredAttack[pcBlocker] = true;
-                                else
-                                    PinnedPieces[pcBlocker] = true;
-                            }
+                                CheckBlocker(sd, pcSquares[sq]);
                         else if (nblock == 0) //空心炮
                         {
                             for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
@@ -399,23 +399,15 @@ namespace MoleXiangqi
                     if (RANK_Y(sqSrc) == RANK_Y(sqOppKing))
                     {
                         delta = Math.Sign(sqOppKing - sqSrc);
-                        int pcBlocker = 0, nblock = 0;
+                        int nblock = 0;
                         for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
                         {
                             if (pcSquares[sq] != 0)
-                            {
                                 nblock++;
-                            }
                         }
                         if (nblock == 2)
                             for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
-                            {
-                                pcBlocker = pcSquares[sq];
-                                if (SIDE(pcBlocker) == sd)
-                                    DiscoveredAttack[pcBlocker] = true;
-                                else
-                                    PinnedPieces[pcBlocker] = true;
-                            }
+                                CheckBlocker(sd, pcSquares[sq]);
                         else if (nblock == 0) //空心炮
                         {
                             for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
@@ -433,10 +425,7 @@ namespace MoleXiangqi
                         {
                             pcDst = pcSquares[sqOppKing + ccKnightCheckDelta[i, j]];
                             if (cnPieceTypes[pcDst] == bas + PIECE_KNIGHT)
-                                if (SIDE(pcBlocker) == sd)
-                                    DiscoveredAttack[pcBlocker] = true;
-                                else
-                                    PinnedPieces[pcBlocker] = true;
+                                CheckBlocker(sd, pcBlocker);
                         }
                 }
             }
@@ -473,7 +462,7 @@ namespace MoleXiangqi
                                 for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
                                 {
                                     pcDst = pcSquares[sqDst];
-                                    attackMap[sd, sqDst]+=2;
+                                    attackMap[sd, sqDst]++;
                                     if (pcDst != 0)
                                         break;
                                 }
@@ -489,19 +478,11 @@ namespace MoleXiangqi
                                     {
                                         for (sqDst += nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
                                         {
-                                            attackMap[sd, sqDst]+=1;
+                                            attackMap[sd, sqDst]++;
                                             if (pcSquares[sqDst] != 0) //直瞄点
                                             {
-                                                attackMap[sd, sqDst] += 3;
-                                                for (sqDst += nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
-                                                {
-                                                    if (pcSquares[sqDst] != 0)  //间瞄点
-                                                    {
-                                                        attackMap[sd, sqDst] += 2;
-                                                        goto NextFor;
-                                                    }
-
-                                                }
+                                                attackMap[sd, sqDst]++;
+                                                goto NextFor;
                                             }
                                         }
                                     }
@@ -514,8 +495,8 @@ namespace MoleXiangqi
                             {
                                 if (pcSquares[sqSrc + ccKingDelta[j]] == 0)
                                 {
-                                    attackMap[sd, sqSrc + ccKnightDelta[j, 0]]+=3;
-                                    attackMap[sd, sqSrc + ccKnightDelta[j, 1]]+=3;
+                                    attackMap[sd, sqSrc + ccKnightDelta[j, 0]]++;
+                                    attackMap[sd, sqSrc + ccKnightDelta[j, 1]]++;
                                 }
                             }
                             positionValue[sd] += cKnightValue[sqSrcMirror];
@@ -525,8 +506,8 @@ namespace MoleXiangqi
                             attackMap[sd, sqDst]++;
                             if (HOME_HALF[1 - sd, sqSrc])
                             {
-                                attackMap[sd, sqSrc + 1]+=4;
-                                attackMap[sd, sqSrc - 1]+=4;
+                                attackMap[sd, sqSrc + 1]++;
+                                attackMap[sd, sqSrc - 1]++;
                             }
                             positionValue[sd] += cKingPawnValue[sqSrcMirror];
                             break;
@@ -535,7 +516,7 @@ namespace MoleXiangqi
                             {
                                 sqDst = sqSrc + ccGuardDelta[j];
                                 if (HOME_HALF[sd, sqDst] && pcSquares[sqDst] == 0)
-                                    attackMap[sd, sqDst + ccGuardDelta[j]]+=4;
+                                    attackMap[sd, sqDst + ccGuardDelta[j]]++;
                             }
                             positionValue[sd] += cBishopGuardValue[sqSrcMirror];
                             break;
@@ -544,7 +525,7 @@ namespace MoleXiangqi
                             {
                                 sqDst = sqSrc + ccGuardDelta[j];
                                 if (IN_FORT[sqDst])
-                                    attackMap[sd, sqDst]+=4;
+                                    attackMap[sd, sqDst]++;
                             }
                             positionValue[sd] += cBishopGuardValue[sqSrcMirror];
                             break;
@@ -563,6 +544,8 @@ namespace MoleXiangqi
                     }
                     ivpc[nStep, pc] = positionValue[sd] - posv0;
                 }
+                //帅所在的格没有保护
+                attackMap[sd, sqPieces[bas + KING_FROM]] = 0;
             }
 
             int[] pair = new int[2];
@@ -571,6 +554,10 @@ namespace MoleXiangqi
                 //棋盘上的子越多，炮的威力越大，马的威力越小
                 pair[sd] += (int)(2.4 * totalPieces * nP[sd, PIECE_CANNON]);  //可调系数
                 pair[sd] -= (int)(0.9 * totalPieces * nP[sd, PIECE_KNIGHT]);  //可调系数
+                //兵卒的价值随着对方攻击子力的减少而增加（即增加了过河的可能性）
+                int enemyAttack = nP[1 - sd, PIECE_ROOK] * 2 + nP[1 - sd, PIECE_CANNON] + nP[1 - sd, PIECE_KNIGHT];
+                int[] additionalPawnValue = { 28, 21, 15, 10, 6, 3, 2, 1, 0};
+                pair[sd] += nP[sd, PIECE_PAWN] * additionalPawnValue[enemyAttack];
                 //兵种不全扣分
                 if (nP[sd, PIECE_ROOK] == 0)
                     pair[sd] -= 30; //有车胜无车
@@ -595,15 +582,20 @@ namespace MoleXiangqi
                     {
                         //受保护分数
                         if (attackMap[sd, sq] > 0)
-                            connectivity[sd] += 5;
+                            connectivity[sd] += 3;
                         //攻击分数
-                        connectivity[1 - sd] += attackMap[1 - sd, sq] * 3;
+                        connectivity[1 - sd] += attackMap[1 - sd, sq] * 5;
                     }
                     else
                     {
-                        //机动性，重复计算不超过2次
-                        connectivity[0] += Math.Min(attackMap[0, sq], 6);
-                        connectivity[1] += Math.Min(attackMap[1, sq], 6);
+                        if (BannedGrids[0, sq])
+                            connectivity[1] += attackMap[1, sq] * 15;
+                        else    //机动性，重复计算不超过3
+                            connectivity[0] += Math.Min(attackMap[0, sq] * 2, 3);
+                        if (BannedGrids[1, sq])
+                            connectivity[0] += attackMap[0, sq] * 15;
+                        else
+                            connectivity[1] += Math.Min(attackMap[1, sq] * 2, 3);
                     }
                 }
 
@@ -625,6 +617,5 @@ namespace MoleXiangqi
             ivpc[nStep, 11] = pair[1];
             return total;
         }
-
     }
 }
