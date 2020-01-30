@@ -182,6 +182,7 @@ namespace MoleXiangqi
                         {
                             if (s != PGN.Result)
                                 Debug.WriteLine(s);
+                            iMoveList.Add(imv);
                             return true;
                         }
                     }

@@ -423,7 +423,8 @@ namespace MoleXiangqi
 
         private void menuContinuousEval_Click(object sender, EventArgs e)
         {
-            string fileName = @"J:\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
+            string fileName = @"G:\XiangQi\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
+            // "J:\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
             pos.ReadPgnFile(fileName);
             int totalMoves = pos.iMoveList.Count;
             pos.ivpc = new int[totalMoves, 48];
@@ -438,36 +439,30 @@ namespace MoleXiangqi
                 pos.Complex_Evaluate();
             }
 
-            Write2Csv(@"J:\xqtest\eval.csv", pos.ivpc, totalMoves, 48);
+            Write2Csv(@"G:\xqtest\eval.csv", pos.ivpc, totalMoves, 48);
             /* 用顶级人类选手的对局来测试评估审局函数的有效性。
              * 理想情况下，双方分数应呈锯齿状交替上升，除去吃子的步骤，应该稳定渐变。
              */
-            int score0 = pos.ivpc[0, 1];
             List<double> redDelta = new List<double>();
             for (int i = 1; i < totalMoves; i+=2)
             {
-                int score1 = pos.ivpc[i, 1];
                 if (!captures[i])
-                    redDelta.Add(score1 - score0);
-                score0 = score1;
+                    redDelta.Add(pos.ivpc[i, 1] - pos.ivpc[i-1,1]);
             }
             double redMean = Statistics.Mean(redDelta);
             double redVar = Statistics.Variance(redDelta);
             Console.WriteLine("Red mean:{0}, var:{1}", redMean, redVar);
 
-            score0 = pos.ivpc[1, 1];
             List<double> blackDelta = new List<double>();
-            for (int i = 1; i < totalMoves; i+=2)
+            for (int i = 2; i < totalMoves; i+=2)
             {
-                int score1 = pos.ivpc[i, 1];
                 if (!captures[i])
-                    redDelta.Add(score1 - score0);
-                score0 = score1;
+                    blackDelta.Add(pos.ivpc[i, 1] - pos.ivpc[i - 1, 1]);
             }
             double blackMean = Statistics.Mean(blackDelta);
             double blackVar = Statistics.Variance(blackDelta);
             Console.WriteLine("Black mean:{0}, var:{1}", blackMean, blackVar);
-            Console.WriteLine("Score: {0}, {1}, {2}", redVar/redMean, blackVar/blackMean, (redVar + blackVar) / (redMean + blackMean));
+            Console.WriteLine("Score: red{0}, black{1}, average{2}", redVar/redMean, blackVar/blackMean, (redVar + blackVar) / (redMean - blackMean));
         }
 
         public void DrawSelection(Point pt, Graphics g)

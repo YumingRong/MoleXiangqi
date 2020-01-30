@@ -419,7 +419,7 @@ namespace MoleXiangqi
                         else if (nblock == 0) //空心炮
                         {
                             for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
-                                BannedGrids[sd, sq] = true;
+                                BannedGrids[1-sd, sq] = true;
                         }
                     }
                     if (SAME_RANK(sqSrc, sqOppKing))
@@ -437,7 +437,7 @@ namespace MoleXiangqi
                         else if (nblock == 0) //空心炮
                         {
                             for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
-                                BannedGrids[sd, sq] = true;
+                                BannedGrids[1-sd, sq] = true;
                         }
                     }
                 }
