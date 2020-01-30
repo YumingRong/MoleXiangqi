@@ -425,7 +425,7 @@ namespace MoleXiangqi
         {
             string fileName = @"J:\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
             pos.ReadPgnFile(fileName);
-            int totalMoves = pos.iMoveList.Count + 1;
+            int totalMoves = pos.iMoveList.Count;
             pos.ivpc = new int[totalMoves, 48];
             bool[] captures = new bool[totalMoves];
             pos.FromFEN(pos.PGN.StartFEN);
@@ -459,7 +459,7 @@ namespace MoleXiangqi
             List<double> blackDelta = new List<double>();
             for (int i = 1; i < totalMoves; i+=2)
             {
-                int score1 = pos.ivpc[i, 2];
+                int score1 = pos.ivpc[i, 1];
                 if (!captures[i])
                     redDelta.Add(score1 - score0);
                 score0 = score1;
@@ -467,7 +467,7 @@ namespace MoleXiangqi
             double blackMean = Statistics.Mean(blackDelta);
             double blackVar = Statistics.Variance(blackDelta);
             Console.WriteLine("Black mean:{0}, var:{1}", blackMean, blackVar);
-            Console.WriteLine("Score: {0}", (redVar + blackVar) / (redMean + blackMean));
+            Console.WriteLine("Score: {0}, {1}, {2}", redVar/redMean, blackVar/blackMean, (redVar + blackVar) / (redMean + blackMean));
         }
 
         public void DrawSelection(Point pt, Graphics g)
