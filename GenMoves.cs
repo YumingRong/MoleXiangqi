@@ -75,18 +75,21 @@ namespace MoleXiangqi
                         if (pcDst == 0)
                             mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, 0));
                         else
-                            break;
-                    }
-                    for (sqDst += nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
-                    {
-                        pcDst = pcSquares[sqDst];
-                        if (pcDst != 0)
                         {
-                            if ((pcDst & pcOppSide) != 0)
-                                mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
-                            break;
+                            for (sqDst += nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
+                            {
+                                pcDst = pcSquares[sqDst];
+                                if (pcDst != 0)
+                                {
+                                    if ((pcDst & pcOppSide) != 0)
+                                        mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
+                                    goto NextFor1;
+                                }
+                            }
+
                         }
                     }
+                NextFor1:;
                 }
             }
 
@@ -228,18 +231,20 @@ namespace MoleXiangqi
                     for (sqDst = sqSrc + nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
                     {
                         if (pcSquares[sqDst] != 0)
-                            break;
-                    }
-                    for (sqDst += nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
-                    {
-                        pcDst = pcSquares[sqDst];
-                        if (pcDst != 0)
                         {
-                            if ((pcDst & pcOppSide) != 0)
-                                mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
-                            break;
+                            for (sqDst += nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
+                            {
+                                pcDst = pcSquares[sqDst];
+                                if (pcDst != 0)
+                                {
+                                    if ((pcDst & pcOppSide) != 0)
+                                        mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
+                                    goto NextFor2;
+                                }
+                            }
                         }
                     }
+                NextFor2:;
                 }
             }
 
@@ -469,19 +474,20 @@ namespace MoleXiangqi
                         pcDst = cnPieceTypes[pcDst];
                         if (pcDst == pcOppSide + PIECE_ROOK)
                             return true;
-                        break;
+                        else
+                            for (sqDst += nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
+                            {
+                                pcDst = pcSquares[sqDst];
+                                if (pcDst != 0)
+                                {
+                                    if (cnPieceTypes[pcDst] == pcOppSide + PIECE_CANNON)
+                                        return true;
+                                    goto NextFor3;
+                                }
+                            }
                     }
                 }
-                for (sqDst += nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
-                {
-                    pcDst = pcSquares[sqDst];
-                    if (pcDst != 0)
-                    {
-                        if (cnPieceTypes[pcDst] == pcOppSide + PIECE_CANNON)
-                            return true;
-                        break;
-                    }
-                }
+            NextFor3:;
             }
 
             //4. 判断是否将帅对脸
