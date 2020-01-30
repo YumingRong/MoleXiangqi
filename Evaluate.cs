@@ -335,37 +335,31 @@ namespace MoleXiangqi
         public int[,] attackMap;
         public int Complex_Evaluate()
         {
-            int totalPieces = 0;
-            int[,] nP = new int[2, 8];
-            int[] materialValue = new int[2];
-            int[] positionValue = new int[2];
-            materialValue[0] = materialValue[1] = 0;
-            attackMap = new int[2, 256];
-
-            //find absolute pin.举例：当头炮与对方的帅之间隔了自己的马和对方的相，
+            //举例：当头炮与对方的帅之间隔了自己的马和对方的相，
             //自己的马就放在DiscoveredAttack里，对方的相就在PinnedPieces里
+            int[] tacticValue = new int[2];
             bool[] PinnedPieces = new bool[48];
             bool[,] BannedGrids = new bool[2, 256];
             int sqSrc, sqDst, pcDst, delta;
-
+            //对阻挡将军的子进行判断
             void CheckBlocker(int side, int blocker)
             {
                 int blockerSide = SIDE(blocker);
                 int pcKind = cnPieceKinds[blocker];
                 //未过河兵没有牵制和闪击
                 if (pcKind == PIECE_PAWN && HOME_HALF[blockerSide, sqPieces[blocker]])
-                        return;
+                    return;
                 if (blockerSide == side)
                 {
                     //闪击加分，根据兵种不同
                     int[] v = { 0, 25, 20, 20, 7, 1, 3, 3 };
-                    positionValue[side] += v[pcKind];
+                    tacticValue[side] += v[pcKind];
                 }
                 else
                     PinnedPieces[blocker] = true;
 
             }
-
+            //find absolute pin.
             for (int sd = 0; sd < 2; sd++)
             {
                 int bas = SIDE_TAG(sd);
@@ -390,7 +384,7 @@ namespace MoleXiangqi
                             CheckBlocker(sd, pcBlocker);
                     }
 
-                    if (SAME_RANK(sqSrc,sqOppKing))
+                    if (SAME_RANK(sqSrc, sqOppKing))
                     {
                         delta = Math.Sign(sqOppKing - sqSrc);
                         int pcBlocker = 0, nblock = 0;
@@ -462,6 +456,14 @@ namespace MoleXiangqi
                 }
             }
 
+
+            int totalPieces = 0;
+            int[,] nP = new int[2, 8];  //每个兵种的棋子数量
+            int[] materialValue = new int[2];
+            int[] positionValue = new int[2];
+            attackMap = new int[2, 256];
+
+            //Generate attack map
             for (int sd = 0; sd < 2; sd++)
             {
                 int bas = SIDE_TAG(sd);
@@ -511,10 +513,7 @@ namespace MoleXiangqi
                                         {
                                             attackMap[sd, sqDst]++;
                                             if (pcSquares[sqDst] != 0) //直瞄点
-                                            {
-                                                attackMap[sd, sqDst]++;
                                                 goto NextFor;
-                                            }
                                         }
                                     }
                                 }
@@ -530,7 +529,7 @@ namespace MoleXiangqi
                                     attackMap[sd, sqSrc + ccKnightDelta[j, 1]]++;
                                 }
                             }
-                            positionValue[sd] += cKnightValue[sqSrcMirror];
+                            //positionValue[sd] += cKnightValue[sqSrcMirror];
                             break;
                         case PIECE_PAWN:
                             sqDst = SQUARE_FORWARD(sqSrc, sd);
@@ -587,7 +586,7 @@ namespace MoleXiangqi
                 pair[sd] -= (int)(0.9 * totalPieces * nP[sd, PIECE_KNIGHT]);  //可调系数
                 //兵卒的价值随着对方攻击子力的减少而增加（即增加了过河的可能性）
                 int enemyAttack = nP[1 - sd, PIECE_ROOK] * 2 + nP[1 - sd, PIECE_CANNON] + nP[1 - sd, PIECE_KNIGHT];
-                int[] additionalPawnValue = { 28, 21, 15, 10, 6, 3, 2, 1, 0};
+                int[] additionalPawnValue = { 28, 21, 15, 10, 6, 3, 2, 1, 0 };
                 pair[sd] += nP[sd, PIECE_PAWN] * additionalPawnValue[enemyAttack];
                 //兵种不全扣分
                 if (nP[sd, PIECE_ROOK] == 0)
@@ -611,11 +610,14 @@ namespace MoleXiangqi
                     int sd = SIDE(pc);
                     if (sd != -1)
                     {
-                        //受保护分数
+                        //攻击有根子分数5，攻击无根子分数10
                         if (attackMap[sd, sq] > 0)
-                            connectivity[sd] += 3;
-                        //攻击分数
-                        connectivity[1 - sd] += attackMap[1 - sd, sq] * 5;
+                        {
+                            connectivity[sd] += 3; //受保护分数
+                            connectivity[1 - sd] += attackMap[1 - sd, sq] * 5;
+                        }
+                        else
+                            connectivity[1 - sd] += attackMap[1 - sd, sq] * 10;
                     }
                     else
                     {
@@ -630,8 +632,8 @@ namespace MoleXiangqi
                     }
                 }
 
-            int scoreRed = materialValue[0] + positionValue[0] + pair[0] + connectivity[0];
-            int scoreBlack = materialValue[1] + positionValue[1] + pair[1] + connectivity[1];
+            int scoreRed = materialValue[0] + positionValue[0] + pair[0] + connectivity[0] + tacticValue[0];
+            int scoreBlack = materialValue[1] + positionValue[1] + pair[1] + connectivity[1] + tacticValue[1];
 
             int total = scoreRed - scoreBlack;
             ivpc[nStep, 0] = nStep;
@@ -646,6 +648,8 @@ namespace MoleXiangqi
             ivpc[nStep, 9] = connectivity[1];
             ivpc[nStep, 10] = pair[0];
             ivpc[nStep, 11] = pair[1];
+            ivpc[nStep, 12] = tacticValue[0];
+            ivpc[nStep, 13] = tacticValue[1];
             return total;
         }
     }
