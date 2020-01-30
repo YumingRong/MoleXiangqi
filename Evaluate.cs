@@ -631,6 +631,18 @@ namespace MoleXiangqi
                             connectivity[1] += Math.Min(attackMap[1, sq] * 2, 3);
                     }
                 }
+            if (attackMap[1, sqPieces[16+KING_FROM]]>0)
+            {
+                Console.WriteLine("{0}. Red in check.", nStep);
+                Debug.Assert(Checked(0));
+                connectivity[1] += 10;
+            }
+            else if (attackMap[0, sqPieces[32 + KING_FROM]] > 0)
+            {
+                Console.WriteLine("{0}. Black in check.", nStep);
+                Debug.Assert(Checked(1));
+                connectivity[0] += 10;
+            }
 
             int scoreRed = materialValue[0] + positionValue[0] + pair[0] + connectivity[0] + tacticValue[0];
             int scoreBlack = materialValue[1] + positionValue[1] + pair[1] + connectivity[1] + tacticValue[1];
