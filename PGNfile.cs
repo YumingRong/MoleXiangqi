@@ -20,8 +20,6 @@ namespace MoleXiangqi
         private Dictionary<char, int> PieceDict;
         private Dictionary<char, int> NumberDict;
 
-        //统计棋子活动位置的数组
-        public int[,] activeGrid = new int[2, 256];
 
         public void InitPGN()
         {
@@ -178,14 +176,6 @@ namespace MoleXiangqi
                             imv = new iMOVE();
                             imv.from = mv.sqSrc;
                             imv.to = mv.sqDst;
-                            //if (nStep > 14) //只统计中残局强子的活动范围
-                            //    for (int sd = 0; sd <= 1; sd++)
-                            //        for (int pc = KNIGHT_FROM; pc <= KNIGHT_TO; pc++)
-                            //        {
-                            //            int sq = sqPieces[pc + SIDE_TAG(sd)];
-                            //            if (sq > 0)
-                            //                activeGrid[sd, sq]++;
-                            //        }
                             //phase++;
                         }
                         else

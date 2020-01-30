@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+/*
+    我编了3个版本的审局函数，打算杀局时用简单的，静态局面时用复杂的。
+    Middle_Evaluate是个不太成熟的评估函数，打算作废
+ */
 
 namespace MoleXiangqi
 {

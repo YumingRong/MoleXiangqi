@@ -378,10 +378,14 @@ namespace MoleXiangqi
 
         private void menuActivePositionTest_Click(object sender, EventArgs e)
         {
+            //该函数不再维护，不能运行
+
             string sourceDirectory = @"J:\全局\1-23届五羊杯";
             IEnumerable<string> pgnFiles = Directory.EnumerateFiles(sourceDirectory, "*.PGN", SearchOption.AllDirectories);
             int nFile = 0;
-            pos.activeGrid = new int[2, 256];
+            //统计棋子活动位置的数组
+            int[,] activeGrid = new int[2, 256];
+            activeGrid = new int[2, 256];
             int[] gameLength = new int[500];
 
             foreach (string fileName in pgnFiles)
@@ -391,13 +395,21 @@ namespace MoleXiangqi
                     Console.WriteLine("Fail to read!");
                 nFile++;
                 gameLength[pos.iMoveList.Count]++;
+                //if (nStep > 14) //只统计中残局强子的活动范围
+                //    for (int sd = 0; sd <= 1; sd++)
+                //        for (int pc = KNIGHT_FROM; pc <= KNIGHT_TO; pc++)
+                //        {
+                //            int sq = sqPieces[pc + SIDE_TAG(sd)];
+                //            if (sq > 0)
+                //                activeGrid[sd, sq]++;
+                //        }
                 //if (pos.iMoveList.Count < 30)
                 //{
                 //    Console.WriteLine(fileName.Substring(sourceDirectory.Length + 1) + "\t" + pos.iMoveList.Count);
                 //    //File.Delete(fileName);
                 //}
             }
-            POSITION.Write2Csv(@"J:\xqtest\kingmove.csv", pos.activeGrid);
+            POSITION.Write2Csv(@"J:\xqtest\kingmove.csv", activeGrid);
             Write2Csv(@"J:\xqtest\gamelength.csv", gameLength);
             MessageBox.Show(String.Format("Finish reading.Total {0} files", nFile));
         }
