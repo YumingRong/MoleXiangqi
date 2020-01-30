@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Data;
+using MathNet.Numerics.Statistics;
 using System.Drawing;
 using System.Media;
 using System.Text;
@@ -425,17 +425,49 @@ namespace MoleXiangqi
         {
             string fileName = @"J:\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
             pos.ReadPgnFile(fileName);
-            pos.ivpc = new int[300, 48];
+            int totalMoves = pos.iMoveList.Count + 1;
+            pos.ivpc = new int[totalMoves, 48];
+            bool[] captures = new bool[totalMoves];
             pos.FromFEN(pos.PGN.StartFEN);
             pos.Complex_Evaluate();
-            for (FENStep = 1; FENStep < pos.iMoveList.Count; FENStep++)
+            for (FENStep = 1; FENStep < totalMoves; FENStep++)
             {
                 iMOVE step = pos.iMoveList[FENStep];
+                captures[FENStep] = pos.pcSquares[step.to] > 0;
                 pos.MakeMove(step.from, step.to);
                 pos.Complex_Evaluate();
             }
 
-            Write2Csv(@"J:\xqtest\eval.csv", pos.ivpc, pos.iMoveList.Count, 48);
+            Write2Csv(@"J:\xqtest\eval.csv", pos.ivpc, totalMoves, 48);
+            /* 用顶级人类选手的对局来测试评估审局函数的有效性。
+             * 理想情况下，双方分数应呈锯齿状交替上升，除去吃子的步骤，应该稳定渐变。
+             */
+            int score0 = pos.ivpc[0, 1];
+            List<double> redDelta = new List<double>();
+            for (int i = 1; i < totalMoves; i+=2)
+            {
+                int score1 = pos.ivpc[i, 1];
+                if (!captures[i])
+                    redDelta.Add(score1 - score0);
+                score0 = score1;
+            }
+            double redMean = Statistics.Mean(redDelta);
+            double redVar = Statistics.Variance(redDelta);
+            Console.WriteLine("Red mean:{0}, var:{1}", redMean, redVar);
+
+            score0 = pos.ivpc[1, 1];
+            List<double> blackDelta = new List<double>();
+            for (int i = 1; i < totalMoves; i+=2)
+            {
+                int score1 = pos.ivpc[i, 2];
+                if (!captures[i])
+                    redDelta.Add(score1 - score0);
+                score0 = score1;
+            }
+            double blackMean = Statistics.Mean(blackDelta);
+            double blackVar = Statistics.Variance(blackDelta);
+            Console.WriteLine("Black mean:{0}, var:{1}", blackMean, blackVar);
+            Console.WriteLine("Score: {0}", (redVar + blackVar) / (redMean + blackMean));
         }
 
         public void DrawSelection(Point pt, Graphics g)
