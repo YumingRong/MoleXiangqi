@@ -423,8 +423,7 @@ namespace MoleXiangqi
 
         private void menuContinuousEval_Click(object sender, EventArgs e)
         {
-            string fileName = @"G:\XiangQi\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
-            // "J:\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
+            string fileName = @"J:\象棋\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
             pos.ReadPgnFile(fileName);
             int totalMoves = pos.iMoveList.Count;
             pos.ivpc = new int[totalMoves, 48];
@@ -439,7 +438,7 @@ namespace MoleXiangqi
                 pos.Complex_Evaluate();
             }
 
-            Write2Csv(@"G:\xqtest\eval.csv", pos.ivpc, totalMoves, 48);
+            Write2Csv(@"J:\xqtest\eval.csv", pos.ivpc, totalMoves, 48);
             /* 用顶级人类选手的对局来测试评估审局函数的有效性。
              * 理想情况下，双方分数应呈锯齿状交替上升，除去吃子的步骤，应该稳定渐变。
              */
