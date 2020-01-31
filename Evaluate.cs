@@ -616,34 +616,27 @@ namespace MoleXiangqi
                     int sd = SIDE(pc);
                     if (sd != -1)
                     {
-                        //攻击有根子分数4，攻击无根子分数8
+                        int[] cnAttackScore = { 0, 12, 8, 8, 4, 20, 6, 6 };
+                        
                         if (attackMap[sd, sq] > 0)
                         {
-                            connectivity[sd] += 2; //受保护分数
-                            connectivity[1 - sd] += attackMap[1 - sd, sq] * 4;
+                            //受保护分数
+                            connectivity[sd] += 2; 
+                            //攻击有根子分数
+                            connectivity[1 - sd] += attackMap[1 - sd, sq] * cnAttackScore[cnPieceKinds[pc]]/2;
                         }
-                        else
-                            connectivity[1 - sd] += attackMap[1 - sd, sq] * 8;
+                        else //攻击无根子分数
+                            connectivity[1 - sd] += attackMap[1 - sd, sq] * cnAttackScore[cnPieceKinds[pc]];
                     }
                     else
                     {
-                        for (int i = 0; i < 2; i++)
-                            if (BannedGrids[i, sq])
-                                connectivity[1 ^ i] += attackMap[1 ^ i, sq] * 3;
+                        for (sd = 0; sd < 2; sd++)
+                            if (BannedGrids[sd, sq])
+                                connectivity[1 ^ sd] += Math.Max( attackMap[1 ^ sd, sq] * 3, 2);
                             else    //机动性，重复计算不超过3
-                                connectivity[i] += Math.Min(attackMap[i, sq] * 2, 3);
+                                connectivity[sd] += Math.Min(attackMap[sd, sq] * 2, 3);
                     }
                 }
-            if (nStep % 2 == 0 && attackMap[1, sqPieces[16 + KING_FROM]] > 0)
-            {
-                //Console.WriteLine("{0}. Red in check.", nStep);
-                connectivity[1] += 10;
-            }
-            if (nStep % 2 == 1 && attackMap[0, sqPieces[32 + KING_FROM]] > 0)
-            {
-                //Console.WriteLine("{0}. Black in check.", nStep);
-                connectivity[0] += 10;
-            }
 
             int scoreRed = materialValue[0] + positionValue[0] + pair[0] + connectivity[0] + tacticValue[0];
             int scoreBlack = materialValue[1] + positionValue[1] + pair[1] + connectivity[1] + tacticValue[1];
@@ -672,7 +665,7 @@ namespace MoleXiangqi
             //{
             //    return a.Value.CompareTo(b.Value);
             //}
-            string sourceDirectory = @"G:\象棋\全局\1-23届五羊杯";
+            string sourceDirectory = @"J:\象棋\全局\1-23届五羊杯";
             IEnumerable<string> pgnFiles = Directory.EnumerateFiles(sourceDirectory, "*.PGN", SearchOption.AllDirectories);
             int nFile = 0;
             int totalMoves = 0;
