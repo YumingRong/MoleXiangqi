@@ -37,7 +37,7 @@ namespace MoleXiangqi
             15,  20,  25,  29,  34,
             14,  18,  23,  25,  29,
             10,  14,  19,  22,  25,
-            5,   0,  15,  0,   15,
+            3,   0,  15,  0,   15,
             0,   0,   5,   0,   10,
             0,   0,   0,   0,   0,
             0,   0,   0,   5,   2,
@@ -470,6 +470,7 @@ namespace MoleXiangqi
             for (int sd = 0; sd < 2; sd++)
             {
                 int bas = SIDE_TAG(sd);
+                sqOppKing = sqPieces[OPP_SIDE_TAG(sd) + KING_FROM];
                 for (int pc = bas; pc < bas + 16; pc++)
                 {
                     sqSrc = sqPieces[pc];
@@ -522,6 +523,8 @@ namespace MoleXiangqi
                                 }
                             NextFor:;
                             }
+                            if (SAME_FILE(sqSrc, sqOppKing) || SAME_RANK(sqSrc, sqOppKing))
+                                positionValue[sd] += 4;
                             break;
                         case PIECE_KNIGHT:
                             for (int j = 0; j < 4; j++)
@@ -665,10 +668,14 @@ namespace MoleXiangqi
 
         public void TestEval()
         {
-            string sourceDirectory = @"J:\象棋\全局\1-23届五羊杯";
+            //int Compare(KeyValuePair<string, int> a, KeyValuePair<string, int> b)
+            //{
+            //    return a.Value.CompareTo(b.Value);
+            //}
+            string sourceDirectory = @"G:\象棋\全局\1-23届五羊杯";
             IEnumerable<string> pgnFiles = Directory.EnumerateFiles(sourceDirectory, "*.PGN", SearchOption.AllDirectories);
             int nFile = 0;
-            int nMoves = 0;
+            int totalMoves = 0;
             List<double> redDelta = new List<double>();
             List<double> blackDelta = new List<double>();
             List<double> seq = new List<double>();
@@ -681,12 +688,13 @@ namespace MoleXiangqi
                     continue;
                 }
                 nFile++;
-                int totalMoves = iMoveList.Count;
-                bool[] captures = new bool[totalMoves];
+                int totalSteps = iMoveList.Count;
+                bool[] captures = new bool[totalSteps];
                 FromFEN(PGN.StartFEN);
+                ivpc = new int[totalSteps, 48];
                 Complex_Evaluate();
-                SortedList<int, int> mv_vals = new SortedList<int, int>();
-                for (int i = 1; i < totalMoves; i++)
+                List<KeyValuePair<string, int>> mv_vals = new List<KeyValuePair<string, int>>();
+                for (int i = 1; i < totalSteps; i++)
                 {
                     iMOVE step = iMoveList[i];
                     captures[i] = pcSquares[step.to] > 0;
@@ -694,32 +702,50 @@ namespace MoleXiangqi
                     {
                         mv_vals.Clear();
                         List<MOVE> moves = GenerateMoves();
+                        int bookmovevalue = 0;
+                        string bookmovekey = iMove2Coord(step.from, step.to);
                         foreach (MOVE move in moves)
                         {
                             if (move.pcDst == 0)
                             {
                                 MovePiece(move);
-                                ivpc = new int[totalMoves, 48];
+                                ivpc = new int[totalSteps, 48];
+                                string key = iMove2Coord(move.sqSrc, move.sqDst);
                                 int val = Complex_Evaluate();
-                                //Console.WriteLine("{0}. {1} {2}", i, POSITION.iMove2Coord(move.sqSrc, move.sqDst), move.sqSrc + (move.sqDst << 8));
-                                mv_vals.Add(move.sqSrc + (move.sqDst << 8), val);
+                                mv_vals.Add(new KeyValuePair<string, int>(key, val));
                                 UndoMovePiece(move);
+                                if (key == bookmovekey)
+                                    bookmovevalue = val;
                             }
                         }
-                        int index = mv_vals.IndexOfKey(step.from + (step.to << 8));
+                        if (i % 2 == 0)
+                            mv_vals.Sort(delegate (KeyValuePair<string, int> a, KeyValuePair<string, int> b)
+                            { return a.Value.CompareTo(b.Value); });
+                        else
+                            mv_vals.Sort(delegate (KeyValuePair<string, int> a, KeyValuePair<string, int> b)
+                            { return b.Value.CompareTo(a.Value); });
+                        int index = mv_vals.IndexOf(new KeyValuePair<string, int>(bookmovekey, bookmovevalue));
                         seq.Add(index);
+                        totalMoves += moves.Count;
+                        Console.WriteLine("{0}. Book move: {1} {2}", i, bookmovekey, index);
+                        int j = 0;
+                        foreach (var m in mv_vals)
+                        {
+                            Console.WriteLine("{0}. {1} {2} / {3}", j++, m.Key, m.Value, moves.Count);
+
+                        }
                     }
 
                     MakeMove(step.from, step.to);
-                    //Console.WriteLine("-------------------");
+                    Console.WriteLine("-------------------");
                 }
-                for (int i = 1; i < totalMoves; i += 2)
+                for (int i = 1; i < totalSteps; i += 2)
                 {
                     if (!captures[i])
                         redDelta.Add(ivpc[i, 1] - ivpc[i - 1, 1]);
                 }
 
-                for (int i = 2; i < totalMoves; i += 2)
+                for (int i = 2; i < totalSteps; i += 2)
                 {
                     if (!captures[i])
                         blackDelta.Add(ivpc[i, 1] - ivpc[i - 1, 1]);
@@ -733,7 +759,7 @@ namespace MoleXiangqi
             double blackVar = Statistics.Variance(blackDelta);
             Console.WriteLine("Black mean:{0}, var:{1}", blackMean, blackVar);
             Console.WriteLine("Score: red{0}, black{1}, average{2}", redVar / redMean, blackVar / blackMean, (redVar + blackVar) / (redMean - blackMean));
-            Console.WriteLine("Move average sequence: {0}", Statistics.Mean(seq));
+            Console.WriteLine("Move average sequence: {0} of {1}", Statistics.Mean(seq), totalMoves / nFile);
 
         }
     }
