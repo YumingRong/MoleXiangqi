@@ -185,7 +185,7 @@ namespace MoleXiangqi
                     continue;
                 pcDst = pcSquares[sqDst];
                 if ((pcDst & pcSelfSide) == 0)
-                    mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
+                    mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + KING_FROM, pcDst));
             }
             return mvs;
         }

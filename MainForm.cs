@@ -460,74 +460,7 @@ namespace MoleXiangqi
 
         private void menuBatchEval_Click(object sender, EventArgs e)
         {
-            string sourceDirectory = @"J:\象棋\全局\1-23届五羊杯";
-            IEnumerable<string> pgnFiles = Directory.EnumerateFiles(sourceDirectory, "*.PGN", SearchOption.AllDirectories);
-            int nFile = 0;
-            List<double> redDelta = new List<double>();
-            List<double> blackDelta = new List<double>();
-            List<double> seq = new List<double>();
-            foreach (string fileName in pgnFiles)
-            {
-                Console.WriteLine(fileName.Substring(sourceDirectory.Length + 1));
-                if (!pos.ReadPgnFile(fileName))
-                {
-                    Console.WriteLine("Fail to read!" + fileName);
-                    continue;
-                }
-                nFile++;
-                int totalMoves = pos.iMoveList.Count;
-                pos.ivpc = new int[totalMoves, 48];
-                bool[] captures = new bool[totalMoves];
-                pos.FromFEN(pos.PGN.StartFEN);
-                pos.Complex_Evaluate();
-                SortedList<int, int> mv_vals = new SortedList<int, int>();
-                for (int i = 1; i < totalMoves; i++)
-                {
-                    iMOVE step = pos.iMoveList[i];
-                    captures[i] = pos.pcSquares[step.to] > 0;
-                    if (pos.pcSquares[step.to] == 0)
-                    {
-                        mv_vals.Clear();
-                        List<MOVE> moves = pos.GenerateMoves();
-                        foreach (MOVE move in moves)
-                        {
-                            if (move.pcDst == 0)
-                            {
-                                pos.MakeMove(move);
-                                int va = pos.Complex_Evaluate();
-                                Console.WriteLine("{0}. {1} {2} {3}", i, move.sqSrc, move.sqDst, move.sqSrc + (move.sqDst << 8));
-                                mv_vals.Add(move.sqSrc + (move.sqDst << 8), va);
-                                pos.UnmakeMove();
-                            }
-                        }
-                        int index = mv_vals.IndexOfKey(step.from + (step.to << 8));
-                        seq.Add(index);
-                    }
-
-                    pos.MakeMove(step.from, step.to);
-                    Console.WriteLine("-------------------");
-                }
-                for (int i = 1; i < totalMoves; i += 2)
-                {
-                    if (!captures[i])
-                        redDelta.Add(pos.ivpc[i, 1] - pos.ivpc[i - 1, 1]);
-                }
-
-                for (int i = 2; i < totalMoves; i += 2)
-                {
-                    if (!captures[i])
-                        blackDelta.Add(pos.ivpc[i, 1] - pos.ivpc[i - 1, 1]);
-                }
-
-            }
-            double redMean = Statistics.Mean(redDelta);
-            double redVar = Statistics.Variance(redDelta);
-            Console.WriteLine("Red mean:{0}, var:{1}", redMean, redVar);
-            double blackMean = Statistics.Mean(blackDelta);
-            double blackVar = Statistics.Variance(blackDelta);
-            Console.WriteLine("Black mean:{0}, var:{1}", blackMean, blackVar);
-            Console.WriteLine("Score: red{0}, black{1}, average{2}", redVar / redMean, blackVar / blackMean, (redVar + blackVar) / (redMean - blackMean));
-            Console.WriteLine("Move average sequence: {0}", Statistics.Mean(seq));
+            pos.TestEval();
         }
 
         public void DrawSelection(Point pt, Graphics g)

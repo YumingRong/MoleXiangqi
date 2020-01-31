@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using MathNet.Numerics.Statistics;
+
 /*
     我编了3个版本的审局函数，打算杀局时用简单的，静态局面时用复杂的。
     Middle_Evaluate是个不太成熟的评估函数，打算作废
@@ -624,18 +627,18 @@ namespace MoleXiangqi
                         for (int i = 0; i < 2; i++)
                             if (BannedGrids[i, sq])
                                 connectivity[1 ^ i] += attackMap[1 ^ i, sq] * 3;
-                            else    //机动性，重复计算不超过2
-                                connectivity[i] += Math.Min(attackMap[i, sq], 2);
+                            else    //机动性，重复计算不超过3
+                                connectivity[i] += Math.Min(attackMap[i, sq] * 2, 3);
                     }
                 }
             if (nStep % 2 == 0 && attackMap[1, sqPieces[16 + KING_FROM]] > 0)
             {
-                Console.WriteLine("{0}. Red in check.", nStep);
+                //Console.WriteLine("{0}. Red in check.", nStep);
                 connectivity[1] += 10;
             }
             if (nStep % 2 == 1 && attackMap[0, sqPieces[32 + KING_FROM]] > 0)
             {
-                Console.WriteLine("{0}. Black in check.", nStep);
+                //Console.WriteLine("{0}. Black in check.", nStep);
                 connectivity[0] += 10;
             }
 
@@ -658,6 +661,80 @@ namespace MoleXiangqi
             ivpc[nStep, 12] = tacticValue[0];
             ivpc[nStep, 13] = tacticValue[1];
             return total;
+        }
+
+        public void TestEval()
+        {
+            string sourceDirectory = @"J:\象棋\全局\1-23届五羊杯";
+            IEnumerable<string> pgnFiles = Directory.EnumerateFiles(sourceDirectory, "*.PGN", SearchOption.AllDirectories);
+            int nFile = 0;
+            int nMoves = 0;
+            List<double> redDelta = new List<double>();
+            List<double> blackDelta = new List<double>();
+            List<double> seq = new List<double>();
+            foreach (string fileName in pgnFiles)
+            {
+                Console.WriteLine(fileName.Substring(sourceDirectory.Length + 1));
+                if (!ReadPgnFile(fileName))
+                {
+                    Console.WriteLine("Fail to read!" + fileName);
+                    continue;
+                }
+                nFile++;
+                int totalMoves = iMoveList.Count;
+                bool[] captures = new bool[totalMoves];
+                FromFEN(PGN.StartFEN);
+                Complex_Evaluate();
+                SortedList<int, int> mv_vals = new SortedList<int, int>();
+                for (int i = 1; i < totalMoves; i++)
+                {
+                    iMOVE step = iMoveList[i];
+                    captures[i] = pcSquares[step.to] > 0;
+                    if (pcSquares[step.to] == 0)
+                    {
+                        mv_vals.Clear();
+                        List<MOVE> moves = GenerateMoves();
+                        foreach (MOVE move in moves)
+                        {
+                            if (move.pcDst == 0)
+                            {
+                                MovePiece(move);
+                                ivpc = new int[totalMoves, 48];
+                                int val = Complex_Evaluate();
+                                //Console.WriteLine("{0}. {1} {2}", i, POSITION.iMove2Coord(move.sqSrc, move.sqDst), move.sqSrc + (move.sqDst << 8));
+                                mv_vals.Add(move.sqSrc + (move.sqDst << 8), val);
+                                UndoMovePiece(move);
+                            }
+                        }
+                        int index = mv_vals.IndexOfKey(step.from + (step.to << 8));
+                        seq.Add(index);
+                    }
+
+                    MakeMove(step.from, step.to);
+                    //Console.WriteLine("-------------------");
+                }
+                for (int i = 1; i < totalMoves; i += 2)
+                {
+                    if (!captures[i])
+                        redDelta.Add(ivpc[i, 1] - ivpc[i - 1, 1]);
+                }
+
+                for (int i = 2; i < totalMoves; i += 2)
+                {
+                    if (!captures[i])
+                        blackDelta.Add(ivpc[i, 1] - ivpc[i - 1, 1]);
+                }
+                break;
+            }
+            double redMean = Statistics.Mean(redDelta);
+            double redVar = Statistics.Variance(redDelta);
+            Console.WriteLine("Red mean:{0}, var:{1}", redMean, redVar);
+            double blackMean = Statistics.Mean(blackDelta);
+            double blackVar = Statistics.Variance(blackDelta);
+            Console.WriteLine("Black mean:{0}, var:{1}", blackMean, blackVar);
+            Console.WriteLine("Score: red{0}, black{1}, average{2}", redVar / redMean, blackVar / blackMean, (redVar + blackVar) / (redMean - blackMean));
+            Console.WriteLine("Move average sequence: {0}", Statistics.Mean(seq));
+
         }
     }
 }
