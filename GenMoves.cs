@@ -29,7 +29,7 @@ namespace MoleXiangqi
         static readonly int[,] ccKnightCheckDelta = { { -33, -18 }, { -31, -14 }, { 14, 31 }, { 18, 33 } };
 
         //着法生成器
-        List<MOVE> GenerateMoves()
+        public List<MOVE> GenerateMoves()
         {
             int sqSrc, sqDst, pcDst;
             int pcSelfSide, pcOppSide;

@@ -11,10 +11,10 @@ namespace MoleXiangqi
     partial class POSITION
     {
         //各种子力的价值
-        const int MAT_KING = 2000;
+        const int MAT_KING = 0;
         const int MAT_ROOK = 130;
-        const int MAT_CANNON = 50;
-        const int MAT_KNIGHT = 69;
+        const int MAT_CANNON = 55;
+        const int MAT_KNIGHT = 65;
         const int MAT_PAWN = 10;
         const int MAT_BISHOP = 25;
         const int MAT_ADVISOR = 20;
@@ -419,7 +419,7 @@ namespace MoleXiangqi
                         else if (nblock == 0) //空心炮
                         {
                             for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
-                                BannedGrids[1-sd, sq] = true;
+                                BannedGrids[1 - sd, sq] = true;
                         }
                     }
                     if (SAME_RANK(sqSrc, sqOppKing))
@@ -437,7 +437,7 @@ namespace MoleXiangqi
                         else if (nblock == 0) //空心炮
                         {
                             for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
-                                BannedGrids[1-sd, sq] = true;
+                                BannedGrids[1 - sd, sq] = true;
                         }
                     }
                 }
@@ -548,7 +548,7 @@ namespace MoleXiangqi
                                 if (HOME_HALF[sd, sqDst] && pcSquares[sqDst] == 0)
                                     attackMap[sd, sqDst + ccGuardDelta[j]]++;
                             }
-                            positionValue[sd] += cBishopGuardValue[sqSrcMirror];
+                            //positionValue[sd] += cBishopGuardValue[sqSrcMirror];
                             break;
                         case PIECE_GUARD:
                             for (int j = 0; j < 4; j++)
@@ -557,7 +557,7 @@ namespace MoleXiangqi
                                 if (IN_FORT[sqDst])
                                     attackMap[sd, sqDst]++;
                             }
-                            positionValue[sd] += cBishopGuardValue[sqSrcMirror];
+                            //positionValue[sd] += cBishopGuardValue[sqSrcMirror];
                             break;
                         case PIECE_KING:
                             for (int i = 0; i < 4; i++)
@@ -610,37 +610,32 @@ namespace MoleXiangqi
                     int sd = SIDE(pc);
                     if (sd != -1)
                     {
-                        //攻击有根子分数5，攻击无根子分数10
+                        //攻击有根子分数4，攻击无根子分数8
                         if (attackMap[sd, sq] > 0)
                         {
-                            connectivity[sd] += 3; //受保护分数
-                            connectivity[1 - sd] += attackMap[1 - sd, sq] * 5;
+                            connectivity[sd] += 2; //受保护分数
+                            connectivity[1 - sd] += attackMap[1 - sd, sq] * 4;
                         }
                         else
-                            connectivity[1 - sd] += attackMap[1 - sd, sq] * 10;
+                            connectivity[1 - sd] += attackMap[1 - sd, sq] * 8;
                     }
                     else
                     {
-                        if (BannedGrids[0, sq])
-                            connectivity[1] += attackMap[1, sq] * 15;
-                        else    //机动性，重复计算不超过3
-                            connectivity[0] += Math.Min(attackMap[0, sq] * 2, 3);
-                        if (BannedGrids[1, sq])
-                            connectivity[0] += attackMap[0, sq] * 15;
-                        else
-                            connectivity[1] += Math.Min(attackMap[1, sq] * 2, 3);
+                        for (int i = 0; i < 2; i++)
+                            if (BannedGrids[i, sq])
+                                connectivity[1 ^ i] += attackMap[1 ^ i, sq] * 3;
+                            else    //机动性，重复计算不超过2
+                                connectivity[i] += Math.Min(attackMap[i, sq], 2);
                     }
                 }
-            if (attackMap[1, sqPieces[16+KING_FROM]]>0)
+            if (nStep % 2 == 0 && attackMap[1, sqPieces[16 + KING_FROM]] > 0)
             {
                 Console.WriteLine("{0}. Red in check.", nStep);
-                Debug.Assert(Checked(0));
                 connectivity[1] += 10;
             }
-            else if (attackMap[0, sqPieces[32 + KING_FROM]] > 0)
+            if (nStep % 2 == 1 && attackMap[0, sqPieces[32 + KING_FROM]] > 0)
             {
                 Console.WriteLine("{0}. Black in check.", nStep);
-                Debug.Assert(Checked(1));
                 connectivity[0] += 10;
             }
 

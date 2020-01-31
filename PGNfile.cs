@@ -13,6 +13,14 @@ namespace MoleXiangqi
         public int from;
         public int to;
         public string comment;
+
+        public iMOVE(MOVE mv)
+        {
+            from = mv.sqSrc;
+            to = mv.sqDst;
+            comment = "";
+        }
+
     }
 
     partial class POSITION
@@ -157,7 +165,7 @@ namespace MoleXiangqi
                         m = Regex.Match(s, pattern);
                         if (m.Success)
                         {//is a move number
-                            Debug.WriteLine(m.Groups[1].Value);
+                            //Debug.WriteLine(m.Groups[1].Value);
                             //if (phase != 2 && m.Groups[1].Value != "2")//第一回合如果黑方先走，只有move#2
                             //{
                             //    Console.WriteLine("棋谱错误，缺少着法");
@@ -167,7 +175,7 @@ namespace MoleXiangqi
                         }
                         else if (s.Length == 4)
                         {//is a move
-                            Debug.WriteLine(s);
+                            //Debug.WriteLine(s);
                             MOVE mv = ParseWord(s);
                             if (mv.pcSrc == 0)
                                 return false;
@@ -371,13 +379,13 @@ namespace MoleXiangqi
                 using (StreamWriter sw = new StreamWriter(fs, Encoding.Default))
                 {
                     sw.AutoFlush = false;
-                    for (int side = 0; side <= 1; side++)
+                    for(int sd = 0;sd<2;sd++)
                     {
                         for (int y = RANK_TOP; y <= RANK_BOTTOM; y++)//<--row
                         {
                             for (int x = FILE_LEFT; x <= FILE_RIGHT; x++)//<--col
                             {
-                                sw.Write(string.Format("{0},", array[side, XY2Coord(x, y)]));
+                                sw.Write(string.Format("{0},", array[sd, XY2Coord(x, y)]));
                             }
                             sw.Write('\n');
                         }

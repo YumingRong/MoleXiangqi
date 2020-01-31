@@ -378,39 +378,33 @@ namespace MoleXiangqi
 
         private void menuActivePositionTest_Click(object sender, EventArgs e)
         {
-            //该函数不再维护，不能运行
-
-            string sourceDirectory = @"J:\全局\1-23届五羊杯";
+            string sourceDirectory = @"J:\象棋\全局\1-23届五羊杯";
             IEnumerable<string> pgnFiles = Directory.EnumerateFiles(sourceDirectory, "*.PGN", SearchOption.AllDirectories);
             int nFile = 0;
             //统计棋子活动位置的数组
-            int[,] activeGrid = new int[2, 256];
-            activeGrid = new int[2, 256];
-            int[] gameLength = new int[500];
+            int[,] activeGrid = new int[2,256];
 
             foreach (string fileName in pgnFiles)
             {
                 Console.WriteLine(fileName.Substring(sourceDirectory.Length + 1));
                 if (!pos.ReadPgnFile(fileName))
-                    Console.WriteLine("Fail to read!");
+                {
+                    Console.WriteLine("Fail to read!" + fileName);
+                    continue;
+                }
                 nFile++;
-                gameLength[pos.iMoveList.Count]++;
-                //if (nStep > 14) //只统计中残局强子的活动范围
-                //    for (int sd = 0; sd <= 1; sd++)
-                //        for (int pc = KNIGHT_FROM; pc <= KNIGHT_TO; pc++)
-                //        {
-                //            int sq = sqPieces[pc + SIDE_TAG(sd)];
-                //            if (sq > 0)
-                //                activeGrid[sd, sq]++;
-                //        }
-                //if (pos.iMoveList.Count < 30)
-                //{
-                //    Console.WriteLine(fileName.Substring(sourceDirectory.Length + 1) + "\t" + pos.iMoveList.Count);
-                //    //File.Delete(fileName);
-                //}
+                pos.FromFEN(pos.PGN.StartFEN);
+                int side = 0;
+                for (int i = 1; i < pos.iMoveList.Count; i++)
+                {
+                    iMOVE step = pos.iMoveList[i];
+                    if (pos.pcSquares[step.to] > 0)
+                        activeGrid[side, step.to]++;
+                    pos.MakeMove(step.from, step.to);
+                    side = 1 ^ side;
+                }
             }
-            POSITION.Write2Csv(@"J:\xqtest\kingmove.csv", activeGrid);
-            Write2Csv(@"J:\xqtest\gamelength.csv", gameLength);
+            POSITION.Write2Csv(@"J:\xqtest\capture.csv", activeGrid);
             MessageBox.Show(String.Format("Finish reading.Total {0} files", nFile));
         }
 
@@ -430,10 +424,10 @@ namespace MoleXiangqi
             bool[] captures = new bool[totalMoves];
             pos.FromFEN(pos.PGN.StartFEN);
             pos.Complex_Evaluate();
-            for (FENStep = 1; FENStep < totalMoves; FENStep++)
+            for (int i = 1; i < totalMoves; i++)
             {
-                iMOVE step = pos.iMoveList[FENStep];
-                captures[FENStep] = pos.pcSquares[step.to] > 0;
+                iMOVE step = pos.iMoveList[i];
+                captures[i] = pos.pcSquares[step.to] > 0;
                 pos.MakeMove(step.from, step.to);
                 pos.Complex_Evaluate();
             }
@@ -443,17 +437,17 @@ namespace MoleXiangqi
              * 理想情况下，双方分数应呈锯齿状交替上升，除去吃子的步骤，应该稳定渐变。
              */
             List<double> redDelta = new List<double>();
-            for (int i = 1; i < totalMoves; i+=2)
+            for (int i = 1; i < totalMoves; i += 2)
             {
                 if (!captures[i])
-                    redDelta.Add(pos.ivpc[i, 1] - pos.ivpc[i-1,1]);
+                    redDelta.Add(pos.ivpc[i, 1] - pos.ivpc[i - 1, 1]);
             }
             double redMean = Statistics.Mean(redDelta);
             double redVar = Statistics.Variance(redDelta);
             Console.WriteLine("Red mean:{0}, var:{1}", redMean, redVar);
 
             List<double> blackDelta = new List<double>();
-            for (int i = 2; i < totalMoves; i+=2)
+            for (int i = 2; i < totalMoves; i += 2)
             {
                 if (!captures[i])
                     blackDelta.Add(pos.ivpc[i, 1] - pos.ivpc[i - 1, 1]);
@@ -461,7 +455,79 @@ namespace MoleXiangqi
             double blackMean = Statistics.Mean(blackDelta);
             double blackVar = Statistics.Variance(blackDelta);
             Console.WriteLine("Black mean:{0}, var:{1}", blackMean, blackVar);
-            Console.WriteLine("Score: red{0}, black{1}, average{2}", redVar/redMean, blackVar/blackMean, (redVar + blackVar) / (redMean - blackMean));
+            Console.WriteLine("Score: red{0}, black{1}, average{2}", redVar / redMean, blackVar / blackMean, (redVar + blackVar) / (redMean - blackMean));
+        }
+
+        private void menuBatchEval_Click(object sender, EventArgs e)
+        {
+            string sourceDirectory = @"J:\象棋\全局\1-23届五羊杯";
+            IEnumerable<string> pgnFiles = Directory.EnumerateFiles(sourceDirectory, "*.PGN", SearchOption.AllDirectories);
+            int nFile = 0;
+            List<double> redDelta = new List<double>();
+            List<double> blackDelta = new List<double>();
+            List<double> seq = new List<double>();
+            foreach (string fileName in pgnFiles)
+            {
+                Console.WriteLine(fileName.Substring(sourceDirectory.Length + 1));
+                if (!pos.ReadPgnFile(fileName))
+                {
+                    Console.WriteLine("Fail to read!" + fileName);
+                    continue;
+                }
+                nFile++;
+                int totalMoves = pos.iMoveList.Count;
+                pos.ivpc = new int[totalMoves, 48];
+                bool[] captures = new bool[totalMoves];
+                pos.FromFEN(pos.PGN.StartFEN);
+                pos.Complex_Evaluate();
+                SortedList<int, int> mv_vals = new SortedList<int, int>();
+                for (int i = 1; i < totalMoves; i++)
+                {
+                    iMOVE step = pos.iMoveList[i];
+                    captures[i] = pos.pcSquares[step.to] > 0;
+                    if (pos.pcSquares[step.to] == 0)
+                    {
+                        mv_vals.Clear();
+                        List<MOVE> moves = pos.GenerateMoves();
+                        foreach (MOVE move in moves)
+                        {
+                            if (move.pcDst == 0)
+                            {
+                                pos.MakeMove(move);
+                                int va = pos.Complex_Evaluate();
+                                Console.WriteLine("{0}. {1} {2} {3}", i, move.sqSrc, move.sqDst, move.sqSrc + (move.sqDst << 8));
+                                mv_vals.Add(move.sqSrc + (move.sqDst << 8), va);
+                                pos.UnmakeMove();
+                            }
+                        }
+                        int index = mv_vals.IndexOfKey(step.from + (step.to << 8));
+                        seq.Add(index);
+                    }
+
+                    pos.MakeMove(step.from, step.to);
+                    Console.WriteLine("-------------------");
+                }
+                for (int i = 1; i < totalMoves; i += 2)
+                {
+                    if (!captures[i])
+                        redDelta.Add(pos.ivpc[i, 1] - pos.ivpc[i - 1, 1]);
+                }
+
+                for (int i = 2; i < totalMoves; i += 2)
+                {
+                    if (!captures[i])
+                        blackDelta.Add(pos.ivpc[i, 1] - pos.ivpc[i - 1, 1]);
+                }
+
+            }
+            double redMean = Statistics.Mean(redDelta);
+            double redVar = Statistics.Variance(redDelta);
+            Console.WriteLine("Red mean:{0}, var:{1}", redMean, redVar);
+            double blackMean = Statistics.Mean(blackDelta);
+            double blackVar = Statistics.Variance(blackDelta);
+            Console.WriteLine("Black mean:{0}, var:{1}", blackMean, blackVar);
+            Console.WriteLine("Score: red{0}, black{1}, average{2}", redVar / redMean, blackVar / blackMean, (redVar + blackVar) / (redMean - blackMean));
+            Console.WriteLine("Move average sequence: {0}", Statistics.Mean(seq));
         }
 
         public void DrawSelection(Point pt, Graphics g)
