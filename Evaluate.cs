@@ -5,14 +5,8 @@ using System.IO;
 using MathNet.Numerics.Statistics;
 
 /*
-    我编了3个版本的审局函数，打算杀局时用简单的，静态局面时用复杂的。
-    Middle_Evaluate是个不太成熟的评估函数，打算作废
-    要鼓励炮与将同列同行，+4
+    我编了2个版本的审局函数，打算杀局时用简单的，静态局面时用复杂的。
 是否需要考虑每匹马的机动性不小于2？
-攻击无根子的加分取决于无根子的价值
-貌似开局必须要用数组才能比较准确的走子
-挺边兵的分数太高
-
  */
 
 namespace MoleXiangqi
@@ -203,159 +197,6 @@ namespace MoleXiangqi
         }
 
         public int[,] ivpc; //统计每一步各个棋子的位置分 300 * 48
-        public int Middle_Evaluate()
-        {
-            int totalPieces = 0;
-            int[,] nP = new int[2, 8];
-            int[] materialValue = new int[2];
-            int[] positionValue = new int[2];
-            materialValue[0] = materialValue[1] = 0;
-
-            for (int sd = 0; sd < 2; sd++)
-            {
-                int bas = SIDE_TAG(sd);
-                int sqOppKing = sqPieces[OPP_SIDE_TAG(sd) + KING_FROM];
-                for (int pc = bas; pc < bas + 16; pc++)
-                {
-                    int sqSrc = sqPieces[pc];
-                    if (sqSrc > 0)
-                    {
-                        int pcKind = cnPieceKinds[pc];
-                        Debug.Assert(IN_BOARD[sqSrc]);
-                        totalPieces++;
-                        nP[sd, pcKind]++;
-                        materialValue[sd] += cnPieceValue[pcKind];
-                        int sqDst, pcDst, sdDst;
-                        int posv0 = positionValue[sd];
-                        switch (pcKind)
-                        {
-                            //车的机动性
-                            case PIECE_ROOK:
-                                if (FILE_X(sqSrc) == FILE_X(sqOppKing) || RANK_Y(sqSrc) == RANK_Y(sqOppKing))
-                                    positionValue[sd] += 20;
-                                for (int i = 0; i < 4; i++)
-                                {
-                                    int nDelta = ccKingDelta[i];
-                                    for (sqDst = sqSrc + nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
-                                    {
-                                        sdDst = pcSquares[sqDst] & 0b00110000;
-                                        if (sdDst == 0)
-                                            positionValue[sd] += 2; //车控制空白区域
-                                        else if (sdDst == bas)
-                                        {
-                                            positionValue[sd] += 3; //车保护己方棋子
-                                            break;
-                                        }
-                                        else
-                                        {
-                                            positionValue[sd] += 4; //车攻击对方棋子
-                                            break;
-                                        }
-                                    }
-                                }
-                                break;
-                            case PIECE_CANNON:
-                                for (int j = 0; j < 4; j++)
-                                {
-                                    int nDelta = ccKingDelta[j];
-                                    for (sqDst = sqSrc + nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
-                                    {
-                                        pcDst = pcSquares[sqDst];
-                                        if (pcDst != 0)
-                                        {
-                                            if (sqDst == sqOppKing) //炮与将之间是禁区
-                                                positionValue[sd] += (sqDst - sqSrc) / nDelta * 4;
-                                            break;
-                                        }
-                                    }
-                                    for (sqDst += nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
-                                    {
-                                        pcDst = pcSquares[sqDst];
-                                        if (pcDst != 0)
-                                        {
-                                            if (SIDE(pcDst) != sd)
-                                                positionValue[sd] += 5; //炮直瞄对方棋子
-                                            else
-                                                positionValue[sd] += 3;  //炮保护己方棋子
-                                            for (sqDst += nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
-                                            {
-                                                pcDst = pcSquares[sqDst];
-                                                if (pcDst != 0)
-                                                {
-                                                    if (SIDE(pcDst) == 1 - sd)
-                                                    {
-                                                        positionValue[sd] += 3; //炮间接瞄准位置
-                                                        if (sqDst == sqOppKing)
-                                                            positionValue[sd] += 15;
-                                                    }
-                                                    break;
-                                                }
-                                            }
-                                            break;
-                                        }
-                                        else
-                                            positionValue[sd] += 1;  //炮瞄准的空白区域
-                                    }
-                                }
-                                break;
-                            case PIECE_KNIGHT:
-                                //马的机动性
-                                for (int i = 0; i < 4; i++)
-                                {
-                                    int sqPin = sqSrc + ccKingDelta[i];
-                                    if (pcSquares[sqPin] == 0)
-                                    {
-                                        for (int j = 0; j < 2; j++)
-                                        {
-                                            sqDst = sqSrc + ccKnightDelta[i, j];
-                                            if (IN_BOARD[sqDst])
-                                            {
-                                                sdDst = pcSquares[sqDst] & 0b00110000;
-                                                if (sdDst == 0)
-                                                    positionValue[sd] += 2;
-                                                else if (sdDst == sd)
-                                                    positionValue[sd] += 3;
-                                                else
-                                                    positionValue[sd] += 5;
-                                            }
-                                        }
-                                    }
-                                }
-                                //到王的距离 King Tropism
-                                positionValue[sd] += (13 - Math.Abs(FILE_X(sqSrc) - FILE_X(sqOppKing)) - Math.Abs(RANK_Y(sqSrc) - RANK_Y(sqOppKing))) * 3;
-                                break;
-                            case PIECE_PAWN:
-                                int sqMirror = sd == 0 ? sqSrc : SQUARE_FLIP(sqSrc);
-                                positionValue[sd] += cKingPawnValue[sqMirror];
-                                break;
-                            case PIECE_KING:
-                                sqMirror = sd == 0 ? sqSrc : SQUARE_FLIP(sqSrc);
-                                positionValue[sd] += cKingPawnValue[sqMirror];
-                                break;
-                            case PIECE_BISHOP:
-                                for (int i = 0; i < 4; i++)
-                                {
-                                    sqDst = sqSrc + ccGuardDelta[i];
-                                    if ((HOME_HALF[sd, sqDst] && pcSquares[sqDst] == 0))
-                                        positionValue[sd] += 4;
-                                }
-                                sqMirror = sd == 0 ? sqSrc : SQUARE_FLIP(sqSrc);
-                                positionValue[sd] += cBishopGuardValue[sqMirror];
-                                break;
-                            case PIECE_GUARD:
-                                sqMirror = sd == 0 ? sqSrc : SQUARE_FLIP(sqSrc);
-                                positionValue[sd] += cBishopGuardValue[sqMirror];
-                                break;
-                        }
-                        ivpc[nStep, pc - 14] = positionValue[sd] - posv0;
-                    }
-                }
-            }
-            ivpc[nStep, 0] = materialValue[0];
-            ivpc[nStep, 1] = materialValue[1];
-            return materialValue[0] - materialValue[1] + positionValue[0] - positionValue[1];
-        }
-
         public int[,] attackMap, connectivityMap;
         public int Complex_Evaluate()
         {
@@ -557,7 +398,7 @@ namespace MoleXiangqi
                             NextFor:;
                             }
                             if (SAME_FILE(sqSrc, sqOppKing) || SAME_RANK(sqSrc, sqOppKing))
-                                positionValue[sd] += 4;
+                                positionValue[sd] += 5;
                             break;
                         case PIECE_KNIGHT:
                             for (int j = 0; j < 4; j++)
@@ -671,7 +512,8 @@ namespace MoleXiangqi
                         for (sd = 0; sd < 2; sd++)
                             if (BannedGrids[sd, sq])
                                 tacticValue[1 ^ sd] += attackMap[1 - sd, sq] > 0 ? cDiscoveredAttack[attackMap[1 - sd, sq]] : 2;
-                            else if (attackMap[sd, sq] > 0)   //机动性
+                            //机动性, 不考虑炮的空射，因为炮的射界与活动范围不同，且炮架可能是对方的车、炮或兵、帅
+                            else if (attackMap[sd, sq] > 0 && attackMap[sd,sq] != PIECE_CANNON && attackMap[1-sd, sq] == 0)   
                                 connectivity[sd] += 2;
                     }
                     connectivityMap[0, sq] = connectivity[0] - conn00;

@@ -13,7 +13,7 @@ namespace MoleXiangqi
     public partial class MainForm : Form
     {
         bool App_bSound = true;
-        string App_szPath = @"G:\C#\MoleXiangqi\Resources\";
+        string App_szPath = @"J:\C#\MoleXiangqi\Resources\";
         bool App_inGame;
         Point mvLastFrom, mvLastTo, ptSelected;
         int pcSelected, pcLast;
@@ -214,7 +214,7 @@ namespace MoleXiangqi
 
         private void menuOpen_Click(object sender, EventArgs e)
         {
-            string fileName = @"G:\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
+            string fileName = @"J:\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
             pos.ReadPgnFile(fileName);
 
             //if (openPGNDialog.ShowDialog() == DialogResult.OK)
@@ -377,7 +377,7 @@ namespace MoleXiangqi
 
         private void menuActivePositionTest_Click(object sender, EventArgs e)
         {
-            string sourceDirectory = @"G:\象棋\全局\1-23届五羊杯";
+            string sourceDirectory = @"J:\象棋\全局\1-23届五羊杯";
             IEnumerable<string> pgnFiles = Directory.EnumerateFiles(sourceDirectory, "*.PGN", SearchOption.AllDirectories);
             int nFile = 0;
             //统计棋子活动位置的数组
@@ -403,7 +403,7 @@ namespace MoleXiangqi
                     side = 1 ^ side;
                 }
             }
-            POSITION.Write2Csv(@"G:\xqtest\capture.csv", activeGrid);
+            POSITION.Write2Csv(@"J:\xqtest\capture.csv", activeGrid);
             MessageBox.Show(String.Format("Finish reading.Total {0} files", nFile));
         }
 
@@ -411,13 +411,13 @@ namespace MoleXiangqi
         {
             pos.ivpc = new int[300, 48];
             pos.Complex_Evaluate();
-            WriteMap2Csv(pos.attackMap, @"G:\xqtest\attack.csv");
-            WriteMap2Csv(pos.connectivityMap, @"G:\xqtest\connectivity.csv");
+            WriteMap2Csv(pos.attackMap, @"J:\xqtest\attack.csv");
+            WriteMap2Csv(pos.connectivityMap, @"J:\xqtest\connectivity.csv");
         }
 
         private void menuContinuousEval_Click(object sender, EventArgs e)
         {
-            string fileName = @"G:\象棋\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
+            string fileName = @"J:\象棋\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
             pos.ReadPgnFile(fileName);
             int totalMoves = pos.iMoveList.Count;
             pos.ivpc = new int[totalMoves, 48];
@@ -432,7 +432,7 @@ namespace MoleXiangqi
                 pos.Complex_Evaluate();
             }
 
-            Write2Csv(@"G:\xqtest\eval.csv", pos.ivpc, totalMoves, 48);
+            Write2Csv(@"J:\xqtest\eval.csv", pos.ivpc, totalMoves, 48);
             /* 用顶级人类选手的对局来测试评估审局函数的有效性。
              * 理想情况下，双方分数应呈锯齿状交替上升，除去吃子的步骤，应该稳定渐变。
              */
