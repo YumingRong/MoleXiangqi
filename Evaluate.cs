@@ -22,7 +22,7 @@ namespace MoleXiangqi
         const int MAT_BISHOP = 25;
         const int MAT_ADVISOR = 20;
 
-        static readonly int[] cnPieceValue = { 0, MAT_ROOK, MAT_CANNON, MAT_KNIGHT, MAT_PAWN, MAT_KING, MAT_BISHOP, MAT_ADVISOR };
+        static readonly int[] cnPieceValue = { 0, MAT_KING, MAT_ROOK, MAT_CANNON, MAT_KNIGHT, MAT_PAWN, MAT_BISHOP, MAT_ADVISOR };
 
         int[] cKingPawnValue;
         int[] cKnightValue;
@@ -355,7 +355,7 @@ namespace MoleXiangqi
                 if (blockerSide == side)
                 {
                     //闪击加分，根据兵种不同
-                    int[] v = { 0, 25, 20, 20, 7, 1, 3, 3 };
+                    int[] v = { 0, 1, 25, 20, 20, 7, 3, 3 };
                     tacticValue[side] += v[pcKind];
                 }
                 else
@@ -618,7 +618,7 @@ namespace MoleXiangqi
                     int defence = attackMap[sd, sq];
                     if (sd != -1)
                     {
-                        int[] cnAttackScore = { 0, 12, 8, 8, 4, 20, 6, 6 };
+                        int[] cnAttackScore = { 0, 20, 12, 8, 8, 4, 6, 6 };
                         if (defence > 0)
                         {
                             //受保护分数

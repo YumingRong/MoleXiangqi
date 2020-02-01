@@ -110,7 +110,7 @@ namespace MoleXiangqi
             string Piece2Fen;   //参见cnPieceTypes
 
             Piece2Fen = new string(' ', 16);
-            string cszPieceBytes = "RRCCNNPPPPPKBBGG";
+            string cszPieceBytes = "KRRCCNNPPPPPBBGG";
             Piece2Fen += cszPieceBytes + cszPieceBytes.ToLower();
             Debug.Assert(Piece2Fen.Length == 48);
 

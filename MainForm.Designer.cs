@@ -55,6 +55,7 @@
             this.menuActivePositionTest = new System.Windows.Forms.ToolStripMenuItem();
             this.menuEvaluate = new System.Windows.Forms.ToolStripMenuItem();
             this.menuContinuousEval = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuBatchEval = new System.Windows.Forms.ToolStripMenuItem();
             this.ilCPieces = new System.Windows.Forms.ImageList(this.components);
             this.openFENDialog = new System.Windows.Forms.OpenFileDialog();
             this.listboxMove = new System.Windows.Forms.ListBox();
@@ -66,7 +67,6 @@
             this.labelPlayer = new System.Windows.Forms.Label();
             this.labelEvent = new System.Windows.Forms.Label();
             this.openPGNDialog = new System.Windows.Forms.OpenFileDialog();
-            this.menuBatchEval = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.panelBoard.SuspendLayout();
             this.SuspendLayout();
@@ -250,41 +250,48 @@
             // menuActivePositionTest
             // 
             this.menuActivePositionTest.Name = "menuActivePositionTest";
-            this.menuActivePositionTest.Size = new System.Drawing.Size(180, 22);
+            this.menuActivePositionTest.Size = new System.Drawing.Size(152, 22);
             this.menuActivePositionTest.Text = "棋子活动范围";
             this.menuActivePositionTest.Click += new System.EventHandler(this.menuActivePositionTest_Click);
             // 
             // menuEvaluate
             // 
             this.menuEvaluate.Name = "menuEvaluate";
-            this.menuEvaluate.Size = new System.Drawing.Size(180, 22);
+            this.menuEvaluate.Size = new System.Drawing.Size(152, 22);
             this.menuEvaluate.Text = "审局";
             this.menuEvaluate.Click += new System.EventHandler(this.menuEvaluate_Click);
             // 
             // menuContinuousEval
             // 
             this.menuContinuousEval.Name = "menuContinuousEval";
-            this.menuContinuousEval.Size = new System.Drawing.Size(180, 22);
+            this.menuContinuousEval.Size = new System.Drawing.Size(152, 22);
             this.menuContinuousEval.Text = "连续审局";
             this.menuContinuousEval.Click += new System.EventHandler(this.menuContinuousEval_Click);
+            // 
+            // menuBatchEval
+            // 
+            this.menuBatchEval.Name = "menuBatchEval";
+            this.menuBatchEval.Size = new System.Drawing.Size(152, 22);
+            this.menuBatchEval.Text = "批量连续审局";
+            this.menuBatchEval.Click += new System.EventHandler(this.menuBatchEval_Click);
             // 
             // ilCPieces
             // 
             this.ilCPieces.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("ilCPieces.ImageStream")));
             this.ilCPieces.TransparentColor = System.Drawing.Color.Transparent;
             this.ilCPieces.Images.SetKeyName(0, "oos.gif");
-            this.ilCPieces.Images.SetKeyName(1, "rr.gif");
-            this.ilCPieces.Images.SetKeyName(2, "rc.gif");
-            this.ilCPieces.Images.SetKeyName(3, "rn.gif");
-            this.ilCPieces.Images.SetKeyName(4, "rp.gif");
-            this.ilCPieces.Images.SetKeyName(5, "rk.gif");
+            this.ilCPieces.Images.SetKeyName(1, "rk.gif");
+            this.ilCPieces.Images.SetKeyName(2, "rr.gif");
+            this.ilCPieces.Images.SetKeyName(3, "rc.gif");
+            this.ilCPieces.Images.SetKeyName(4, "rn.gif");
+            this.ilCPieces.Images.SetKeyName(5, "rp.gif");
             this.ilCPieces.Images.SetKeyName(6, "rb.gif");
             this.ilCPieces.Images.SetKeyName(7, "ra.gif");
-            this.ilCPieces.Images.SetKeyName(8, "br.gif");
-            this.ilCPieces.Images.SetKeyName(9, "bc.gif");
-            this.ilCPieces.Images.SetKeyName(10, "bn.gif");
-            this.ilCPieces.Images.SetKeyName(11, "bp.gif");
-            this.ilCPieces.Images.SetKeyName(12, "bk.gif");
+            this.ilCPieces.Images.SetKeyName(8, "bk.gif");
+            this.ilCPieces.Images.SetKeyName(9, "br.gif");
+            this.ilCPieces.Images.SetKeyName(10, "bc.gif");
+            this.ilCPieces.Images.SetKeyName(11, "bn.gif");
+            this.ilCPieces.Images.SetKeyName(12, "bp.gif");
             this.ilCPieces.Images.SetKeyName(13, "bb.gif");
             this.ilCPieces.Images.SetKeyName(14, "ba.gif");
             // 
@@ -383,13 +390,6 @@
             // openPGNDialog
             // 
             this.openPGNDialog.Filter = "象棋对局面文件(*.PGN)|*.PGN";
-            // 
-            // menuBatchEval
-            // 
-            this.menuBatchEval.Name = "menuBatchEval";
-            this.menuBatchEval.Size = new System.Drawing.Size(180, 22);
-            this.menuBatchEval.Text = "批量连续审局";
-            this.menuBatchEval.Click += new System.EventHandler(this.menuBatchEval_Click);
             // 
             // MainForm
             // 
