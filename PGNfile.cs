@@ -327,8 +327,8 @@ namespace MoleXiangqi
         }
 
         // 每种子力的开始序号和结束序号
-        int[] pcFrom = { 0, ROOK_FROM, CANNON_FROM, KNIGHT_FROM, PAWN_FROM, KING_FROM, BISHOP_FROM, GUARD_FROM };
-        int[] pcTo = { 0, ROOK_TO, CANNON_TO, KNIGHT_TO, PAWN_TO, KING_TO, BISHOP_TO, GUARD_TO };
+        int[] pcFrom = { 0, KING_FROM, ROOK_FROM, CANNON_FROM, KNIGHT_FROM, PAWN_FROM, BISHOP_FROM, GUARD_FROM };
+        int[] pcTo = { 0, KING_TO, ROOK_TO, CANNON_TO, KNIGHT_TO, PAWN_TO, BISHOP_TO, GUARD_TO };
 
         Tuple<int, int> FindPiece(int pcType, int file)
         {
@@ -345,13 +345,13 @@ namespace MoleXiangqi
 
         void FillDictionary()
         {
+            PieceDict.Add('帅', PIECE_KING);
+            PieceDict.Add('将', PIECE_KING);
             PieceDict.Add('车', PIECE_ROOK);
             PieceDict.Add('炮', PIECE_CANNON);
             PieceDict.Add('马', PIECE_KNIGHT);
             PieceDict.Add('兵', PIECE_PAWN);
             PieceDict.Add('卒', PIECE_PAWN);
-            PieceDict.Add('帅', PIECE_KING);
-            PieceDict.Add('将', PIECE_KING);
             PieceDict.Add('相', PIECE_BISHOP);
             PieceDict.Add('象', PIECE_BISHOP);
             PieceDict.Add('仕', PIECE_GUARD);

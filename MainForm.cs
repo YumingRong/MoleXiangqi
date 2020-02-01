@@ -7,7 +7,6 @@ using System.Media;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Text.RegularExpressions;
 
 namespace MoleXiangqi
 {
@@ -27,8 +26,8 @@ namespace MoleXiangqi
         SoundPlayer soundPlayer;
         readonly static int[] cnPieceImages = {
           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-          1, 1, 2, 2, 3, 3, 4, 4, 4, 4, 4, 5, 6, 6, 7, 7,
-          8,8,9,9,10,10,11,11,11,11,11,12,13,13,14,14
+          1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 5, 5, 6, 6, 7, 7,
+          8, 9, 9,10,10,11,11,12,12,12,12,12,13,13,14,14
         };
 
         public MainForm()
@@ -412,7 +411,8 @@ namespace MoleXiangqi
         {
             pos.ivpc = new int[300, 48];
             pos.Complex_Evaluate();
-            WriteAttackMap2Csv(@"J:\xqtest\attack.csv");
+            WriteMap2Csv(pos.attackMap, @"J:\xqtest\attack.csv");
+            WriteMap2Csv(pos.connectivityMap, @"J:\xqtest\connectivity.csv");
         }
 
         private void menuContinuousEval_Click(object sender, EventArgs e)
@@ -513,7 +513,7 @@ namespace MoleXiangqi
                 {
                     sw.AutoFlush = false;
                     sw.Write("Step, Total, Total R, Total B, MAT R, MAT B, POS R, POS B, Conn R, Conn B, Pair R, Pair B,Tactic R,Tactic B,,,");
-                    sw.WriteLine("车,车,炮,炮,马,马,兵,兵,兵,兵,兵,帅,相,相,仕,仕,车,车,炮,炮,马,马,兵,兵,兵,兵,兵,帅,相,相,仕,仕");
+                    sw.WriteLine("帅,车,车,炮,炮,马,马,兵,兵,兵,兵,兵,相,相,仕,仕,将,车,车,炮,炮,马,马,卒,卒,卒,卒,卒,象,象,士,士");
                     for (int row = 0; row < nrow; row++)
                     {
                         for (int col = 0; col < ncol; col++)
@@ -527,7 +527,7 @@ namespace MoleXiangqi
             }
         }
 
-        void WriteAttackMap2Csv(string csvPath)
+        void WriteMap2Csv(int[,] map, string csvPath)
         {
             using (FileStream fs = new FileStream(csvPath.Trim(), FileMode.OpenOrCreate, FileAccess.Write))
             {
@@ -539,7 +539,7 @@ namespace MoleXiangqi
                         for (int x = 0; x < 9; x++)
                         {
                             int sq = POSITION.iXY2Coord(x, y);
-                            sw.Write("{0} | {1},", pos.attackMap[0, sq], pos.attackMap[1, sq]);
+                            sw.Write("{0} | {1},", map[0, sq], map[1, sq]);
                         }
                         sw.WriteLine();
                     }
