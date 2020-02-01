@@ -73,6 +73,7 @@ namespace MoleXiangqi
             sqPieces[mv.pcSrc] = mv.sqDst;
             pcSquares[mv.sqSrc] = 0;
             pcSquares[mv.sqDst] = mv.pcSrc;
+            sdPlayer ^= 1;
         }
 
         void UndoMovePiece(MOVE mv)
@@ -81,6 +82,7 @@ namespace MoleXiangqi
             pcSquares[mv.sqSrc] = mv.pcSrc;
             sqPieces[mv.pcDst] = mv.sqDst;
             pcSquares[mv.sqDst] = mv.pcDst;
+            sdPlayer ^= 1;
         }
 
         public void MakeMove(MOVE mv)
@@ -97,7 +99,6 @@ namespace MoleXiangqi
                 nHalfClockMove = 0;
             }
             zobristRecords[nStep] = zobrist;
-            ChangeSide();
         }
 
         public void UnmakeMove()

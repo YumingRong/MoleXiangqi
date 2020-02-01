@@ -464,9 +464,9 @@ namespace MoleXiangqi
             int[,] nP = new int[2, 8];  //每个兵种的棋子数量
             int[] materialValue = new int[2];
             int[] positionValue = new int[2];
-            attackMap = new int[2, 256];
+            attackMap = new int[2, 256];    //保存攻击该格的价值最低的棋子
 
-            //Generate attack map
+            //Generate attack map, from most valuable piece to cheap piece
             for (int sd = 0; sd < 2; sd++)
             {
                 int bas = SIDE_TAG(sd);
@@ -612,29 +612,36 @@ namespace MoleXiangqi
                 for (int x = FILE_LEFT; x <= FILE_RIGHT; x++)
                 {
                     int sq = XY2Coord(x, y);
-                    int pc = pcSquares[sq];
+                    int pc = cnPieceKinds[pcSquares[sq]];
                     int sd = SIDE(pc);
+                    int attack = attackMap[1 - sd, sq];
+                    int defence = attackMap[sd, sq];
                     if (sd != -1)
                     {
                         int[] cnAttackScore = { 0, 12, 8, 8, 4, 20, 6, 6 };
-                        
-                        if (attackMap[sd, sq] > 0)
+                        if (defence > 0)
                         {
                             //受保护分数
-                            connectivity[sd] += 2; 
+                            connectivity[sd] += 2;
                             //攻击有根子分数
-                            connectivity[1 - sd] += attackMap[1 - sd, sq] * cnAttackScore[cnPieceKinds[pc]]/2;
+                            connectivity[1 - sd] += attack * cnAttackScore[pc] / 2;
                         }
-                        else //攻击无根子分数
-                            connectivity[1 - sd] += attackMap[1 - sd, sq] * cnAttackScore[cnPieceKinds[pc]];
+                        else if (attackMap[1 - sd, sq] > 0)
+                        {
+                            if (sdPlayer == 1 - sd)
+                                //如果轮到对方走棋，可以直接吃无根子
+                                connectivity[1 - sd] += cnPieceValue[pc];
+                            else //攻击无根子分数
+                                connectivity[1 - sd] += attack * cnAttackScore[pc];
+                        }
                     }
                     else
                     {
                         for (sd = 0; sd < 2; sd++)
                             if (BannedGrids[sd, sq])
-                                connectivity[1 ^ sd] += Math.Max( attackMap[1 ^ sd, sq] * 3, 2);
+                                connectivity[1 ^ sd] += Math.Max(attack * 3, 2);
                             else    //机动性，重复计算不超过3
-                                connectivity[sd] += Math.Min(attackMap[sd, sq] * 2, 3);
+                                connectivity[sd] += Math.Min(defence * 2, 3);
                     }
                 }
 
