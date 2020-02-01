@@ -512,7 +512,7 @@ namespace MoleXiangqi
                 {
                     sw.AutoFlush = false;
                     sw.Write("Step, Total, Total R, Total B, MAT R, MAT B, POS R, POS B, Conn R, Conn B, Pair R, Pair B,Tactic R,Tactic B,,,");
-                    sw.WriteLine("车,车,炮,炮,马,马,兵,兵,兵,兵,兵,帅,相,相,仕,仕,车,车,炮,炮,马,马,兵,兵,兵,兵,兵,帅,相,相,仕,仕");
+                    sw.WriteLine("帅,车,车,炮,炮,马,马,兵,兵,兵,兵,兵,相,相,仕,仕,将,车,车,炮,炮,马,马,卒,卒,卒,卒,卒,象,象,士,士");
                     for (int row = 0; row < nrow; row++)
                     {
                         for (int col = 0; col < ncol; col++)

@@ -16,8 +16,8 @@ namespace MoleXiangqi
         //各种子力的价值
         const int MAT_KING = 0;
         const int MAT_ROOK = 130;
-        const int MAT_CANNON = 55;
-        const int MAT_KNIGHT = 65;
+        const int MAT_CANNON = 60;
+        const int MAT_KNIGHT = 60;
         const int MAT_PAWN = 10;
         const int MAT_BISHOP = 25;
         const int MAT_ADVISOR = 20;
@@ -613,11 +613,11 @@ namespace MoleXiangqi
                 {
                     int sq = XY2Coord(x, y);
                     int pc = cnPieceKinds[pcSquares[sq]];
-                    int sd = SIDE(pc);
-                    int attack = attackMap[1 - sd, sq];//攻击兵种
-                    int protect = attackMap[sd, sq]; //保护兵种
+                    int sd = SIDE(pcSquares[sq]);
                     if (sd != -1)
                     {
+                        int attack = attackMap[1 - sd, sq];//攻击兵种
+                        int protect = attackMap[sd, sq]; //保护兵种
                         if (attack > 0)
                         {
                             int[] cnAttackScore = { 0, 20, 12, 8, 8, 4, 6, 6 };
@@ -633,10 +633,10 @@ namespace MoleXiangqi
                             }
                             else
                             {
-                                if (sd == sdPlayer) //如果轮到对方走棋，可以直接吃无根子
-                                    connectivity[1 - sd] += cnPieceValue[pc];
-                                else
+                                if (sd == sdPlayer)
                                     connectivity[1 - sd] += cnAttackScore[pc];
+                                else  //如果轮到对方走棋，可以直接吃无根子
+                                    connectivity[1 - sd] += cnPieceValue[pc];
                             }
                         }
                         else if (protect > 0)
@@ -646,8 +646,8 @@ namespace MoleXiangqi
                     {
                         for (sd = 0; sd < 2; sd++)
                             if (BannedGrids[sd, sq])
-                                tacticValue[1 ^ sd] += attack > 0 ? cDiscoveredAttack[attack] : 2;
-                            else    //机动性
+                                tacticValue[1 ^ sd] += attackMap[1 - sd, sq] > 0 ? cDiscoveredAttack[attackMap[1 - sd, sq]] : 2;
+                            else if (attackMap[sd, sq] > 0)   //机动性
                                 connectivity[sd] += 2;
                     }
                 }
