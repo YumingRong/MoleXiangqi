@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MoleXiangqi
 {
@@ -67,7 +64,7 @@ namespace MoleXiangqi
         public readonly static int[] cnPieceTypes = {
           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
           17,18,18,19,19,20,20,21,21,21,21,21,22,22,23,23,
-          33,34,34,35,35,36,36,37,37,37,37,38,38,38,39,39
+          33,34,34,35,35,36,36,37,37,37,37,37,38,38,39,39
         };
         // 棋子序号对应的棋子类型，不带颜色
         public readonly static int[] cnPieceKinds = {
