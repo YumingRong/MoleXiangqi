@@ -31,6 +31,19 @@ namespace MoleXiangqi
         void InitEval()
         {
             //只列出左半边位置分数数组，以方便修改
+            int[] cRookHalfValue = {
+            10,  13,  13,  28,  28,
+            8,   18,  18,  25,  30,
+            8,   20,  18,  20,  22,
+            13,  18,  23,  25,  22,
+            17,  17,  19,  22,  22,
+            15,  18,  15,  18,  15,
+            8,   15,  15,  16,  14,
+            0,   12,  10,  15,  10,
+            8,   12,   8,  13,   2,
+            0,   10,   8,  14, -10,
+        };
+            
             int[] cKingPawnHalfValue = {
             1,   3,   5,   7,   9,
             15,  20,  28,  34,  40,
@@ -335,7 +348,7 @@ namespace MoleXiangqi
             return materialValue[0] - materialValue[1] + positionValue[0] - positionValue[1];
         }
 
-        public int[,] attackMap;
+        public int[,] attackMap, connectivityMap;
         public int Complex_Evaluate()
         {
             //举例：当头炮与对方的帅之间隔了自己的马和对方的相，
@@ -466,6 +479,7 @@ namespace MoleXiangqi
             int[] materialValue = new int[2];
             int[] positionValue = new int[2];
             attackMap = new int[2, 256];    //保存攻击该格的价值最低的棋子
+            connectivityMap = new int[2, 256]; 
 
             //Generate attack map, from most valuable piece to cheap piece
             for (int sd = 0; sd < 2; sd++)
@@ -545,7 +559,7 @@ namespace MoleXiangqi
                                     attackMap[sd, sqSrc + ccKnightDelta[j, 1]] = pcKind;
                                 }
                             }
-                            //positionValue[sd] += cKnightValue[sqSrcMirror];
+                            positionValue[sd] += cKnightValue[sqSrcMirror];
                             break;
                         case PIECE_PAWN:
                             attackMap[sd, SQUARE_FORWARD(sqSrc, sd)] = pcKind;
@@ -611,6 +625,7 @@ namespace MoleXiangqi
             for (int y = RANK_TOP; y <= RANK_BOTTOM; y++)
                 for (int x = FILE_LEFT; x <= FILE_RIGHT; x++)
                 {
+                    int conn00 = connectivity[0], conn01 = connectivity[1];
                     int sq = XY2Coord(x, y);
                     int pc = cnPieceKinds[pcSquares[sq]];
                     int sd = SIDE(pcSquares[sq]);
@@ -627,9 +642,9 @@ namespace MoleXiangqi
                                     if (cnPieceValue[pc] > cnPieceValue[attack])
                                         connectivity[1 - sd] += cnAttackScore[pc];
                                     else
-                                        connectivity[1 - sd] += 3;
+                                        connectivity[1 - sd] += 5;
                                 else
-                                    connectivity[1 - sd] += Math.Max(cnPieceValue[pc] - cnPieceValue[attack], 3);
+                                    connectivity[1 - sd] += Math.Max(cnPieceValue[pc] - cnPieceValue[attack], 5);
                             }
                             else
                             {
@@ -650,6 +665,8 @@ namespace MoleXiangqi
                             else if (attackMap[sd, sq] > 0)   //机动性
                                 connectivity[sd] += 2;
                     }
+                    connectivityMap[0, sq] = connectivity[0] - conn00;
+                    connectivityMap[1, sq] = connectivity[1] - conn01;
                 }
 
             int scoreRed = materialValue[0] + positionValue[0] + pair[0] + connectivity[0] + tacticValue[0];

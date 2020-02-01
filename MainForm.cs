@@ -411,7 +411,8 @@ namespace MoleXiangqi
         {
             pos.ivpc = new int[300, 48];
             pos.Complex_Evaluate();
-            WriteAttackMap2Csv(@"J:\xqtest\attack.csv");
+            WriteMap2Csv(pos.attackMap, @"J:\xqtest\attack.csv");
+            WriteMap2Csv(pos.connectivityMap, @"J:\xqtest\connectivity.csv");
         }
 
         private void menuContinuousEval_Click(object sender, EventArgs e)
@@ -526,7 +527,7 @@ namespace MoleXiangqi
             }
         }
 
-        void WriteAttackMap2Csv(string csvPath)
+        void WriteMap2Csv(int[,] map, string csvPath)
         {
             using (FileStream fs = new FileStream(csvPath.Trim(), FileMode.OpenOrCreate, FileAccess.Write))
             {
@@ -538,7 +539,7 @@ namespace MoleXiangqi
                         for (int x = 0; x < 9; x++)
                         {
                             int sq = POSITION.iXY2Coord(x, y);
-                            sw.Write("{0} | {1},", pos.attackMap[0, sq], pos.attackMap[1, sq]);
+                            sw.Write("{0} | {1},", map[0, sq], map[1, sq]);
                         }
                         sw.WriteLine();
                     }
