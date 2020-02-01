@@ -30,7 +30,7 @@ namespace MoleXiangqi
 
         static readonly int[] cnPieceValue = { 0, MAT_KING, MAT_ROOK, MAT_CANNON, MAT_KNIGHT, MAT_PAWN, MAT_BISHOP, MAT_ADVISOR };
 
-        int[] cKingPawnValue;
+        int[] cKingPawnValue, cRookValue;
         int[] cKnightValue;
         int[] cBishopGuardValue;
 
@@ -102,6 +102,7 @@ namespace MoleXiangqi
             cKingPawnValue = InitEvalArray(cKingPawnHalfValue);
             cKnightValue = InitEvalArray(cKnightHalfValue);
             cBishopGuardValue = InitEvalArray(cBishopGuardHalfValue);
+            cRookValue = InitEvalArray(cRookHalfValue);
         }
 
         public int Simple_Evaluate()
@@ -131,6 +132,7 @@ namespace MoleXiangqi
                             case PIECE_ROOK:
                                 if (SAME_FILE(sq, sqOppKing) || SAME_RANK(sq, sqOppKing))
                                     positionValue[sd] += 15;
+                                positionValue[sd] += cRookValue[sqMirror];
                                 break;
                             case PIECE_CANNON:
                                 if (SAME_FILE(sq, sqOppKing))
@@ -534,6 +536,7 @@ namespace MoleXiangqi
                                         break;
                                 }
                             }
+                            positionValue[sd] += cRookValue[sqSrcMirror];
                             break;
                         case PIECE_CANNON:
                             for (int j = 0; j < 4; j++)
