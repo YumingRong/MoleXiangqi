@@ -64,15 +64,15 @@ namespace MoleXiangqi
         };
 
             int[] cKnightHalfValue = {
-             6,   3,  5,  10,   6,
-            12,  19,  27,  24,  18,
-            16,  17,  24,  27,  27,
-            13,  18,  21,  24,  27,
-            11, 15,  18,  21,  24,
-            8,  12,  21,  18,  21,
-            5,   9,  12,  15,  18,
-            2,  6,  9,  12,  10,
-            0,   3,  6,  8,  -20,
+            10,   7,  5,   10,   6,
+            12,  16,  24,  24,  18,
+            16,  17,  24,  26,  27,
+            13,  18,  21,  24,  23,
+            11, 22,  18,  24,  24,
+            8,  15,  24,  17,  24,
+            5,   9,  12,  15,  17,
+            2,   6,  9,  12,  10,
+            0,   3,  6,  8,  -15,
             -5,  0,  3,   0, -10};
 
             int[] cBishopGuardHalfValue = {
@@ -83,8 +83,8 @@ namespace MoleXiangqi
              0,   0,   0,   0,   0,
              0,   0,  -3,   0,   0,
              0,   0,   0,   0,   0,
-             -5,   0,  0,  -3,  10,
-             0,   0,   0,   0,  10,
+             -5,   0,  0,  -3,   5,
+             0,   0,   0,   0,   5,
              0,   0,   0,   0,   0};
 
 
@@ -586,7 +586,7 @@ namespace MoleXiangqi
                                 if (HOME_HALF[sd, sqDst] && pcSquares[sqDst] == 0)
                                     attackMap[sd, sqDst + ccGuardDelta[j]] = pcKind;
                             }
-                            //positionValue[sd] += cBishopGuardValue[sqSrcMirror];
+                            positionValue[sd] += cBishopGuardValue[sqSrcMirror];
                             break;
                         case PIECE_GUARD:
                             for (int j = 0; j < 4; j++)
@@ -595,7 +595,7 @@ namespace MoleXiangqi
                                 if (IN_FORT[sqDst])
                                     attackMap[sd, sqDst] = pcKind;
                             }
-                            //positionValue[sd] += cBishopGuardValue[sqSrcMirror];
+                            positionValue[sd] += cBishopGuardValue[sqSrcMirror];
                             break;
                         default:
                             Debug.Fail("Unknown piece type");
@@ -660,7 +660,7 @@ namespace MoleXiangqi
                                 if (sd == sdPlayer)
                                     connectivity[1 - sd] += cnAttackScore[pc];
                                 else  //如果轮到对方走棋，可以直接吃无根子
-                                    connectivity[1 - sd] += cnPieceValue[pc];
+                                    connectivity[1 - sd] += cnPieceValue[pc] * 3 / 4;
                             }
                         }
                         else if (protect > 0)
