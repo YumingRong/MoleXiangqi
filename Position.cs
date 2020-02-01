@@ -10,7 +10,7 @@ namespace MoleXiangqi
             pcSquares = new int[256];
             sqPieces = new int[48];
             moveStack = new Stack<MOVE>(120);
-            zobristRecords = new long[500];//一局象棋棋一般不会超过300步
+            zobristRecords = new long[500];//一局象棋一般不会超过300步
             InitPGN();
             InitEval();
         }

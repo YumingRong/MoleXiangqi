@@ -344,6 +344,8 @@ namespace MoleXiangqi
             bool[] PinnedPieces = new bool[48];
             bool[,] BannedGrids = new bool[2, 256];
             int sqSrc, sqDst, pcDst, delta;
+
+            int[] cDiscoveredAttack = { 0, 1, 25, 20, 20, 7, 3, 3 };
             //对阻挡将军的子进行判断
             void CheckBlocker(int side, int blocker)
             {
@@ -355,8 +357,7 @@ namespace MoleXiangqi
                 if (blockerSide == side)
                 {
                     //闪击加分，根据兵种不同
-                    int[] v = { 0, 1, 25, 20, 20, 7, 3, 3 };
-                    tacticValue[side] += v[pcKind];
+                    tacticValue[side] += cDiscoveredAttack[pcKind];
                 }
                 else
                     PinnedPieces[blocker] = true;
@@ -492,6 +493,15 @@ namespace MoleXiangqi
                     int posv0 = positionValue[sd];
                     switch (pcKind)
                     {
+                        case PIECE_KING:
+                            for (int i = 0; i < 4; i++)
+                            {
+                                sqDst = sqSrc + ccKingDelta[i];
+                                if (IN_FORT[sqDst])
+                                    attackMap[sd, sqDst] = pcKind;
+                            }
+                            positionValue[sd] += cKingPawnValue[sqSrcMirror];
+                            break;
                         case PIECE_ROOK:
                             for (int j = 0; j < 4; j++)
                             {
@@ -499,7 +509,7 @@ namespace MoleXiangqi
                                 for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
                                 {
                                     pcDst = pcSquares[sqDst];
-                                    attackMap[sd, sqDst]++;
+                                    attackMap[sd, sqDst] = pcKind;
                                     if (pcDst != 0)
                                         break;
                                 }
@@ -515,7 +525,7 @@ namespace MoleXiangqi
                                     {
                                         for (sqDst += nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
                                         {
-                                            attackMap[sd, sqDst]++;
+                                            attackMap[sd, sqDst] = pcKind;
                                             if (pcSquares[sqDst] != 0) //直瞄点
                                                 goto NextFor;
                                         }
@@ -531,19 +541,18 @@ namespace MoleXiangqi
                             {
                                 if (pcSquares[sqSrc + ccKingDelta[j]] == 0)
                                 {
-                                    attackMap[sd, sqSrc + ccKnightDelta[j, 0]]++;
-                                    attackMap[sd, sqSrc + ccKnightDelta[j, 1]]++;
+                                    attackMap[sd, sqSrc + ccKnightDelta[j, 0]] = pcKind;
+                                    attackMap[sd, sqSrc + ccKnightDelta[j, 1]] = pcKind;
                                 }
                             }
                             //positionValue[sd] += cKnightValue[sqSrcMirror];
                             break;
                         case PIECE_PAWN:
-                            sqDst = SQUARE_FORWARD(sqSrc, sd);
-                            attackMap[sd, sqDst]++;
+                            attackMap[sd, SQUARE_FORWARD(sqSrc, sd)] = pcKind;
                             if (HOME_HALF[1 - sd, sqSrc])
                             {
-                                attackMap[sd, sqSrc + 1]++;
-                                attackMap[sd, sqSrc - 1]++;
+                                attackMap[sd, sqSrc + 1] = pcKind;
+                                attackMap[sd, sqSrc - 1] = pcKind;
                             }
                             positionValue[sd] += cKingPawnValue[sqSrcMirror];
                             break;
@@ -552,7 +561,7 @@ namespace MoleXiangqi
                             {
                                 sqDst = sqSrc + ccGuardDelta[j];
                                 if (HOME_HALF[sd, sqDst] && pcSquares[sqDst] == 0)
-                                    attackMap[sd, sqDst + ccGuardDelta[j]]++;
+                                    attackMap[sd, sqDst + ccGuardDelta[j]] = pcKind;
                             }
                             //positionValue[sd] += cBishopGuardValue[sqSrcMirror];
                             break;
@@ -561,18 +570,9 @@ namespace MoleXiangqi
                             {
                                 sqDst = sqSrc + ccGuardDelta[j];
                                 if (IN_FORT[sqDst])
-                                    attackMap[sd, sqDst]++;
+                                    attackMap[sd, sqDst] = pcKind;
                             }
                             //positionValue[sd] += cBishopGuardValue[sqSrcMirror];
-                            break;
-                        case PIECE_KING:
-                            for (int i = 0; i < 4; i++)
-                            {
-                                sqDst = sqSrc + ccKingDelta[i];
-                                if (IN_FORT[sqDst])
-                                    attackMap[sd, sqDst]++;
-                            }
-                            positionValue[sd] += cKingPawnValue[sqSrcMirror];
                             break;
                         default:
                             Debug.Fail("Unknown piece type");
@@ -614,34 +614,41 @@ namespace MoleXiangqi
                     int sq = XY2Coord(x, y);
                     int pc = cnPieceKinds[pcSquares[sq]];
                     int sd = SIDE(pc);
-                    int attack = attackMap[1 - sd, sq];
-                    int defence = attackMap[sd, sq];
+                    int attack = attackMap[1 - sd, sq];//攻击兵种
+                    int protect = attackMap[sd, sq]; //保护兵种
                     if (sd != -1)
                     {
-                        int[] cnAttackScore = { 0, 20, 12, 8, 8, 4, 6, 6 };
-                        if (defence > 0)
+                        if (attack > 0)
                         {
-                            //受保护分数
+                            int[] cnAttackScore = { 0, 20, 12, 8, 8, 4, 6, 6 };
+                            if (protect > 0)
+                            {
+                                if (sd == sdPlayer)
+                                    if (cnPieceValue[pc] > cnPieceValue[attack])
+                                        connectivity[1 - sd] += cnAttackScore[pc];
+                                    else
+                                        connectivity[1 - sd] += 3;
+                                else
+                                    connectivity[1 - sd] += Math.Max(cnPieceValue[pc] - cnPieceValue[attack], 3);
+                            }
+                            else
+                            {
+                                if (sd == sdPlayer) //如果轮到对方走棋，可以直接吃无根子
+                                    connectivity[1 - sd] += cnPieceValue[pc];
+                                else
+                                    connectivity[1 - sd] += cnAttackScore[pc];
+                            }
+                        }
+                        else if (protect > 0)
                             connectivity[sd] += 2;
-                            //攻击有根子分数
-                            connectivity[1 - sd] += attack * cnAttackScore[pc] / 2;
-                        }
-                        else if (attackMap[1 - sd, sq] > 0)
-                        {
-                            if (sdPlayer == 1 - sd)
-                                //如果轮到对方走棋，可以直接吃无根子
-                                connectivity[1 - sd] += cnPieceValue[pc];
-                            else //攻击无根子分数
-                                connectivity[1 - sd] += attack * cnAttackScore[pc];
-                        }
                     }
                     else
                     {
                         for (sd = 0; sd < 2; sd++)
                             if (BannedGrids[sd, sq])
-                                connectivity[1 ^ sd] += Math.Max(attack * 3, 2);
-                            else    //机动性，重复计算不超过3
-                                connectivity[sd] += Math.Min(defence * 2, 3);
+                                tacticValue[1 ^ sd] += attack > 0 ? cDiscoveredAttack[attack] : 2;
+                            else    //机动性
+                                connectivity[sd] += 2;
                     }
                 }
 
