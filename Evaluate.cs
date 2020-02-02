@@ -4,11 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using MathNet.Numerics.Statistics;
 
-/*
-    我编了2个版本的审局函数，打算杀局时用简单的，静态局面时用复杂的。
-是否需要考虑每匹马的机动性不小于2？
- */
-
 namespace MoleXiangqi
 {
     partial class POSITION
@@ -32,15 +27,15 @@ namespace MoleXiangqi
         {
             //只列出左半边位置分数数组，以方便修改
             int[] cRookHalfValue = {
-            10,  13,  13,  28,  28,
-            8,   18,  18,  25,  30,
-            8,   20,  18,  20,  22,
-            13,  18,  23,  25,  22,
+            10,  13,  13,  23,  22,
+            8,   15,  15,  23,  25,
+            8,   15,  13,  20,  22,
+            13,  18,  23,  23,  22,
             17,  17,  19,  22,  22,
             15,  18,  15,  18,  15,
             8,   15,  15,  16,  14,
             0,   12,  10,  15,  10,
-            8,   12,   8,  13,   2,
+            7,   12,   8,  13,   2,
             0,   10,   8,  14, -10,
         };
             
@@ -50,7 +45,7 @@ namespace MoleXiangqi
             15,  20,  25,  29,  34,
             14,  18,  23,  25,  29,
             10,  14,  19,  22,  25,
-            3,   0,  15,  0,   15,
+            3,   0,  14,  0,   15,
             0,   0,   5,   0,   10,
             0,   0,   0,   0,   0,
             0,   0,   0,   5,   2,
@@ -59,15 +54,15 @@ namespace MoleXiangqi
 
             int[] cKnightHalfValue = {
             10,   7,  5,   10,   6,
-            12,  16,  24,  24,  18,
-            16,  17,  24,  26,  27,
-            13,  18,  21,  24,  23,
-            11, 22,  18,  24,  24,
-            8,  15,  24,  17,  24,
-            5,   9,  12,  15,  17,
-            2,   6,  9,  12,  10,
-            0,   3,  6,  8,  -15,
-            -5,  0,  3,   0, -10};
+            12,  16,  24,  20,  18,
+            16,  17,  23,  20,  27,
+            13,  20,  21,  24,  23,
+            11,  20,  18,  20,  24,
+             8,  14,  20,  17,  24,
+             5,   9,  12,  15,  17,
+             7,   6,   9,  12,  10,
+             0,   3,   6,   8, -15,
+            -5,   0,   3,   0, -10};
 
             int[] cBishopGuardHalfValue = {
              0,   0,   0,   0,   0,
@@ -77,7 +72,7 @@ namespace MoleXiangqi
              0,   0,   0,   0,   0,
              0,   0,  -3,   0,   0,
              0,   0,   0,   0,   0,
-             -5,   0,  0,  -3,   5,
+             -5,   0,  0,  -3,   7,
              0,   0,   0,   0,   5,
              0,   0,   0,   0,   0};
 
@@ -97,103 +92,6 @@ namespace MoleXiangqi
             cKnightValue = InitEvalArray(cKnightHalfValue);
             cBishopGuardValue = InitEvalArray(cBishopGuardHalfValue);
             cRookValue = InitEvalArray(cRookHalfValue);
-        }
-
-        public int Simple_Evaluate()
-        {
-            int totalPieces = 0;
-            int[,] nP = new int[2, 8];
-            int[] materialValue = new int[2];
-            int[] positionValue = new int[2];
-            materialValue[0] = materialValue[1] = 0;
-
-            for (int sd = 0; sd < 2; sd++)
-            {
-                int bas = SIDE_TAG(sd);
-                int sqOppKing = sqPieces[OPP_SIDE_TAG(sd) + KING_FROM];
-                for (int i = bas; i < bas + 16; i++)
-                {
-                    int sq = sqPieces[i];
-                    if (sq > 0)
-                    {
-                        int pcKind = cnPieceKinds[i];
-                        int sqMirror = sd == 0 ? sq : SQUARE_FLIP(sq);
-                        totalPieces++;
-                        nP[sd, pcKind]++;
-                        materialValue[sd] += cnPieceValue[pcKind];
-                        switch (pcKind)
-                        {
-                            case PIECE_ROOK:
-                                if (SAME_FILE(sq, sqOppKing) || SAME_RANK(sq, sqOppKing))
-                                    positionValue[sd] += 15;
-                                positionValue[sd] += cRookValue[sqMirror];
-                                break;
-                            case PIECE_CANNON:
-                                if (SAME_FILE(sq, sqOppKing))
-                                    positionValue[sd] += 20;
-                                else if (SAME_RANK(sq, sqOppKing))
-                                    positionValue[sd] += 12;
-                                break;
-                            case PIECE_KNIGHT:
-                                positionValue[sd] += cKnightValue[sqMirror];
-                                //检查绊马腿
-                                for (int j = 0; j < 4; j++)
-                                {
-                                    int sqPin = sq + ccKingDelta[j];
-                                    if (pcSquares[sqPin] != 0)
-                                        positionValue[sd] -= 8;
-                                }
-                                break;
-                            case PIECE_PAWN:
-                            case PIECE_KING:
-                                positionValue[sd] += cKingPawnValue[sqMirror];
-                                break;
-                            case PIECE_BISHOP:
-                            case PIECE_GUARD:
-                                positionValue[sd] += cBishopGuardValue[sqMirror];
-                                break;
-                        }
-                    }
-                }
-            }
-            int[] pair = new int[2];
-            for (int sd = 0; sd < 2; sd++)
-            {
-                //棋盘上的子越多，炮的威力越大，马的威力越小
-                pair[sd] += (int)(2.4 * totalPieces * nP[sd, PIECE_CANNON]);  //可调系数
-                pair[sd] -= (int)(0.9 * totalPieces * nP[sd, PIECE_KNIGHT]);  //可调系数
-                //兵卒的价值随着对方攻击子力的减少而增加（即增加了过河的可能性）
-                int enemyAttack = nP[1 - sd, PIECE_ROOK] * 2 + nP[1 - sd, PIECE_CANNON] + nP[1 - sd, PIECE_KNIGHT];
-                int[] additionalPawnValue = { 28, 21, 15, 10, 6, 3, 2, 1, 0 };
-                pair[sd] += nP[sd, PIECE_PAWN] * additionalPawnValue[enemyAttack];
-                //兵种不全扣分
-                if (nP[sd, PIECE_ROOK] == 0)
-                    pair[sd] -= 30; //有车胜无车
-                if (nP[sd, PIECE_CANNON] == 0)
-                    pair[sd] -= 20;
-                if (nP[sd, PIECE_KNIGHT] == 0)
-                    pair[sd] -= 20;
-                //缺相怕炮
-                pair[sd] += (nP[sd, PIECE_BISHOP] - nP[1 - sd, PIECE_CANNON]) * 15;
-                //缺仕怕车
-                pair[sd] += (nP[sd, PIECE_GUARD] - nP[1 - sd, PIECE_ROOK]) * 15;
-            }
-            int scoreRed = materialValue[0] + positionValue[0] + pair[0];
-            int scoreBlack = materialValue[1] + positionValue[1] + pair[1];
-
-            int total = scoreRed - scoreBlack;
-            ivpc[nStep, 0] = nStep;
-            ivpc[nStep, 1] = total;
-            ivpc[nStep, 2] = scoreRed;
-            ivpc[nStep, 3] = scoreBlack;
-            ivpc[nStep, 4] = materialValue[0];
-            ivpc[nStep, 5] = materialValue[1];
-            ivpc[nStep, 6] = positionValue[0];
-            ivpc[nStep, 7] = positionValue[1];
-            ivpc[nStep, 10] = pair[0];
-            ivpc[nStep, 11] = pair[1];
-
-            return total;
         }
 
         public int[,] ivpc; //统计每一步各个棋子的位置分 300 * 48
@@ -551,6 +449,7 @@ namespace MoleXiangqi
             IEnumerable<string> pgnFiles = Directory.EnumerateFiles(sourceDirectory, "*.PGN", SearchOption.AllDirectories);
             int nFile = 0;
             int totalMoves = 0;
+            int totalSteps = 0;
             List<double> redDelta = new List<double>();
             List<double> blackDelta = new List<double>();
             List<double> seq = new List<double>();
@@ -563,13 +462,14 @@ namespace MoleXiangqi
                     continue;
                 }
                 nFile++;
-                int totalSteps = iMoveList.Count;
-                bool[] captures = new bool[totalSteps];
+                int nSteps = iMoveList.Count;
+                totalSteps += nSteps;
+                bool[] captures = new bool[nSteps];
                 FromFEN(PGN.StartFEN);
-                ivpc = new int[totalSteps, 48];
+                ivpc = new int[nSteps, 48];
                 Complex_Evaluate();
                 List<KeyValuePair<string, int>> mv_vals = new List<KeyValuePair<string, int>>();
-                for (int i = 1; i < totalSteps; i++)
+                for (int i = 1; i < nSteps; i++)
                 {
                     iMOVE step = iMoveList[i];
                     captures[i] = pcSquares[step.to] > 0;
@@ -584,7 +484,6 @@ namespace MoleXiangqi
                             if (move.pcDst == 0)
                             {
                                 MovePiece(move);
-                                ivpc = new int[totalSteps, 48];
                                 string key = iMove2Coord(move.sqSrc, move.sqDst);
                                 int val = Complex_Evaluate();
                                 mv_vals.Add(new KeyValuePair<string, int>(key, val));
@@ -614,13 +513,13 @@ namespace MoleXiangqi
                     MakeMove(step.from, step.to);
                     Console.WriteLine("-------------------");
                 }
-                for (int i = 1; i < totalSteps; i += 2)
+                for (int i = 1; i < nSteps; i += 2)
                 {
                     if (!captures[i])
                         redDelta.Add(ivpc[i, 1] - ivpc[i - 1, 1]);
                 }
 
-                for (int i = 2; i < totalSteps; i += 2)
+                for (int i = 2; i < nSteps; i += 2)
                 {
                     if (!captures[i])
                         blackDelta.Add(ivpc[i, 1] - ivpc[i - 1, 1]);
@@ -634,8 +533,105 @@ namespace MoleXiangqi
             double blackVar = Statistics.Variance(blackDelta);
             Console.WriteLine("Black mean:{0}, var:{1}", blackMean, blackVar);
             Console.WriteLine("Score: red{0}, black{1}, average{2}", redVar / redMean, blackVar / blackMean, (redVar + blackVar) / (redMean - blackMean));
-            Console.WriteLine("Move average sequence: {0} of {1}", Statistics.Mean(seq), totalMoves / nFile);
+            Console.WriteLine("Move average sequence: {0} of {1}", Statistics.Mean(seq), totalMoves / totalSteps);
 
+        }
+
+        public int Simple_Evaluate()
+        {
+            int totalPieces = 0;
+            int[,] nP = new int[2, 8];
+            int[] materialValue = new int[2];
+            int[] positionValue = new int[2];
+            materialValue[0] = materialValue[1] = 0;
+
+            for (int sd = 0; sd < 2; sd++)
+            {
+                int bas = SIDE_TAG(sd);
+                int sqOppKing = sqPieces[OPP_SIDE_TAG(sd) + KING_FROM];
+                for (int i = bas; i < bas + 16; i++)
+                {
+                    int sq = sqPieces[i];
+                    if (sq > 0)
+                    {
+                        int pcKind = cnPieceKinds[i];
+                        int sqMirror = sd == 0 ? sq : SQUARE_FLIP(sq);
+                        totalPieces++;
+                        nP[sd, pcKind]++;
+                        materialValue[sd] += cnPieceValue[pcKind];
+                        switch (pcKind)
+                        {
+                            case PIECE_ROOK:
+                                if (SAME_FILE(sq, sqOppKing) || SAME_RANK(sq, sqOppKing))
+                                    positionValue[sd] += 15;
+                                positionValue[sd] += cRookValue[sqMirror];
+                                break;
+                            case PIECE_CANNON:
+                                if (SAME_FILE(sq, sqOppKing))
+                                    positionValue[sd] += 20;
+                                else if (SAME_RANK(sq, sqOppKing))
+                                    positionValue[sd] += 12;
+                                break;
+                            case PIECE_KNIGHT:
+                                positionValue[sd] += cKnightValue[sqMirror];
+                                //检查绊马腿
+                                for (int j = 0; j < 4; j++)
+                                {
+                                    int sqPin = sq + ccKingDelta[j];
+                                    if (pcSquares[sqPin] != 0)
+                                        positionValue[sd] -= 8;
+                                }
+                                break;
+                            case PIECE_PAWN:
+                            case PIECE_KING:
+                                positionValue[sd] += cKingPawnValue[sqMirror];
+                                break;
+                            case PIECE_BISHOP:
+                            case PIECE_GUARD:
+                                positionValue[sd] += cBishopGuardValue[sqMirror];
+                                break;
+                        }
+                    }
+                }
+            }
+            int[] pair = new int[2];
+            for (int sd = 0; sd < 2; sd++)
+            {
+                //棋盘上的子越多，炮的威力越大，马的威力越小
+                pair[sd] += (int)(2.4 * totalPieces * nP[sd, PIECE_CANNON]);  //可调系数
+                pair[sd] -= (int)(0.9 * totalPieces * nP[sd, PIECE_KNIGHT]);  //可调系数
+                //兵卒的价值随着对方攻击子力的减少而增加（即增加了过河的可能性）
+                int enemyAttack = nP[1 - sd, PIECE_ROOK] * 2 + nP[1 - sd, PIECE_CANNON] + nP[1 - sd, PIECE_KNIGHT];
+                int[] additionalPawnValue = { 28, 21, 15, 10, 6, 3, 2, 1, 0 };
+                pair[sd] += nP[sd, PIECE_PAWN] * additionalPawnValue[enemyAttack];
+                //兵种不全扣分
+                if (nP[sd, PIECE_ROOK] == 0)
+                    pair[sd] -= 30; //有车胜无车
+                if (nP[sd, PIECE_CANNON] == 0)
+                    pair[sd] -= 20;
+                if (nP[sd, PIECE_KNIGHT] == 0)
+                    pair[sd] -= 20;
+                //缺相怕炮
+                pair[sd] += (nP[sd, PIECE_BISHOP] - nP[1 - sd, PIECE_CANNON]) * 15;
+                //缺仕怕车
+                pair[sd] += (nP[sd, PIECE_GUARD] - nP[1 - sd, PIECE_ROOK]) * 15;
+            }
+            int scoreRed = materialValue[0] + positionValue[0] + pair[0];
+            int scoreBlack = materialValue[1] + positionValue[1] + pair[1];
+
+            int total = scoreRed - scoreBlack;
+            ivpc[nStep, 0] = nStep;
+            ivpc[nStep, 1] = total;
+            ivpc[nStep, 2] = scoreRed;
+            ivpc[nStep, 3] = scoreBlack;
+            ivpc[nStep, 4] = materialValue[0];
+            ivpc[nStep, 5] = materialValue[1];
+            ivpc[nStep, 6] = positionValue[0];
+            ivpc[nStep, 7] = positionValue[1];
+            ivpc[nStep, 10] = pair[0];
+            ivpc[nStep, 11] = pair[1];
+
+            return total;
         }
     }
 }
