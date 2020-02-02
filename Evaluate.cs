@@ -289,7 +289,15 @@ namespace MoleXiangqi
                                         {
                                             attackMap[sd, sqDst] = pcKind;
                                             if (pcSquares[sqDst] != 0) //直瞄点
-                                                goto NextFor;
+                                                for (sqDst += nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
+                                                {
+                                                    if (pcSquares[sqDst]!=0) //间瞄点
+                                                    {
+                                                        if (SIDE(pcSquares[sqDst]) == 1 - sd)
+                                                            positionValue[sd] += 5;
+                                                        goto NextFor;
+                                                    }
+                                                }
                                         }
                                     }
                                 }
@@ -383,7 +391,7 @@ namespace MoleXiangqi
                         int protect = attackMap[sd, sq]; //保护兵种
                         if (attack > 0)
                         {
-                            int[] cnAttackScore = { 0, 20, 12, 8, 8, 4, 6, 6 };
+                            int[] cnAttackScore = { 0, 20, 12, 8, 8, 6, 6, 6 };
                             if (protect > 0)
                             {
                                 if (sd == sdPlayer)
