@@ -410,9 +410,9 @@ namespace MoleXiangqi
         private void menuEvaluate_Click(object sender, EventArgs e)
         {
             pos.ivpc = new int[300, 48];
-            pos.Complex_Evaluate();
-            WriteMap2Csv(pos.attackMap, @"J:\xqtest\attack.csv");
-            WriteMap2Csv(pos.connectivityMap, @"J:\xqtest\connectivity.csv");
+            pos.SearchQuiesce(-5000, 5000);
+            //WriteMap2Csv(pos.attackMap, @"J:\xqtest\attack.csv");
+            //WriteMap2Csv(pos.connectivityMap, @"J:\xqtest\connectivity.csv");
         }
 
         private void menuContinuousEval_Click(object sender, EventArgs e)
