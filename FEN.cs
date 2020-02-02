@@ -96,7 +96,7 @@ namespace MoleXiangqi
             else
                 sdPlayer = 0;
 
-            nHalfClockMove = Convert.ToInt32(subs[4]);
+            halfMoveClock = Convert.ToInt32(subs[4]);
             nStep = 0;
             moveStack.Clear();
             zobristRecords[0] = CalculateZobrist();
@@ -140,7 +140,7 @@ namespace MoleXiangqi
             lpFen[lpFen.Length - 1] = ' '; // 把最后一个'/'替换成' '
             lpFen.Append(sdPlayer == 0 ? 'r' : 'b');
             lpFen.Append(" - - ");
-            lpFen.Append(nHalfClockMove);
+            lpFen.Append(halfMoveClock);
             lpFen.Append(" ");
             lpFen.Append(nStep);
             return lpFen.ToString();

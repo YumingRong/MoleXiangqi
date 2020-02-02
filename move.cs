@@ -104,7 +104,7 @@ namespace MoleXiangqi
             {
                 zobrist ^= Zobrist.Get(mv.pcDst, mv.sqDst);
                 nRepBegin = nStep;
-                nHalfClockMove = 0;
+                halfMoveClock = 0;
             }
             zobristRecords[nStep] = zobrist;
         }

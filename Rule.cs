@@ -9,7 +9,7 @@ namespace MoleXiangqi
 {
     partial class POSITION
     {
-        public int nHalfClockMove;  //120步不吃子作和的自然限招
+        public int halfMoveClock;  //120步不吃子作和的自然限招
         public int nRepBegin;       //可能形成重复局面的起始计数步
         int nStep;                  //步数
 
