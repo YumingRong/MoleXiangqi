@@ -6,14 +6,6 @@ namespace MoleXiangqi
 {
     public partial class POSITION
     {
-        struct STEP
-        {
-            MOVE mv;
-            long zobrist;
-            int HalfMoveClock;
-            int RepBegin;
-        }
-
         //Interface to graphic board. x, y is 0~9
         public static Tuple<int, int> GetMove(int x0, int y0, int x1, int y1)
         {
