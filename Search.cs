@@ -20,8 +20,8 @@ namespace MoleXiangqi
             int best = -MATE_VALUE;
             int vl;
 
-            vl = board.Complex_Evaluate();
             int sqCheck = board.Checked(board.sdPlayer);
+            List<MOVE> selectiveMoves = new List<MOVE>();
             if (sqCheck > 0)
             {
                 vl = -MATE_VALUE;
@@ -32,30 +32,15 @@ namespace MoleXiangqi
                     board.MovePiece(mv);
                     int kingpos = board.sqPieces[POSITION.SIDE_TAG(1 - board.sdPlayer)];
                     if (!board.IsLegalMove(sqCheck, kingpos))
-                    {
                         if (board.Checked(1 - board.sdPlayer) == 0)
-                        {
-                            Debug.Write(new string('\t', depth));
-                            Debug.WriteLine("{0} {1} {2} {3}", mv, alpha, beta, best);
-                            depth++;
-                            vl = -SearchQuiesce(-beta, -alpha);
-                            depth--;
-                        }
-                    }
+                            selectiveMoves.Add(mv);
                     board.UndoMovePiece(mv);
-                    if (vl > best)
-                    {
-                        if (vl > beta)
-                            return vl;
-                        best = vl;
-                        alpha = Math.Max(alpha, vl);
-                    }
-
                 }
             }
             else
             {
                 // 7. 对于未被将军的局面，在生成着法前首先尝试空着(空着启发)，即对局面作评价；
+                vl = board.Complex_Evaluate();
                 if (vl > beta)
                     return vl;
                 best = vl;
@@ -66,26 +51,27 @@ namespace MoleXiangqi
                 board.captureMoves.Sort(delegate (KeyValuePair<MOVE, int> a, KeyValuePair<MOVE, int> b)
                 { return b.Value.CompareTo(a.Value); });
                 foreach (KeyValuePair<MOVE, int> mv_vl in board.captureMoves)
+                    selectiveMoves.Add(mv_vl.Key);
+            }
+            foreach (MOVE mv in selectiveMoves)
+            {
+                //Debug.Write(new string('\t', depth));
+                //Debug.WriteLine("{0} {1} {2} {3}", mv, alpha, beta, best);
+                board.MakeMove(mv);
+                depth++;
+                vl = -SearchQuiesce(-beta, -alpha);
+                board.UnmakeMove();
+                depth--;
+                //Debug.Write(new string('\t', depth));
+                //Debug.WriteLine("{0} {1}", mv, best);
+                if (vl > best)
                 {
-                    MOVE mv = mv_vl.Key;
-                    Debug.Write(new string('\t', depth));
-                    Debug.WriteLine("{0} {1} {2} {3}", mv, alpha, beta, best);
-                    board.MakeMove(mv);
-                    depth++;
-                    vl = -SearchQuiesce(-beta, -alpha);
-                    board.UnmakeMove();
-                    depth--;
-                    //Debug.Write(new string('\t', depth));
-                    //Debug.WriteLine("{0} {1}", mv, best);
-                    if (vl > best)
-                    {
-                        if (vl > beta)
-                            return vl;
-                        best = vl;
-                        alpha = Math.Max(alpha, vl);
-                    }
-
+                    if (vl > beta)
+                        return vl;
+                    best = vl;
+                    alpha = Math.Max(alpha, vl);
                 }
+
             }
             return best;
         }

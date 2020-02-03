@@ -379,6 +379,7 @@ namespace MoleXiangqi
 
         private void menuActivePositionTest_Click(object sender, EventArgs e)
         {
+            App_inGame = false;
             string sourceDirectory = @"J:\象棋\全局\1-23届五羊杯";
             IEnumerable<string> pgnFiles = Directory.EnumerateFiles(sourceDirectory, "*.PGN", SearchOption.AllDirectories);
             int nFile = 0;
@@ -407,6 +408,7 @@ namespace MoleXiangqi
 
         private void menuEvaluate_Click(object sender, EventArgs e)
         {
+            App_inGame = false;
             pos.FromFEN(@"3akab2/6c2/4b1N2/p2PN3p/6r2/2R3p2/P3P3n/4C3B/4A4/2B1KA1c1 w - - 0 26");
             SEARCH engine = new SEARCH(pos);
             engine.SearchQuiesce(-5000, 5000);
@@ -416,7 +418,8 @@ namespace MoleXiangqi
 
         private void menuContinuousEval_Click(object sender, EventArgs e)
         {
-            string fileName = @"J:\象棋\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
+            App_inGame = false;
+            string fileName = @"G:\象棋\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
             PgnFileStruct pgn = pos.ReadPgnFile(fileName);
             
             pos.FromFEN(pgn.StartFEN);
@@ -441,6 +444,7 @@ namespace MoleXiangqi
 
         private void menuBatchEval_Click(object sender, EventArgs e)
         {
+            App_inGame = false;
             pos.TestEval();
         }
 
