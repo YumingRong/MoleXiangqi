@@ -275,7 +275,7 @@ namespace MoleXiangqi
                     else //PIECE_GUARD
                         rank1 = rank0 + dir;
                     mv.sqDst = XY2Coord(file1, rank1);
-                    if (!LegalMove(mv.sqSrc, mv.sqDst))
+                    if (!IsLegalMove(mv.sqSrc, mv.sqDst))
                     {//有些棋谱会出现相、仕在同一列不用前后表示的情况
                         //Debug.WriteLine("不规范的记谱:" + word);
                         mv.pcSrc++;

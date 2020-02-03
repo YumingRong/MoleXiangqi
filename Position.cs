@@ -145,11 +145,6 @@ namespace MoleXiangqi
                 return -1;
         }
 
-        int OPP_SIDE(int sd)
-        {
-            return 1 - sd;
-        }
-
         public static int XY2Coord(int x, int y)
         {
             return x + (y << 4);

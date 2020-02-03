@@ -407,6 +407,7 @@ namespace MoleXiangqi
 
         private void menuEvaluate_Click(object sender, EventArgs e)
         {
+            pos.FromFEN(@"3akab2/6c2/4b1N2/p2PN3p/6r2/2R3p2/P3P3n/4C3B/4A4/2B1KA1c1 w - - 0 26");
             SEARCH engine = new SEARCH(pos);
             engine.SearchQuiesce(-5000, 5000);
             //WriteMap2Csv(pos.attackMap, @"J:\xqtest\attack.csv");

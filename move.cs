@@ -104,7 +104,7 @@ namespace MoleXiangqi
             return ((sqSrc ^ sqDst) & 0x0f) == 0;
         }
 
-        void MovePiece(MOVE mv)
+        public void MovePiece(MOVE mv)
         {
             Debug.Assert(IN_BOARD[mv.sqDst]);
             sqPieces[mv.pcDst] = 0;
@@ -114,7 +114,7 @@ namespace MoleXiangqi
             sdPlayer ^= 1;
         }
 
-        void UndoMovePiece(MOVE mv)
+        public void UndoMovePiece(MOVE mv)
         {
             sqPieces[mv.pcSrc] = mv.sqSrc;
             pcSquares[mv.sqSrc] = mv.pcSrc;

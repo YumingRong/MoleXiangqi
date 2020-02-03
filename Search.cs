@@ -21,21 +21,36 @@ namespace MoleXiangqi
             int vl;
 
             vl = board.Complex_Evaluate();
-            int sqCheck = board.Checked();
+            int sqCheck = board.Checked(board.sdPlayer);
             if (sqCheck > 0)
             {
+                vl = -MATE_VALUE;
+                // 6. 对于被将军的局面，生成全部着法；
                 List<MOVE> moves = board.GenerateMoves();
                 foreach (MOVE mv in moves)
                 {
-                    board.MakeMove(mv);
-                    if (!board.IsLegalMove(sqCheck, mv.sqDst))
+                    board.MovePiece(mv);
+                    int kingpos = board.sqPieces[POSITION.SIDE_TAG(1 - board.sdPlayer)];
+                    if (!board.IsLegalMove(sqCheck, kingpos))
                     {
-                        depth++;
-                        vl = -SearchQuiesce(-beta, -alpha);
-                        board.UnmakeMove();
-                        depth--;
-
+                        if (board.Checked(1 - board.sdPlayer) == 0)
+                        {
+                            Debug.Write(new string('\t', depth));
+                            Debug.WriteLine("{0} {1} {2} {3}", mv, alpha, beta, best);
+                            depth++;
+                            vl = -SearchQuiesce(-beta, -alpha);
+                            depth--;
+                        }
                     }
+                    board.UndoMovePiece(mv);
+                    if (vl > best)
+                    {
+                        if (vl > beta)
+                            return vl;
+                        best = vl;
+                        alpha = Math.Max(alpha, vl);
+                    }
+
                 }
             }
             else
@@ -46,30 +61,30 @@ namespace MoleXiangqi
                 best = vl;
                 alpha = Math.Max(alpha, vl);
 
-                board.captureMoves.Sort(delegate (KeyValuePair<MOVE, int> a, KeyValuePair<MOVE, int> b)
-                { return b.Value.CompareTo(a.Value); });
                 if (board.captureMoves.Count == 0)
                     return best;
-
-            }
-            foreach (KeyValuePair<MOVE, int> mv_vl in board.captureMoves)
-            {
-                MOVE mv = mv_vl.Key;
-                Debug.Write(new string('\t', depth));
-                Debug.WriteLine("{0} {1} {2} {3}",mv, alpha, beta, best);
-                board.MakeMove(mv);
-                depth++;
-                vl = -SearchQuiesce(-beta, -alpha);
-                board.UnmakeMove();
-                depth--;
-                //Debug.Write(new string('\t', depth));
-                //Debug.WriteLine("{0} {1}", mv, best);
-                if (vl > best)
+                board.captureMoves.Sort(delegate (KeyValuePair<MOVE, int> a, KeyValuePair<MOVE, int> b)
+                { return b.Value.CompareTo(a.Value); });
+                foreach (KeyValuePair<MOVE, int> mv_vl in board.captureMoves)
                 {
-                    if (vl > beta)
-                        return vl;
-                    best = vl;
-                    alpha = Math.Max(alpha, vl);
+                    MOVE mv = mv_vl.Key;
+                    Debug.Write(new string('\t', depth));
+                    Debug.WriteLine("{0} {1} {2} {3}", mv, alpha, beta, best);
+                    board.MakeMove(mv);
+                    depth++;
+                    vl = -SearchQuiesce(-beta, -alpha);
+                    board.UnmakeMove();
+                    depth--;
+                    //Debug.Write(new string('\t', depth));
+                    //Debug.WriteLine("{0} {1}", mv, best);
+                    if (vl > best)
+                    {
+                        if (vl > beta)
+                            return vl;
+                        best = vl;
+                        alpha = Math.Max(alpha, vl);
+                    }
+
                 }
             }
             return best;

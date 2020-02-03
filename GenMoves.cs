@@ -414,12 +414,12 @@ namespace MoleXiangqi
         }
 
         // 判断是否被将军
-        public int Checked()
+        public int Checked(int side)
         {
             int i, j, sqSrc, sqDst;
             int pcSelfSide, pcOppSide, pcDst, nDelta;
-            pcSelfSide = SIDE_TAG(sdPlayer);
-            pcOppSide = OPP_SIDE_TAG(sdPlayer);
+            pcSelfSide = SIDE_TAG(side);
+            pcOppSide = OPP_SIDE_TAG(side);
             // 找到棋盘上的帅(将)，再做以下判断：
             sqSrc = sqPieces[pcSelfSide + KING_FROM];
             Debug.Assert(IN_BOARD[sqSrc]);
@@ -481,7 +481,7 @@ namespace MoleXiangqi
             {
                 for (i = sqSrc + 16; i < sqDst; i += 16)
                     if (pcSquares[i] > 0)
-                        return i;
+                        return 0;
             }
             else
                 return 0;
@@ -498,7 +498,7 @@ namespace MoleXiangqi
             {
                 //Debug.WriteLine(iMove2Coord(mv) + "," + SRC(mv) + "-" + DST(mv));
                 MovePiece(mv);
-                if (Checked() == 0)
+                if (Checked(sdPlayer) == 0)
                 {
                     UndoMovePiece(mv);
                     return false;
