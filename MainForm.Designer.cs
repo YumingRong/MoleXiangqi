@@ -390,6 +390,7 @@
             // openPGNDialog
             // 
             this.openPGNDialog.Filter = "象棋对局面文件(*.PGN)|*.PGN";
+            this.openPGNDialog.InitialDirectory = "J:\\象棋\\全局\\1-23届五羊杯\\第01届五羊杯象棋赛(1981)";
             // 
             // MainForm
             // 

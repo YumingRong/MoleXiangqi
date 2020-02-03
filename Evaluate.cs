@@ -97,16 +97,21 @@ namespace MoleXiangqi
             cRookValue = InitEvalArray(cRookHalfValue);
         }
 
+        //以下数组都是Complex_Evaluate的输出
         public int[,] ivpc; //统计每一步各个棋子的位置分 300 * 48，供调试用
-        public int[,] attackMap, connectivityMap;
-        List<KeyValuePair<MOVE, int>> captureMoves; //Complex_evaluate可以顺便创建吃子走法并打分
+        public int[,] connectivityMap; //供统计调试用
+        public int[,] attackMap;
+        /*Complex_evaluate可以顺便创建吃子走法并打分，虽然可能不全，比如两个子同时攻击同一个格子
+         但是这种情况较少，且一般情况下总是优先用低价值的棋子去吃对方。
+         而且调用captureMoves的静态搜素并不需要严格考虑所用局面。          */
+        public List<KeyValuePair<MOVE, int>> captureMoves; 
         public int Complex_Evaluate()
         {
             //举例：当头炮与对方的帅之间隔了自己的马和对方的相，
             //自己的马就放在DiscoveredAttack里，对方的相就在PinnedPieces里
             int[] tacticValue = new int[2];
             bool[] PinnedPieces = new bool[48];
-            bool[,] BannedGrids = new bool[2, 256];
+            bool[,] BannedGrids = new bool[2, 256]; //空头炮与将之间不能走子
             int sqSrc, sqDst, pcDst, delta;
 
             int[] cDiscoveredAttack = { 0, 1, 25, 20, 20, 7, 3, 3 };
@@ -467,7 +472,7 @@ namespace MoleXiangqi
             //    return a.Value.CompareTo(b.Value);
             //}
             string sourceDirectory = @"J:\象棋\全局\1-23届五羊杯";
-            IEnumerable<string> pgnFiles = Directory.EnumerateFiles(sourceDirectory, "*.PGN", SearchOption.AllDirectories);
+            IEnumerable<string> pgnFiles = Directory.EnumerateFiles(sourceDirectory, "*.pgn", SearchOption.AllDirectories);
             int nFile = 0;
             int totalMoves = 0;
             int totalSteps = 0;

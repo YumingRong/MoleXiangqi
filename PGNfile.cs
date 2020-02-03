@@ -12,7 +12,6 @@ namespace MoleXiangqi
         private Dictionary<char, int> PieceDict;
         private Dictionary<char, int> NumberDict;
 
-
         public void InitPGN()
         {
             PieceDict = new Dictionary<char, int>();

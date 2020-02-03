@@ -4,31 +4,45 @@ using System.Diagnostics;
 
 namespace MoleXiangqi
 {
-    partial class POSITION
+    class SEARCH
     {
+        POSITION board;
+        int depth = 0;
+
+        public SEARCH(POSITION pos)
+        {
+            board = pos;
+        }
+
         //const int MATE_VALUE = 5000;
         public int SearchQuiesce(int alpha, int beta)
         {
             int best;
             int vl;
             // 7. 对于未被将军的局面，在生成着法前首先尝试空着(空着启发)，即对局面作评价；
-            vl = Complex_Evaluate();
+            board.ivpc = new int[300, 48];
+            vl = board.Complex_Evaluate();
             if (vl > beta)
                 return vl;
             best = vl;
             alpha = Math.Max(alpha, vl);
 
-            captureMoves.Sort(delegate (KeyValuePair<MOVE, int> a, KeyValuePair<MOVE, int> b)
+            board.captureMoves.Sort(delegate (KeyValuePair<MOVE, int> a, KeyValuePair<MOVE, int> b)
             { return b.Value.CompareTo(a.Value); });
-            if (captureMoves.Count == 0)
+            if (board.captureMoves.Count == 0)
                 return best;
-            foreach (KeyValuePair<MOVE, int> mv_vl in captureMoves)
+            foreach (KeyValuePair<MOVE, int> mv_vl in board.captureMoves)
             {
                 MOVE mv = mv_vl.Key;
-                Debug.WriteLine(mv);
-                MakeMove(mv);
+                Debug.Write(new string('\t', depth));
+                Debug.WriteLine("{0} {1} {2} {3}",mv, alpha, beta, best);
+                board.MakeMove(mv);
+                depth++;
                 vl = -SearchQuiesce(-beta, -alpha);
-                UnmakeMove();
+                board.UnmakeMove();
+                depth--;
+                Debug.Write(new string('\t', depth));
+                Debug.WriteLine("{0} {1}", mv, best);
                 if (vl > best)
                 {
                     if (vl > beta)

@@ -214,13 +214,15 @@ namespace MoleXiangqi
 
         private void menuOpen_Click(object sender, EventArgs e)
         {
-            string fileName = @"J:\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
-            pos.ReadPgnFile(fileName);
+            //string fileName = @"J:\象棋\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
+            //pos.ReadPgnFile(fileName);
 
-            //if (openPGNDialog.ShowDialog() == DialogResult.OK)
-            //{
-            //    pos.ReadPgnFile(openPGNDialog.FileName);
-            //}
+            if (openPGNDialog.ShowDialog() == DialogResult.OK)
+            {
+                pos.ReadPgnFile(openPGNDialog.FileName);
+            }
+            else
+                return;
             labelEvent.Text = pos.PGN.Event;
             string result;
             switch (pos.PGN.Result)
@@ -409,8 +411,8 @@ namespace MoleXiangqi
 
         private void menuEvaluate_Click(object sender, EventArgs e)
         {
-            pos.ivpc = new int[300, 48];
-            pos.SearchQuiesce(-5000, 5000);
+            SEARCH engine = new SEARCH(pos);
+            engine.SearchQuiesce(-5000, 5000);
             //WriteMap2Csv(pos.attackMap, @"J:\xqtest\attack.csv");
             //WriteMap2Csv(pos.connectivityMap, @"J:\xqtest\connectivity.csv");
         }
