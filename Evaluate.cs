@@ -482,11 +482,7 @@ namespace MoleXiangqi
             foreach (string fileName in pgnFiles)
             {
                 Console.WriteLine(fileName.Substring(sourceDirectory.Length + 1));
-                if (!ReadPgnFile(fileName))
-                {
-                    Console.WriteLine("Fail to read!" + fileName);
-                    continue;
-                }
+                List<iMOVE> iMoveList = ReadPgnFile(fileName).iMoveList;
                 nFile++;
                 int nSteps = iMoveList.Count;
                 totalSteps += nSteps;

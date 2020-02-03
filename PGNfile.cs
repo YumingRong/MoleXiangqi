@@ -7,6 +7,16 @@ using System.Diagnostics;
 
 namespace MoleXiangqi
 {
+    public struct PgnFileStruct
+    {
+        public string Event, Round, Date, Site;
+        public string RedTeam, Red, RedElo;
+        public string BlackTeam, Black, BlackElo;
+        public string ECCO, Opening, Variation, Result;
+        public string Format, StartFEN;
+        public List<iMOVE> iMoveList;
+    }
+
     partial class POSITION
     {
         private Dictionary<char, int> PieceDict;
@@ -17,26 +27,15 @@ namespace MoleXiangqi
             PieceDict = new Dictionary<char, int>();
             NumberDict = new Dictionary<char, int>();
             FillDictionary();
-            iMoveList = new List<iMOVE>();
-        }
-
-        public struct PgnFileStruct
-        {
-            public string Event, Round, Date, Site;
-            public string RedTeam, Red, RedElo;
-            public string BlackTeam, Black, BlackElo;
-            public string ECCO, Opening, Variation, Result;
-            public string Format, StartFEN;
         }
 
         public PgnFileStruct PGN;
-        public List<iMOVE> iMoveList;
 
-        public bool ReadPgnFile(string szFileName)
+        public PgnFileStruct ReadPgnFile(string szFileName)
         {
             FromFEN(cszStartFen);
             PGN.StartFEN = cszStartFen;
-            iMoveList.Clear();
+            List<iMOVE> iMoves = new List<iMOVE>();
 
             using (StreamReader fp = new StreamReader(szFileName, Encoding.GetEncoding("GB2312")))
             {
@@ -57,7 +56,10 @@ namespace MoleXiangqi
                                 break;
                             case "Game":
                                 if (m.Groups[2].Value != "Chinese Chess")
-                                    return false;
+                                {
+                                    Console.WriteLine("非中国象棋棋谱");
+                                    return PGN;
+                                }
                                 break;
                             case "Event":
                                 PGN.Event = m.Groups[2].Value;
@@ -161,9 +163,12 @@ namespace MoleXiangqi
                             //Debug.WriteLine(s);
                             MOVE mv = ParseWord(s);
                             if (mv.pcSrc == 0)
-                                return false;
+                            {
+                                Console.WriteLine("警告：棋谱错误！");
+                                return PGN;
+                            }
                             MakeMove(mv);
-                            iMoveList.Add(imv);
+                            iMoves.Add(imv);
                             imv = new iMOVE();
                             imv.from = mv.sqSrc;
                             imv.to = mv.sqDst;
@@ -173,15 +178,16 @@ namespace MoleXiangqi
                         {
                             if (s != PGN.Result)
                                 Debug.WriteLine(s);
-                            iMoveList.Add(imv);
-                            return true;
+                            iMoves.Add(imv);
+                            PGN.iMoveList = iMoves;
+                            return PGN;
                         }
                     }
 
                 } while (line.Length > 0 & index >= 0);
             }
-
-            return true;
+            PGN.iMoveList = iMoves;
+            return PGN;
         }
 
         MOVE ParseWord(string word)

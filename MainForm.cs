@@ -20,7 +20,7 @@ namespace MoleXiangqi
         int FENStep; //用来决定要不要显示上一步方框
         bool bFlipped = false;
         bool bSelected;
-
+        List<iMOVE> iMoveList;
         POSITION pos;
         const int gridSize = 57;
         SoundPlayer soundPlayer;
@@ -34,6 +34,7 @@ namespace MoleXiangqi
         {
             InitializeComponent();
             pos = new POSITION();
+            iMoveList = new List<iMOVE>();
             soundPlayer = new SoundPlayer();
         }
 
@@ -67,8 +68,8 @@ namespace MoleXiangqi
             bSelected = false;
             listboxMove.Items.Clear();
             listboxMove.Items.Add("==开始==");
-            pos.iMoveList.Clear();
-            pos.iMoveList.Add(new iMOVE());
+            iMoveList.Clear();
+            iMoveList.Add(new iMOVE());
             panelBoard.Refresh();
             App_inGame = true;
         }
@@ -147,7 +148,7 @@ namespace MoleXiangqi
                         step.from = sqFrom;
                         step.to = sqTo;
                         step.comment = textBoxComment.Text;
-                        pos.iMoveList.Add(step);
+                        iMoveList.Add(step);
 
                         FENStep++;
                         string label = step.ToString();
@@ -256,14 +257,14 @@ namespace MoleXiangqi
 
             listboxMove.Items.Clear();
 
-            if (pos.iMoveList[0].comment == null)
+            if (iMoveList[0].comment == null)
                 listboxMove.Items.Add("==开始==");
             else
                 listboxMove.Items.Add("==开始==*");
 
-            for (FENStep = 1; FENStep < pos.iMoveList.Count; FENStep++)
+            for (FENStep = 1; FENStep < iMoveList.Count; FENStep++)
             {
-                iMOVE step = pos.iMoveList[FENStep];
+                iMOVE step = iMoveList[FENStep];
                 string label = step.ToString();
                 if (FENStep % 2 == 1)
                     label = ((FENStep / 2 + 1).ToString() + "." + label);
@@ -360,11 +361,11 @@ namespace MoleXiangqi
         {
             if (listboxMove.SelectedIndex < 0)
                 return;
-            textBoxComment.Text = pos.iMoveList[listboxMove.SelectedIndex].comment;
+            textBoxComment.Text = iMoveList[listboxMove.SelectedIndex].comment;
             if (listboxMove.SelectedIndex > FENStep)
             {
                 for (int i = FENStep + 1; i <= listboxMove.SelectedIndex; i++)
-                    pos.MakeMove(pos.iMoveList[i].from, pos.iMoveList[i].to);
+                    pos.MakeMove(iMoveList[i].from, iMoveList[i].to);
             }
             else
             {
@@ -372,8 +373,8 @@ namespace MoleXiangqi
                     pos.UnmakeMove();
             }
             FENStep = listboxMove.SelectedIndex;
-            mvLastFrom = POSITION.iCoord2XY(pos.iMoveList[listboxMove.SelectedIndex].from, bFlipped);
-            mvLastTo = POSITION.iCoord2XY(pos.iMoveList[listboxMove.SelectedIndex].to, bFlipped);
+            mvLastFrom = POSITION.iCoord2XY(iMoveList[listboxMove.SelectedIndex].from, bFlipped);
+            mvLastTo = POSITION.iCoord2XY(iMoveList[listboxMove.SelectedIndex].to, bFlipped);
             panelBoard.Refresh();
         }
 
@@ -388,17 +389,13 @@ namespace MoleXiangqi
             foreach (string fileName in pgnFiles)
             {
                 Console.WriteLine(fileName.Substring(sourceDirectory.Length + 1));
-                if (!pos.ReadPgnFile(fileName))
-                {
-                    Console.WriteLine("Fail to read!" + fileName);
-                    continue;
-                }
+                iMoveList = pos.ReadPgnFile(fileName).iMoveList;
                 nFile++;
                 pos.FromFEN(pos.PGN.StartFEN);
                 int side = 0;
-                for (int i = 1; i < pos.iMoveList.Count; i++)
+                for (int i = 1; i < iMoveList.Count; i++)
                 {
-                    iMOVE step = pos.iMoveList[i];
+                    iMOVE step = iMoveList[i];
                     if (pos.pcSquares[step.to] > 0)
                         activeGrid[side, step.to]++;
                     pos.MakeMove(step.from, step.to);
@@ -420,14 +417,15 @@ namespace MoleXiangqi
         private void menuContinuousEval_Click(object sender, EventArgs e)
         {
             string fileName = @"J:\象棋\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
-            pos.ReadPgnFile(fileName);
+            List<iMOVE> iMoveList = pos.ReadPgnFile(fileName).iMoveList;
+            
             //pos.ivpc = new int[totalMoves, 48];
             pos.FromFEN(pos.PGN.StartFEN);
             SEARCH engine = new SEARCH(pos);
             engine.SearchQuiesce(-5000, 5000);
-            for (int i = 1; i < pos.iMoveList.Count; i++)
+            for (int i = 1; i < iMoveList.Count; i++)
             {
-                iMOVE step = pos.iMoveList[i];
+                iMOVE step = iMoveList[i];
                 engine.board.MakeMove(step.from, step.to);
                 int score = engine.SearchQuiesce(-5000, 5000);
                 if (i % 2 == 1)
