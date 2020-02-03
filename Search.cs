@@ -18,12 +18,14 @@ namespace MoleXiangqi
             best = vl;
             alpha = Math.Max(alpha, vl);
 
-            List<MOVE> mvs = GenerateCaptures();
-            if (mvs.Count == 0)
-                return Complex_Evaluate();
-            foreach (MOVE mv in mvs)
+            captureMoves.Sort(delegate (KeyValuePair<MOVE, int> a, KeyValuePair<MOVE, int> b)
+            { return b.Value.CompareTo(a.Value); });
+            if (captureMoves.Count == 0)
+                return best;
+            foreach (KeyValuePair<MOVE, int> mv_vl in captureMoves)
             {
-                Debug.WriteLine(iMove2Coord(mv.sqSrc, mv.sqDst));
+                MOVE mv = mv_vl.Key;
+                Debug.WriteLine(mv);
                 MakeMove(mv);
                 vl = -SearchQuiesce(-beta, -alpha);
                 UnmakeMove();

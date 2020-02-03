@@ -7,22 +7,6 @@ using System.Diagnostics;
 
 namespace MoleXiangqi
 {
-
-    public struct iMOVE
-    {
-        public int from;
-        public int to;
-        public string comment;
-
-        public iMOVE(MOVE mv)
-        {
-            from = mv.sqSrc;
-            to = mv.sqDst;
-            comment = "";
-        }
-
-    }
-
     partial class POSITION
     {
         private Dictionary<char, int> PieceDict;

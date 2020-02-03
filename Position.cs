@@ -171,12 +171,6 @@ namespace MoleXiangqi
             Array.Clear(pcSquares, 0, 256);
             Array.Clear(sqPieces, 0, 48);
         }
-
-        void ChangeSide()
-        { // 交换走棋方
-            sdPlayer = OPP_SIDE(sdPlayer);
-        }
-
     }
 };
 

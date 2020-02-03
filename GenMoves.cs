@@ -3,20 +3,6 @@ using System.Diagnostics;
 
 namespace MoleXiangqi
 {
-    public struct MOVE
-    {
-        public int sqSrc, sqDst;      // 起始格和目标格
-        public int pcSrc, pcDst;
-
-        public MOVE(int sqFrom, int sqTo, int pcFrom, int pcTo)
-        {
-            sqSrc = sqFrom;
-            sqDst = sqTo;
-            pcSrc = pcFrom;
-            pcDst = pcTo;
-        }
-    }
-    
     public partial class POSITION
     {
         // 帅(将)的步长
@@ -127,7 +113,7 @@ namespace MoleXiangqi
                     if ((pcDst & pcSelfSide) == 0)
                         mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
                 }
-                if (HOME_HALF[1- sdPlayer, sqSrc])
+                if (HOME_HALF[1 - sdPlayer, sqSrc])
                 {
                     for (nDelta = -1; nDelta <= 1; nDelta += 2)
                     {
@@ -244,7 +230,7 @@ namespace MoleXiangqi
                     if ((pcDst & pcOppSide) != 0)
                         mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
                 }
-                if (HOME_HALF[1- sdPlayer, sqSrc])
+                if (HOME_HALF[1 - sdPlayer, sqSrc])
                 {
                     for (nDelta = -1; nDelta <= 1; nDelta += 2)
                     {
@@ -418,7 +404,7 @@ namespace MoleXiangqi
 
                 // 8. 如果是兵(卒)，则按红方和黑方分情况讨论
                 default:
-                    if( sqDst == SQUARE_FORWARD(sqSrc, sdPlayer))
+                    if (sqDst == SQUARE_FORWARD(sqSrc, sdPlayer))
                         return true;
                     if (HOME_HALF[1 - sdPlayer, sqSrc] && (sqDst == sqSrc - 1 || sqDst == sqSrc + 1))
                         return true;

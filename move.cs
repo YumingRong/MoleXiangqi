@@ -4,6 +4,44 @@ using System.Diagnostics;
 
 namespace MoleXiangqi
 {
+    public struct iMOVE
+    {
+        public int from;
+        public int to;
+        public string comment;
+
+        public iMOVE(MOVE mv)
+        {
+            from = mv.sqSrc;
+            to = mv.sqDst;
+            comment = "";
+        }
+
+        public override string ToString()
+        {
+            return POSITION.iMove2Coord(from, to);
+        }
+    }
+
+    public struct MOVE
+    {
+        public int sqSrc, sqDst;      // 起始格和目标格
+        public int pcSrc, pcDst;
+
+        public MOVE(int sqFrom, int sqTo, int pcFrom, int pcTo)
+        {
+            sqSrc = sqFrom;
+            sqDst = sqTo;
+            pcSrc = pcFrom;
+            pcDst = pcTo;
+        }
+
+        public override string ToString()
+        {
+            return POSITION.iMove2Coord(sqSrc, sqDst);
+        }
+    }
+
     public partial class POSITION
     {
         //Interface to graphic board. x, y is 0~9

@@ -150,7 +150,7 @@ namespace MoleXiangqi
                         pos.iMoveList.Add(step);
 
                         FENStep++;
-                        string label = POSITION.iMove2Coord(sqFrom, sqTo);
+                        string label = step.ToString();
                         if (FENStep % 2 == 1)
                             label = ((FENStep / 2 + 1).ToString() + "." + label);
                         label = label.PadLeft(8);
@@ -262,7 +262,7 @@ namespace MoleXiangqi
             for (FENStep = 1; FENStep < pos.iMoveList.Count; FENStep++)
             {
                 iMOVE step = pos.iMoveList[FENStep];
-                string label = POSITION.iMove2Coord(step.from, step.to);
+                string label = step.ToString();
                 if (FENStep % 2 == 1)
                     label = ((FENStep / 2 + 1).ToString() + "." + label);
                 label = label.PadLeft(8);
