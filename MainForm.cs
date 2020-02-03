@@ -409,7 +409,7 @@ namespace MoleXiangqi
         private void menuEvaluate_Click(object sender, EventArgs e)
         {
             App_inGame = false;
-            pos.FromFEN(@"3akab2/6c2/4b1N2/p2PN3p/6r2/2R3p2/P3P3n/4C3B/4A4/2B1KA1c1 w - - 0 26");
+            pos.FromFEN(@"3ak1b2/4a1c2/4b4/p2P2N2/8p/2R2N3/Prn1P1p2/3K3C1/4A4/5AB2 b - - 0 44");
             SEARCH engine = new SEARCH(pos);
             engine.SearchQuiesce(-5000, 5000);
             //WriteMap2Csv(pos.attackMap, @"J:\xqtest\attack.csv");
@@ -429,7 +429,7 @@ namespace MoleXiangqi
             {
                 iMOVE step = pgn.iMoveList[i];
                 engine.board.MakeMove(step.from, step.to);
-                int score = engine.SearchQuiesce(-5000, 5000);
+                int score = -engine.SearchQuiesce(-5000, 5000);
                 if (i % 2 == 1)
                     Console.Write("{0}. {1}  ", (i + 1) / 2, score);
                 else
