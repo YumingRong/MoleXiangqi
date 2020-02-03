@@ -327,7 +327,7 @@ namespace MoleXiangqi
         }
 
         // 着法合理性检测，仅用在“杀手着法”的检测中
-        public bool LegalMove(int sqSrc, int sqDst)
+        public bool IsLegalMove(int sqSrc, int sqDst)
         {
             int sqPin, pcMoved, pcCaptured, selfSide;
             int nDelta;
@@ -414,7 +414,7 @@ namespace MoleXiangqi
         }
 
         // 判断是否被将军
-        public bool Checked()
+        public int Checked()
         {
             int i, j, sqSrc, sqDst;
             int pcSelfSide, pcOppSide, pcDst, nDelta;
@@ -426,11 +426,11 @@ namespace MoleXiangqi
 
             // 1. 判断是否被对方的兵(卒)将军
             if (cnPieceTypes[pcSquares[SQUARE_FORWARD(sqSrc, sdPlayer)]] == pcOppSide + PIECE_PAWN)
-                return true;
+                return SQUARE_FORWARD(sqSrc, sdPlayer);
             if (cnPieceTypes[pcSquares[sqSrc - 1]] == pcOppSide + PIECE_PAWN)
-                return true;
+                return sqSrc - 1;
             if (cnPieceTypes[pcSquares[sqSrc + 1]] == pcOppSide + PIECE_PAWN)
-                return true;
+                return sqSrc + 1;
 
             // 2. 判断是否被对方的马将军(以仕(士)的步长当作马腿)
             for (i = 0; i < 4; i++)
@@ -439,9 +439,10 @@ namespace MoleXiangqi
                 if (pcSquares[sqPin] == 0)
                     for (j = 0; j < 2; j++)
                     {
-                        pcDst = pcSquares[sqSrc + ccKnightCheckDelta[i, j]];
+                        sqDst = sqSrc + ccKnightCheckDelta[i, j];
+                        pcDst = pcSquares[sqDst];
                         if (cnPieceTypes[pcDst] == pcOppSide + PIECE_KNIGHT)
-                            return true;
+                            return sqDst;
                     }
             }
 
@@ -456,7 +457,7 @@ namespace MoleXiangqi
                     {
                         pcDst = cnPieceTypes[pcDst];
                         if (pcDst == pcOppSide + PIECE_ROOK)
-                            return true;
+                            return sqDst;
                         else
                             for (sqDst += nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
                             {
@@ -464,7 +465,7 @@ namespace MoleXiangqi
                                 if (pcDst != 0)
                                 {
                                     if (cnPieceTypes[pcDst] == pcOppSide + PIECE_CANNON)
-                                        return true;
+                                        return sqDst;
                                     goto NextFor3;
                                 }
                             }
@@ -480,11 +481,11 @@ namespace MoleXiangqi
             {
                 for (i = sqSrc + 16; i < sqDst; i += 16)
                     if (pcSquares[i] > 0)
-                        return false;
+                        return i;
             }
             else
-                return false;
-            return true;
+                return 0;
+            return 0;
         }
 
         // 判断是否被杀
@@ -497,7 +498,7 @@ namespace MoleXiangqi
             {
                 //Debug.WriteLine(iMove2Coord(mv) + "," + SRC(mv) + "-" + DST(mv));
                 MovePiece(mv);
-                if (!Checked())
+                if (Checked() == 0)
                 {
                     UndoMovePiece(mv);
                     return false;

@@ -14,19 +14,21 @@ namespace MoleXiangqi
             board = pos;
         }
 
-        //const int MATE_VALUE = 5000;
+        const int MATE_VALUE = 5000;
         public int SearchQuiesce(int alpha, int beta)
         {
-            int best;
+            int best = -MATE_VALUE;
             int vl;
-            
-            if (board.Checked())
+
+            vl = board.Complex_Evaluate();
+            int sqCheck = board.Checked();
+            if (sqCheck > 0)
             {
                 List<MOVE> moves = board.GenerateMoves();
                 foreach (MOVE mv in moves)
                 {
                     board.MakeMove(mv);
-                    if (!board.Checked())
+                    if (!board.IsLegalMove(sqCheck, mv.sqDst))
                     {
                         depth++;
                         vl = -SearchQuiesce(-beta, -alpha);
@@ -34,24 +36,22 @@ namespace MoleXiangqi
                         depth--;
 
                     }
-
                 }
             }
             else
             {
+                // 7. 对于未被将军的局面，在生成着法前首先尝试空着(空着启发)，即对局面作评价；
+                if (vl > beta)
+                    return vl;
+                best = vl;
+                alpha = Math.Max(alpha, vl);
+
+                board.captureMoves.Sort(delegate (KeyValuePair<MOVE, int> a, KeyValuePair<MOVE, int> b)
+                { return b.Value.CompareTo(a.Value); });
+                if (board.captureMoves.Count == 0)
+                    return best;
 
             }
-            // 7. 对于未被将军的局面，在生成着法前首先尝试空着(空着启发)，即对局面作评价；
-            vl = board.Complex_Evaluate();
-            if (vl > beta)
-                return vl;
-            best = vl;
-            alpha = Math.Max(alpha, vl);
-
-            board.captureMoves.Sort(delegate (KeyValuePair<MOVE, int> a, KeyValuePair<MOVE, int> b)
-            { return b.Value.CompareTo(a.Value); });
-            if (board.captureMoves.Count == 0)
-                return best;
             foreach (KeyValuePair<MOVE, int> mv_vl in board.captureMoves)
             {
                 MOVE mv = mv_vl.Key;

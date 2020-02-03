@@ -120,7 +120,7 @@ namespace MoleXiangqi
                         sqFrom = POSITION.iXY2Coord(ptSelected.X, ptSelected.Y);
                         sqTo = POSITION.iXY2Coord(x, y);
                     }
-                    if (pos.LegalMove(sqFrom, sqTo))
+                    if (pos.IsLegalMove(sqFrom, sqTo))
                     {
                         if (FENStep > 0)
                         {
