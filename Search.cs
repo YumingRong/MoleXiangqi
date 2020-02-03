@@ -6,7 +6,7 @@ namespace MoleXiangqi
 {
     class SEARCH
     {
-        POSITION board;
+        public POSITION board;
         int depth = 0;
 
         public SEARCH(POSITION pos)
@@ -20,7 +20,6 @@ namespace MoleXiangqi
             int best;
             int vl;
             // 7. 对于未被将军的局面，在生成着法前首先尝试空着(空着启发)，即对局面作评价；
-            board.ivpc = new int[300, 48];
             vl = board.Complex_Evaluate();
             if (vl > beta)
                 return vl;
@@ -41,8 +40,8 @@ namespace MoleXiangqi
                 vl = -SearchQuiesce(-beta, -alpha);
                 board.UnmakeMove();
                 depth--;
-                Debug.Write(new string('\t', depth));
-                Debug.WriteLine("{0} {1}", mv, best);
+                //Debug.Write(new string('\t', depth));
+                //Debug.WriteLine("{0} {1}", mv, best);
                 if (vl > best)
                 {
                     if (vl > beta)

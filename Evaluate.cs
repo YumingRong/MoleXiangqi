@@ -104,7 +104,7 @@ namespace MoleXiangqi
         /*Complex_evaluate可以顺便创建吃子走法并打分，虽然可能不全，比如两个子同时攻击同一个格子
          但是这种情况较少，且一般情况下总是优先用低价值的棋子去吃对方。
          而且调用captureMoves的静态搜素并不需要严格考虑所用局面。          */
-        public List<KeyValuePair<MOVE, int>> captureMoves; 
+        public List<KeyValuePair<MOVE, int>> captureMoves;
         public int Complex_Evaluate()
         {
             //举例：当头炮与对方的帅之间隔了自己的马和对方的相，
@@ -257,7 +257,7 @@ namespace MoleXiangqi
                     //这是一种简化的计算，实际上pin是有方向的，但这样太过复杂
                     if (PinnedPieces[pc])
                     {
-                        ivpc[nStep, pc] = 0;
+                        //ivpc[nStep, pc] = 0;
                         continue;
                     }
                     int posv0 = positionValue[sd];
@@ -349,7 +349,7 @@ namespace MoleXiangqi
                             Debug.Fail("Unknown piece type");
                             break;
                     }
-                    ivpc[nStep, pc] = positionValue[sd] - posv0;
+                    //ivpc[nStep, pc] = positionValue[sd] - posv0;
                 }
                 //帅所在的格没有保护
                 attackMap[sd, sqPieces[bas + KING_FROM]] = 0;
@@ -390,7 +390,7 @@ namespace MoleXiangqi
                     if (sd != -1)
                     {
                         int attack = attackMap[1 - sd, sqDst];
-                        int protect = attackMap[sd, sqDst]; 
+                        int protect = attackMap[sd, sqDst];
                         if (attack > 0)
                         {
                             int[] cnAttackScore = { 0, 20, 12, 8, 8, 4, 6, 6 };
@@ -435,9 +435,9 @@ namespace MoleXiangqi
                     {
                         for (sd = 0; sd < 2; sd++)
                             if (BannedGrids[sd, sqDst])
-                                tacticValue[1 ^ sd] += attackMap[1 - sd, sqDst] > 0 ? cDiscoveredAttack[attackMap[1 - sd, sqDst]] : 2;
+                                tacticValue[1 ^ sd] += attackMap[1 - sd, sqDst] > 0 ? cDiscoveredAttack[cnPieceKinds[attackMap[1 - sd, sqDst]]] : 2;
                             //机动性, 不考虑炮的空射，因为炮的射界与活动范围不同，且炮架可能是对方的车、炮或兵、帅
-                            else if (attackMap[sd, sqDst] > 0 && attackMap[sd, sqDst] != PIECE_CANNON && attackMap[1 - sd, sqDst] == 0)
+                            else if (attackMap[sd, sqDst] > 0 && cnPieceKinds[attackMap[sd, sqDst]] != PIECE_CANNON && attackMap[1 - sd, sqDst] == 0)
                                 connectivity[sd] += 2;
                     }
                     connectivityMap[0, sqDst] = connectivity[0] - conn00;
@@ -448,20 +448,20 @@ namespace MoleXiangqi
             int scoreBlack = materialValue[1] + positionValue[1] + pair[1] + connectivity[1] + tacticValue[1];
 
             int total = scoreRed - scoreBlack;
-            ivpc[nStep, 0] = nStep;
-            ivpc[nStep, 1] = total;
-            ivpc[nStep, 2] = scoreRed;
-            ivpc[nStep, 3] = scoreBlack;
-            ivpc[nStep, 4] = materialValue[0];
-            ivpc[nStep, 5] = materialValue[1];
-            ivpc[nStep, 6] = positionValue[0];
-            ivpc[nStep, 7] = positionValue[1];
-            ivpc[nStep, 8] = connectivity[0];
-            ivpc[nStep, 9] = connectivity[1];
-            ivpc[nStep, 10] = pair[0];
-            ivpc[nStep, 11] = pair[1];
-            ivpc[nStep, 12] = tacticValue[0];
-            ivpc[nStep, 13] = tacticValue[1];
+            //ivpc[nStep, 0] = nStep;
+            //ivpc[nStep, 1] = total;
+            //ivpc[nStep, 2] = scoreRed;
+            //ivpc[nStep, 3] = scoreBlack;
+            //ivpc[nStep, 4] = materialValue[0];
+            //ivpc[nStep, 5] = materialValue[1];
+            //ivpc[nStep, 6] = positionValue[0];
+            //ivpc[nStep, 7] = positionValue[1];
+            //ivpc[nStep, 8] = connectivity[0];
+            //ivpc[nStep, 9] = connectivity[1];
+            //ivpc[nStep, 10] = pair[0];
+            //ivpc[nStep, 11] = pair[1];
+            //ivpc[nStep, 12] = tacticValue[0];
+            //ivpc[nStep, 13] = tacticValue[1];
             return sdPlayer == 0 ? total : -total;
         }
 

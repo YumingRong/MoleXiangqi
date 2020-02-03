@@ -383,7 +383,7 @@ namespace MoleXiangqi
             IEnumerable<string> pgnFiles = Directory.EnumerateFiles(sourceDirectory, "*.PGN", SearchOption.AllDirectories);
             int nFile = 0;
             //统计棋子活动位置的数组
-            int[,] activeGrid = new int[2,256];
+            int[,] activeGrid = new int[2, 256];
 
             foreach (string fileName in pgnFiles)
             {
@@ -421,43 +421,25 @@ namespace MoleXiangqi
         {
             string fileName = @"J:\象棋\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
             pos.ReadPgnFile(fileName);
-            int totalMoves = pos.iMoveList.Count;
-            pos.ivpc = new int[totalMoves, 48];
-            bool[] captures = new bool[totalMoves];
+            //pos.ivpc = new int[totalMoves, 48];
             pos.FromFEN(pos.PGN.StartFEN);
-            pos.Complex_Evaluate();
-            for (int i = 1; i < totalMoves; i++)
+            SEARCH engine = new SEARCH(pos);
+            engine.SearchQuiesce(-5000, 5000);
+            for (int i = 1; i < pos.iMoveList.Count; i++)
             {
                 iMOVE step = pos.iMoveList[i];
-                captures[i] = pos.pcSquares[step.to] > 0;
-                pos.MakeMove(step.from, step.to);
-                pos.Complex_Evaluate();
+                engine.board.MakeMove(step.from, step.to);
+                int score = engine.SearchQuiesce(-5000, 5000);
+                if (i % 2 == 1)
+                    Console.Write("{0}. {1}  ", (i + 1) / 2, score);
+                else
+                    Console.WriteLine(score);
             }
 
-            Write2Csv(@"J:\xqtest\eval.csv", pos.ivpc, totalMoves, 48);
+            //Write2Csv(@"J:\xqtest\eval.csv", pos.ivpc, totalMoves, 48);
             /* 用顶级人类选手的对局来测试评估审局函数的有效性。
              * 理想情况下，双方分数应呈锯齿状交替上升，除去吃子的步骤，应该稳定渐变。
              */
-            List<double> redDelta = new List<double>();
-            for (int i = 1; i < totalMoves; i += 2)
-            {
-                if (!captures[i])
-                    redDelta.Add(pos.ivpc[i, 1] - pos.ivpc[i - 1, 1]);
-            }
-            double redMean = Statistics.Mean(redDelta);
-            double redVar = Statistics.Variance(redDelta);
-            Console.WriteLine("Red mean:{0}, var:{1}", redMean, redVar);
-
-            List<double> blackDelta = new List<double>();
-            for (int i = 2; i < totalMoves; i += 2)
-            {
-                if (!captures[i])
-                    blackDelta.Add(pos.ivpc[i, 1] - pos.ivpc[i - 1, 1]);
-            }
-            double blackMean = Statistics.Mean(blackDelta);
-            double blackVar = Statistics.Variance(blackDelta);
-            Console.WriteLine("Black mean:{0}, var:{1}", blackMean, blackVar);
-            Console.WriteLine("Score: red{0}, black{1}, average{2}", redVar / redMean, blackVar / blackMean, (redVar + blackVar) / (redMean - blackMean));
         }
 
         private void menuBatchEval_Click(object sender, EventArgs e)
