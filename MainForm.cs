@@ -217,16 +217,17 @@ namespace MoleXiangqi
         {
             //string fileName = @"J:\象棋\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
             //pos.ReadPgnFile(fileName);
-
+            PgnFileStruct PGN;
             if (openPGNDialog.ShowDialog() == DialogResult.OK)
             {
-                pos.ReadPgnFile(openPGNDialog.FileName);
+                PGN = pos.ReadPgnFile(openPGNDialog.FileName);
+                iMoveList = PGN.iMoveList;
             }
             else
                 return;
-            labelEvent.Text = pos.PGN.Event;
+            labelEvent.Text = PGN.Event;
             string result;
-            switch (pos.PGN.Result)
+            switch (PGN.Result)
             {
                 case "1-0":
                     result = "胜";
@@ -242,17 +243,17 @@ namespace MoleXiangqi
                     break;
             }
             StringBuilder sb = new StringBuilder();
-            sb.Append(pos.PGN.RedTeam);
+            sb.Append(PGN.RedTeam);
             sb.Append(' ');
-            sb.Append(pos.PGN.Red);
+            sb.Append(PGN.Red);
             sb.Append(" (先");
             sb.Append(result);
             sb.Append(") ");
-            sb.Append(pos.PGN.BlackTeam);
+            sb.Append(PGN.BlackTeam);
             sb.Append(' ');
-            sb.Append(pos.PGN.Black);
+            sb.Append(PGN.Black);
             labelPlayer.Text = sb.ToString();
-            labelDateSite.Text = pos.PGN.Date + " 弈于 " + pos.PGN.Site;
+            labelDateSite.Text = PGN.Date + " 弈于 " + PGN.Site;
 
 
             listboxMove.Items.Clear();
@@ -273,7 +274,7 @@ namespace MoleXiangqi
                     label += "*";
                 listboxMove.Items.Add(label);
             }
-            pos.FromFEN(pos.PGN.StartFEN);
+            pos.FromFEN(PGN.StartFEN);
             FENStep = 0;
             listboxMove.SelectedIndex = 0;
             panelBoard.Refresh();
@@ -389,9 +390,10 @@ namespace MoleXiangqi
             foreach (string fileName in pgnFiles)
             {
                 Console.WriteLine(fileName.Substring(sourceDirectory.Length + 1));
-                iMoveList = pos.ReadPgnFile(fileName).iMoveList;
+                PgnFileStruct pgn = pos.ReadPgnFile(fileName);
+                iMoveList = pgn.iMoveList;
                 nFile++;
-                pos.FromFEN(pos.PGN.StartFEN);
+                pos.FromFEN(pgn.StartFEN);
                 int side = 0;
                 for (int i = 1; i < iMoveList.Count; i++)
                 {
@@ -417,10 +419,11 @@ namespace MoleXiangqi
         private void menuContinuousEval_Click(object sender, EventArgs e)
         {
             string fileName = @"J:\象棋\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
-            List<iMOVE> iMoveList = pos.ReadPgnFile(fileName).iMoveList;
+            PgnFileStruct pgn = pos.ReadPgnFile(fileName);
+            List<iMOVE> iMoveList = pgn.iMoveList;
             
             //pos.ivpc = new int[totalMoves, 48];
-            pos.FromFEN(pos.PGN.StartFEN);
+            pos.FromFEN(pgn.StartFEN);
             SEARCH engine = new SEARCH(pos);
             engine.SearchQuiesce(-5000, 5000);
             for (int i = 1; i < iMoveList.Count; i++)
