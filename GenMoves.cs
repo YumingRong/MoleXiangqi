@@ -414,18 +414,18 @@ namespace MoleXiangqi
         }
 
         // 判断是否被将军
-        public bool Checked(int side)
+        public bool Checked()
         {
             int i, j, sqSrc, sqDst;
             int pcSelfSide, pcOppSide, pcDst, nDelta;
-            pcSelfSide = SIDE_TAG(side);
-            pcOppSide = OPP_SIDE_TAG(side);
+            pcSelfSide = SIDE_TAG(sdPlayer);
+            pcOppSide = OPP_SIDE_TAG(sdPlayer);
             // 找到棋盘上的帅(将)，再做以下判断：
             sqSrc = sqPieces[pcSelfSide + KING_FROM];
             Debug.Assert(IN_BOARD[sqSrc]);
 
             // 1. 判断是否被对方的兵(卒)将军
-            if (cnPieceTypes[pcSquares[SQUARE_FORWARD(sqSrc, side)]] == pcOppSide + PIECE_PAWN)
+            if (cnPieceTypes[pcSquares[SQUARE_FORWARD(sqSrc, sdPlayer)]] == pcOppSide + PIECE_PAWN)
                 return true;
             if (cnPieceTypes[pcSquares[sqSrc - 1]] == pcOppSide + PIECE_PAWN)
                 return true;
@@ -488,7 +488,7 @@ namespace MoleXiangqi
         }
 
         // 判断是否被杀
-        public bool IsMate(int side)
+        public bool IsMate()
         {
             List<MOVE> mvs;
 
@@ -497,7 +497,7 @@ namespace MoleXiangqi
             {
                 //Debug.WriteLine(iMove2Coord(mv) + "," + SRC(mv) + "-" + DST(mv));
                 MovePiece(mv);
-                if (!Checked(side))
+                if (!Checked())
                 {
                     UndoMovePiece(mv);
                     return false;

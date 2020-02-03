@@ -161,7 +161,7 @@ namespace MoleXiangqi
                         else
                             PlaySound("MOVE");
 
-                        if (POSITION.PIECE_INDEX(pcCaptured) == 11 || pos.IsMate(pos.sdPlayer))
+                        if (POSITION.PIECE_INDEX(pcCaptured) == 1 || pos.IsMate())
                         {//直接吃王或者绝杀
                             MessageBox.Show("祝贺你取得胜利！");
                             PlaySound("WIN");
@@ -215,8 +215,6 @@ namespace MoleXiangqi
 
         private void menuOpen_Click(object sender, EventArgs e)
         {
-            //string fileName = @"J:\象棋\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
-            //pos.ReadPgnFile(fileName);
             PgnFileStruct PGN;
             if (openPGNDialog.ShowDialog() == DialogResult.OK)
             {
@@ -391,13 +389,12 @@ namespace MoleXiangqi
             {
                 Console.WriteLine(fileName.Substring(sourceDirectory.Length + 1));
                 PgnFileStruct pgn = pos.ReadPgnFile(fileName);
-                iMoveList = pgn.iMoveList;
                 nFile++;
                 pos.FromFEN(pgn.StartFEN);
                 int side = 0;
-                for (int i = 1; i < iMoveList.Count; i++)
+                for (int i = 1; i < pgn.iMoveList.Count; i++)
                 {
-                    iMOVE step = iMoveList[i];
+                    iMOVE step = pgn.iMoveList[i];
                     if (pos.pcSquares[step.to] > 0)
                         activeGrid[side, step.to]++;
                     pos.MakeMove(step.from, step.to);
@@ -420,15 +417,13 @@ namespace MoleXiangqi
         {
             string fileName = @"J:\象棋\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
             PgnFileStruct pgn = pos.ReadPgnFile(fileName);
-            List<iMOVE> iMoveList = pgn.iMoveList;
             
-            //pos.ivpc = new int[totalMoves, 48];
             pos.FromFEN(pgn.StartFEN);
             SEARCH engine = new SEARCH(pos);
             engine.SearchQuiesce(-5000, 5000);
-            for (int i = 1; i < iMoveList.Count; i++)
+            for (int i = 1; i < pgn.iMoveList.Count; i++)
             {
-                iMOVE step = iMoveList[i];
+                iMOVE step = pgn.iMoveList[i];
                 engine.board.MakeMove(step.from, step.to);
                 int score = engine.SearchQuiesce(-5000, 5000);
                 if (i % 2 == 1)
