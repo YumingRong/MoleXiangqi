@@ -116,21 +116,26 @@ namespace MoleXiangqi
 
             int[] cDiscoveredAttack = { 0, 1, 25, 20, 20, 7, 3, 3 };
             //对阻挡将军的子进行判断
-            void CheckBlocker(int side, int blocker)
+            void CheckBlocker(int side, int pcBlocker, int sqPinner)
             {
-                int blockerSide = SIDE(blocker);
-                int pcKind = cnPieceKinds[blocker];
+                int sdBlocker = SIDE(pcBlocker);
+                int pcKind = cnPieceKinds[pcBlocker];
                 //未过河兵没有牵制和闪击
-                if (pcKind == PIECE_PAWN && HOME_HALF[blockerSide, sqPieces[blocker]])
+                if (pcKind == PIECE_PAWN && HOME_HALF[sdBlocker, sqPieces[pcBlocker]])
                     return;
-                if (blockerSide == side)
+                if (sdBlocker == side)
                 {
                     //闪击加分，根据兵种不同
                     tacticValue[side] += cDiscoveredAttack[pcKind];
                 }
                 else
-                    PinnedPieces[blocker] = true;
+                {
+                    PinnedPieces[pcBlocker] = true;
+                    //在形如红炮-黑车-红兵-黑将的棋型中，黑车是可以吃红炮的
+                    if (IsLegalMove(sqPieces[pcBlocker], sqPinner))
+                        attackMap[sdBlocker, sqPinner] = pcBlocker;
 
+                }
             }
             //find absolute pin.
             for (int sd = 0; sd < 2; sd++)
@@ -154,7 +159,7 @@ namespace MoleXiangqi
                             }
                         }
                         if (nblock == 1)
-                            CheckBlocker(sd, pcBlocker);
+                            CheckBlocker(sd, pcBlocker, sqSrc);
                     }
 
                     if (SAME_RANK(sqSrc, sqOppKing))
@@ -170,7 +175,7 @@ namespace MoleXiangqi
                             }
                         }
                         if (nblock == 1)
-                            CheckBlocker(sd, pcBlocker);
+                            CheckBlocker(sd, pcBlocker, sqSrc);
                     }
                 }
 
@@ -188,7 +193,7 @@ namespace MoleXiangqi
                         }
                         if (nblock == 2)
                             for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
-                                CheckBlocker(sd, pcSquares[sq]);
+                                CheckBlocker(sd, pcSquares[sq], sqSrc);
                         else if (nblock == 0) //空心炮
                         {
                             for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
@@ -206,7 +211,7 @@ namespace MoleXiangqi
                         }
                         if (nblock == 2)
                             for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
-                                CheckBlocker(sd, pcSquares[sq]);
+                                CheckBlocker(sd, pcSquares[sq], sqSrc);
                         else if (nblock == 0) //空心炮
                         {
                             for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
@@ -224,7 +229,7 @@ namespace MoleXiangqi
                         {
                             pcDst = pcSquares[sqOppKing + ccKnightCheckDelta[i, j]];
                             if (cnPieceTypes[pcDst] == bas + PIECE_KNIGHT)
-                                CheckBlocker(sd, pcBlocker);
+                                CheckBlocker(sd, pcBlocker, sqPieces[pcDst]);
                         }
                 }
             }
