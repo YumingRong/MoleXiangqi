@@ -97,9 +97,13 @@ namespace MoleXiangqi
                 sdPlayer = 0;
 
             halfMoveClock = Convert.ToInt32(subs[4]);
-            nStep = 0;
             moveStack.Clear();
-            zobristRecords[0] = CalculateZobrist();
+            stepList.Clear();
+            STEP step;
+            step.zobrist = CalculateZobrist();
+            step.capture = false;
+            step.checking = 0;
+            stepList.Add(step);
         }
 
         // 生成FEN串
@@ -142,7 +146,7 @@ namespace MoleXiangqi
             lpFen.Append(" - - ");
             lpFen.Append(halfMoveClock);
             lpFen.Append(" ");
-            lpFen.Append(nStep);
+            lpFen.Append(stepList.Count - 1);
             return lpFen.ToString();
         }
 

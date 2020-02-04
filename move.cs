@@ -42,6 +42,14 @@ namespace MoleXiangqi
         }
     }
 
+    public struct STEP
+    {
+        public long zobrist;
+        public int checking;
+        public bool capture;
+        public MOVE move;
+    }
+
     public partial class POSITION
     {
         //Interface to graphic board. x, y is 0~9
@@ -49,7 +57,6 @@ namespace MoleXiangqi
         {
             return new Tuple<int, int>(XY2Coord(x0 + FILE_LEFT, y0 + RANK_TOP), XY2Coord(x1 + FILE_LEFT, y1 + RANK_TOP));
         }
-
 
         // 走法是否符合帅(将)的步长
         bool KING_SPAN(int sqSrc, int sqDst)
@@ -127,24 +134,25 @@ namespace MoleXiangqi
         {
             MovePiece(mv);
             moveStack.Push(mv);
-            long zobrist = zobristRecords[nStep] ^ Zobrist.Get(mv.pcSrc, mv.sqSrc);
-            zobrist ^= Zobrist.Get(mv.pcSrc, mv.sqDst);
-            nStep++;
+            STEP step;
+            step.move = mv;
+            step.zobrist = stepList[stepList.Count - 1].zobrist ^ Zobrist.Get(mv.pcSrc, mv.sqSrc) ^ Zobrist.Get(mv.pcSrc, mv.sqDst);
+            step.capture = false;
+            step.checking = CheckedBy(sdPlayer); //暂时不必判断将军与否
             if (mv.pcDst > 0)
             {
-                zobrist ^= Zobrist.Get(mv.pcDst, mv.sqDst);
-                nRepBegin = nStep;
+                step.zobrist ^= Zobrist.Get(mv.pcDst, mv.sqDst);
+                step.capture = true;
                 halfMoveClock = 0;
             }
-            zobristRecords[nStep] = zobrist;
+            stepList.Add(step);
         }
 
         public void UnmakeMove()
         {
             MOVE mv = moveStack.Pop();
             UndoMovePiece(mv);
-            nStep--;
-
+            stepList.RemoveAt(stepList.Count - 1);
         }
 
         public void MakeMove(int from, int to)

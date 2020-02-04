@@ -246,7 +246,7 @@ namespace MoleXiangqi
             for (int sd = 0; sd < 2; sd++)
             {
                 int bas = SIDE_TAG(sd);
-                sqOppKing = sqPieces[OPP_SIDE_TAG(sd) + KING_FROM];
+                int sqOppKing = sqPieces[OPP_SIDE_TAG(sd) + KING_FROM];
                 for (int pc = bas; pc < bas + 16; pc++)
                 {
                     sqSrc = sqPieces[pc];
@@ -647,16 +647,16 @@ namespace MoleXiangqi
             int scoreBlack = materialValue[1] + positionValue[1] + pair[1];
 
             int total = scoreRed - scoreBlack;
-            ivpc[nStep, 0] = nStep;
-            ivpc[nStep, 1] = total;
-            ivpc[nStep, 2] = scoreRed;
-            ivpc[nStep, 3] = scoreBlack;
-            ivpc[nStep, 4] = materialValue[0];
-            ivpc[nStep, 5] = materialValue[1];
-            ivpc[nStep, 6] = positionValue[0];
-            ivpc[nStep, 7] = positionValue[1];
-            ivpc[nStep, 10] = pair[0];
-            ivpc[nStep, 11] = pair[1];
+            //ivpc[nStep, 0] = nStep;
+            //ivpc[nStep, 1] = total;
+            //ivpc[nStep, 2] = scoreRed;
+            //ivpc[nStep, 3] = scoreBlack;
+            //ivpc[nStep, 4] = materialValue[0];
+            //ivpc[nStep, 5] = materialValue[1];
+            //ivpc[nStep, 6] = positionValue[0];
+            //ivpc[nStep, 7] = positionValue[1];
+            //ivpc[nStep, 10] = pair[0];
+            //ivpc[nStep, 11] = pair[1];
 
             return total;
         }

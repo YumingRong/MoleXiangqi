@@ -410,7 +410,7 @@ namespace MoleXiangqi
         }
 
         // 判断是否被将军
-        public int Checked(int side)
+        public int CheckedBy(int side)
         {
             int i, j, sqSrc, sqDst;
             int pcSelfSide, pcOppSide, pcDst, nDelta;
@@ -494,7 +494,7 @@ namespace MoleXiangqi
             {
                 //Debug.WriteLine(iMove2Coord(mv) + "," + SRC(mv) + "-" + DST(mv));
                 MovePiece(mv);
-                if (Checked(sdPlayer) == 0)
+                if (CheckedBy(sdPlayer) == 0)
                 {
                     UndoMovePiece(mv);
                     return false;
