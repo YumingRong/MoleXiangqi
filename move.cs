@@ -48,6 +48,7 @@ namespace MoleXiangqi
         public int checking;
         public bool capture;
         public MOVE move;
+        public int halfMoveClock;  //120步不吃子作和的自然限招
     }
 
     public partial class POSITION
@@ -133,24 +134,24 @@ namespace MoleXiangqi
         public void MakeMove(MOVE mv)
         {
             MovePiece(mv);
-            moveStack.Push(mv);
             STEP step;
             step.move = mv;
             step.zobrist = stepList[stepList.Count - 1].zobrist ^ Zobrist.Get(mv.pcSrc, mv.sqSrc) ^ Zobrist.Get(mv.pcSrc, mv.sqDst);
             step.capture = false;
             step.checking = CheckedBy(sdPlayer); //暂时不必判断将军与否
+            step.halfMoveClock = stepList[stepList.Count - 1].halfMoveClock + 1;
             if (mv.pcDst > 0)
             {
                 step.zobrist ^= Zobrist.Get(mv.pcDst, mv.sqDst);
                 step.capture = true;
-                halfMoveClock = 0;
+                step.halfMoveClock = 0;
             }
             stepList.Add(step);
         }
 
         public void UnmakeMove()
         {
-            MOVE mv = moveStack.Pop();
+            MOVE mv = stepList[stepList.Count-1].move;
             UndoMovePiece(mv);
             stepList.RemoveAt(stepList.Count - 1);
         }

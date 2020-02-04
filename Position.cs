@@ -9,7 +9,6 @@ namespace MoleXiangqi
         {
             pcSquares = new int[256];
             sqPieces = new int[48];
-            moveStack = new Stack<MOVE>();
             stepList = new List<STEP>();
             InitPGN();
             InitEval();
@@ -17,10 +16,9 @@ namespace MoleXiangqi
 
         // 基本成员
         public int sdPlayer;             // 轮到哪方走，0表示红方，1表示黑方
-        public int[] pcSquares;       // 每个格子放的棋子，0表示没有棋子, size = 256
-        public int[] sqPieces;   // 每个棋子放的位置，0表示被吃, size = 48
-        Stack<MOVE> moveStack;    //实际走子的堆栈
-        public List<STEP> stepList;  
+        public int[] pcSquares;         // 每个格子放的棋子，0表示没有棋子, size = 256
+        public int[] sqPieces;          // 每个棋子放的位置，0表示被吃, size = 48
+        public List<STEP> stepList;
 
         // 每种子力的类型编号，按子力价值排序
         const int PIECE_EMPTY = 0;
@@ -137,12 +135,7 @@ namespace MoleXiangqi
 
         public static int SIDE(int pc)
         {
-            if (pc >= 32)
-                return 1;
-            else if (pc >= 16)
-                return 0;
-            else
-                return -1;
+            return (pc >> 4) - 1;
         }
 
         public static int XY2Coord(int x, int y)

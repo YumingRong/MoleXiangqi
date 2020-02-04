@@ -96,13 +96,13 @@ namespace MoleXiangqi
             else
                 sdPlayer = 0;
 
-            halfMoveClock = Convert.ToInt32(subs[4]);
-            moveStack.Clear();
             stepList.Clear();
             STEP step;
+            step.move = new MOVE();
             step.zobrist = CalculateZobrist();
             step.capture = false;
             step.checking = 0;
+            step.halfMoveClock = Convert.ToInt32(subs[4]);
             stepList.Add(step);
         }
 
@@ -144,7 +144,7 @@ namespace MoleXiangqi
             lpFen[lpFen.Length - 1] = ' '; // 把最后一个'/'替换成' '
             lpFen.Append(sdPlayer == 0 ? 'r' : 'b');
             lpFen.Append(" - - ");
-            lpFen.Append(halfMoveClock);
+            lpFen.Append(stepList[stepList.Count - 1].halfMoveClock);
             lpFen.Append(" ");
             lpFen.Append(stepList.Count - 1);
             return lpFen.ToString();
