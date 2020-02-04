@@ -17,14 +17,13 @@ namespace MoleXiangqi
         const int MATE_VALUE = 5000;
         public int SearchQuiesce(int alpha, int beta)
         {
-            int best = -MATE_VALUE;
+            int best = depth - MATE_VALUE;
             int vl;
 
             int sqCheck = board.Checked(board.sdPlayer);
             List<MOVE> selectiveMoves = new List<MOVE>();
             if (sqCheck > 0)
             {
-                vl = -MATE_VALUE;
                 // 6. 对于被将军的局面，生成全部着法；
                 List<MOVE> moves = board.GenerateMoves();
                 foreach (MOVE mv in moves)
@@ -55,8 +54,8 @@ namespace MoleXiangqi
             }
             foreach (MOVE mv in selectiveMoves)
             {
-                //Debug.Write(new string('\t', depth));
-                //Debug.WriteLine("{0} {1} {2} {3}", mv, alpha, beta, best);
+                Debug.Write(new string('\t', depth));
+                Debug.WriteLine("{0} {1} {2} {3}", mv, alpha, beta, best);
                 board.MakeMove(mv);
                 depth++;
                 vl = -SearchQuiesce(-beta, -alpha);

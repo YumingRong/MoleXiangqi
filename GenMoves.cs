@@ -478,10 +478,10 @@ namespace MoleXiangqi
                 for (i = sqSrc + 16; i < sqDst; i += 16)
                     if (pcSquares[i] > 0)
                         return 0;
+                return sqPieces[pcOppSide + KING_FROM];
             }
             else
                 return 0;
-            return 0;
         }
 
         // 判断是否被杀
