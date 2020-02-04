@@ -334,18 +334,14 @@ namespace MoleXiangqi
             // 着法合理性检测包括以下几个步骤：
 
             // 1. 检查要走的子是否存在
-            selfSide = SIDE_TAG(sdPlayer);
-            pcMoved = pcSquares[sqSrc];
-            if ((pcMoved & selfSide) == 0)
-            {
-                return false;
-            }
             if (!IN_BOARD[sqSrc] || !IN_BOARD[sqDst])
                 return false;
+            pcMoved = pcSquares[sqSrc];
+            selfSide = SIDE(pcMoved);
 
             // 2. 检查吃到的子是否为对方棋子(如果有吃子的话)
             pcCaptured = pcSquares[sqDst];
-            if ((pcCaptured & selfSide) != 0)
+            if (SIDE(pcCaptured) == selfSide)
                 return false;
 
             switch (cnPieceKinds[pcMoved])
@@ -404,9 +400,9 @@ namespace MoleXiangqi
 
                 // 8. 如果是兵(卒)，则按红方和黑方分情况讨论
                 default:
-                    if (sqDst == SQUARE_FORWARD(sqSrc, sdPlayer))
+                    if (sqDst == SQUARE_FORWARD(sqSrc, selfSide))
                         return true;
-                    if (HOME_HALF[1 - sdPlayer, sqSrc] && (sqDst == sqSrc - 1 || sqDst == sqSrc + 1))
+                    if (HOME_HALF[1 - selfSide, sqSrc] && (sqDst == sqSrc - 1 || sqDst == sqSrc + 1))
                         return true;
                     else
                         return false;
