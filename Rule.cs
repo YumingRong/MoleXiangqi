@@ -64,30 +64,38 @@ namespace MoleXiangqi
             {
                 MOVE mv = moveStack.Peek();
                 rollback.Push(mv);
-                UnmakeMove();
+                UndoMovePiece(mv);
             }
             //先假设所有的棋子都被长捉，然后从集合里逐个排除
-            int sd, pc, sq;
-            Set<int> PerpChase[2];
+            int sd, sq;
+            SortedSet<int>[] PerpChase = new SortedSet<int>[2];
             for (sd = 0; sd < 2; sd++)
             {
                 int bas = SIDE_TAG(sd);
-                for (pc = bas + ROOK_FROM; pc <= bas + KNIGHT_TO; pc++)
+                for (int pc = bas + ROOK_FROM; pc <= bas + KNIGHT_TO; pc++)
                     if (sqPieces[pc] > 0)
-                        PerpChase[sd].insert(pc);
+                        PerpChase[sd].Add(pc);
 
-                for (pc = bas + PAWN_FROM; pc <= bas + PAWN_TO; pc++)
+                for (int pc = bas + PAWN_FROM; pc <= bas + PAWN_TO; pc++)
                 {
                     sq = sqPieces[pc];
                     //攻击未过河的兵不算捉
-                    if (sq > 0 && AWAY_HALF(sq, sd))
-                        PerpChase[sd].insert(pc);
+                    if (sq > 0 && HOME_HALF[sd, sq])
+                        PerpChase[sd].Add(pc);
                 }
-                for (pc = bas + BISHOP_FROM; pc <= bas + GUARD_TO; pc++)
+                for (int pc = bas + BISHOP_FROM; pc <= bas + GUARD_TO; pc++)
                     if (sqPieces[pc] > 0)
-                        PerpChase[sd].insert(pc);
+                        PerpChase[sd].Add(pc);
             }
 
+            for (int i = repStart;i<nstep;i++)
+            {
+                sd = sdPlayer;
+                foreach (int c in PerpChase[sd])
+                {
+                    if (!)
+                }
+            }
         }
 
     }
