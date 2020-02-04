@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MoleXiangqi
 {
-    public enum RepititionResult { WIN = 5000, DRAW = 0, LOSE = -5000, NONE };
+    public enum RepititionResult { WIN = 4900, DRAW = 0, LOSE = -4900, NONE };
 
     partial class POSITION
     {
