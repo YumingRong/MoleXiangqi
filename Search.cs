@@ -47,6 +47,13 @@ namespace MoleXiangqi
                     return vl;
                 best = vl;
                 alpha = Math.Max(alpha, vl);
+                if (board.captureMoves.Count > 0)
+                {
+                    board.captureMoves.Sort(delegate (KeyValuePair<MOVE, int> a, KeyValuePair<MOVE, int> b)
+                    { return b.Value.CompareTo(a.Value); });
+                    foreach (KeyValuePair<MOVE, int> mv_vl in board.captureMoves)
+                        selectiveMoves.Add(mv_vl.Key);
+                }
                 //如果是将军导致的延伸搜索，则继续寻找连将的着法
                 //因为搜索将军着法是一件费时的事情，所以在非连将的情况下，只搜索吃子着法
                 if (board.stepList.Count >= 3 && board.stepList[board.stepList.Count - 3].checking > 0)
@@ -56,17 +63,12 @@ namespace MoleXiangqi
                     {
                         board.MovePiece(mv);
                         if (board.CheckedBy(board.sdPlayer) > 0)
-                            selectiveMoves.Add(mv);
+                            if (!selectiveMoves.Contains(mv))
+                                selectiveMoves.Add(mv);
                         board.UndoMovePiece(mv);
                     }
                 }
-                if (board.captureMoves.Count > 0)
-                {
-                    board.captureMoves.Sort(delegate (KeyValuePair<MOVE, int> a, KeyValuePair<MOVE, int> b)
-                    { return b.Value.CompareTo(a.Value); });
-                    foreach (KeyValuePair<MOVE, int> mv_vl in board.captureMoves)
-                        selectiveMoves.Add(mv_vl.Key);
-                }
+
             }
             foreach (MOVE mv in selectiveMoves)
             {

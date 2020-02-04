@@ -102,7 +102,8 @@ namespace MoleXiangqi
             step.zobrist = CalculateZobrist();
             step.capture = false;
             step.checking = 0;
-            step.halfMoveClock = Convert.ToInt32(subs[4]);
+            //step.halfMoveClock = Convert.ToInt32(subs[4]);
+            step.halfMoveClock = 0; //为简单起见，否则要再设一个变量
             stepList.Add(step);
         }
 
