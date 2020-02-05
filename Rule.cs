@@ -14,7 +14,7 @@ namespace MoleXiangqi
             int repStart = -1;
             int nstep = stepList.Count - 1;
             // 1. 首先检测历史局面中是否有当前局面，如果没有，就用不着判断了
-            for (int i = nstep - 4; i >= nstep - stepList[nstep].halfMoveClock; i -= 2)
+            for (int i = nstep - 4; i > nstep - stepList[nstep].halfMoveClock; i -= 2)
             {
                 if (stepList[i].zobrist == stepList[nstep].zobrist)
                 {
@@ -25,34 +25,36 @@ namespace MoleXiangqi
             if (repStart < 0)
                 return RepititionResult.NONE;
             // 2. 判断长照
-            bool bPerpCheck = true;
+            bool bOppPerpCheck = true;
             for (int i = nstep; i >= repStart; i -= 2)
             {
                 if (stepList[i].checking == 0)
                 {
-                    bPerpCheck = false;
+                    bOppPerpCheck = false;
                     break;
                 }
             }
-            if (bPerpCheck)
+            bool bSelfPerpCheck = true;
+            for (int i = nstep - 1; i >= repStart; i -= 2)
             {
-                bool bOppPerpCheck = true;
-                for (int i = nstep - 1; i >= repStart; i -= 2)
+                if (stepList[i].checking == 0)
                 {
-                    if (stepList[i].checking == 0)
-                    {
-                        bOppPerpCheck = false;
-                        break;
-                    }
+                    bSelfPerpCheck = false;
+                    break;
                 }
-                //双方循环长将（解将反将）作和
-                if (bOppPerpCheck)
-                    return RepititionResult.DRAW;
-                //无论任何情况，单方一子长将或多子交替长将者均需变着，不变作负
-                //二将一还将，长将者作负
-                else
-                    return RepititionResult.WIN;
             }
+
+            if (bOppPerpCheck && bSelfPerpCheck)
+                //双方循环长将（解将反将）作和
+                return RepititionResult.DRAW;
+            //无论任何情况，单方一子长将或多子交替长将者均需变着，不变作负
+            //二将一还将，长将者作负
+            else if (bOppPerpCheck)
+                return RepititionResult.WIN;
+            //己方走暂不判断
+            else if (bSelfPerpCheck)
+                return RepititionResult.NONE;
+
             //3. 倒退棋局到上一次重复局面
             for (int i = nstep; i >= repStart; i--)
                 UndoMovePiece(stepList[i].move);
@@ -76,7 +78,7 @@ namespace MoleXiangqi
                 //本方被捉只在偶数层有，奇数层没有；对方被捉只在奇数层有，偶数层没有
                 PerpChase[sdPlayer].RemoveWhere(delegate (int pc) { return !Chased(pc); });
                 //对方的棋子在此层应该不被捉
-                PerpChase[sdPlayer].RemoveWhere(delegate (int pc) { return Chased(pc); });
+                PerpChase[1 - sdPlayer].RemoveWhere(delegate (int pc) { return Chased(pc); });
 
                 MovePiece(stepList[i].move);
             }
@@ -85,9 +87,10 @@ namespace MoleXiangqi
             if (PerpChase[sdPlayer].Count > 0 && PerpChase[1 ^ sdPlayer].Count > 0)
                 return RepititionResult.DRAW;
             //单方面长捉判负
-            if (PerpChase[sdPlayer].Count > 0)
+            else if (PerpChase[sdPlayer].Count > 0)
                 return RepititionResult.WIN;
-
+            else if (PerpChase[1 - sdPlayer].Count > 0)
+                return RepititionResult.NONE;   //暂时不做判断
             //默认不变作和
             return RepititionResult.DRAW;
         }
@@ -125,6 +128,8 @@ namespace MoleXiangqi
         //如发现任何bug，须一同修改
         void GenAttackMap()
         {
+            attackMap = new int[2, 256];    //保存攻击该格的价值最低的棋子
+
             int sqSrc, sqDst, delta, pcDst;
             for (int sd = 0; sd < 2; sd++)
             {
@@ -222,42 +227,38 @@ namespace MoleXiangqi
 
         }
 
+        //http://blog.sina.com.cn/s/blog_5fd97aa90100vq5p.html
         public RepititionResult RuleTest(string filename)
         {
-            PgnFileStruct pgn = ReadPgnFile(@"J:\xqtest\长照作负.PGN");
+            PgnFileStruct pgn = ReadPgnFile(filename);
             FromFEN(pgn.StartFEN);
             foreach (MOVE mv in pgn.MoveList)
             {
+                Console.WriteLine(mv);
                 MakeMove(mv);
                 RepititionResult rep = Repitition();
-                if (rep != RepititionResult.NONE)
-                    return rep;
+                switch (rep)
+                {
+                    case RepititionResult.WIN:
+                        if (sdPlayer == 0)
+                            Console.WriteLine("黑方负");
+                        else
+                            Console.WriteLine("红方负");
+                        break;
+                    case RepititionResult.LOSE:
+                        if (sdPlayer == 0)
+                            Console.WriteLine("黑方胜");
+                        else
+                            Console.WriteLine("红方胜");
+                        break;
+                    case RepititionResult.DRAW:
+                        Console.WriteLine("不变作和");
+                        break;
+                    default:
+                        break;
+                }
             }
             return RepititionResult.NONE;
         }
-     /*   http://blog.sina.com.cn/s/blog_5fd97aa90100vq5p.html
-      *   [Game "Chinese Chess"]
-[Event ""]
-[Round ""]
-[Date ""]
-[Site ""]
-[RedTeam ""]
-[Red "象棋巫师(大师)"]
-[BlackTeam ""]
-[Black "象棋爱好者"]
-[Result "*"]
-[ECCO "B00"]
-[Opening "中炮局"]
-[Variation ""]
-[FEN "c2a1k3/2c1a2R1/b6P1/8p/9/9/9/9/4K4/9 w - - 0 1"]
-  1. 车二进一 将６进１
-  2. 车二退一 将６退１
-  3. 车二进一 将６进１
-  4. 车二退一 *
-======================
-欢迎访问象棋百科全书网
-推荐用象棋巫师观赏棋谱
-http://www.xqbase.com/
-/*
     }
 }

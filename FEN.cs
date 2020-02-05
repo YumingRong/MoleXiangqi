@@ -162,15 +162,16 @@ namespace MoleXiangqi
             return new string(ret);
         }
 
-        //public static Point Coord2Move(string dwMoveStr)
-        //{ // 把字符串转换成着法
-        //    int sqSrc, sqDst;
-        //    sqSrc = XY2Coord(dwMoveStr[0] - 'a' + FILE_LEFT, '9' - dwMoveStr[1] + RANK_TOP);
-        //    sqDst = XY2Coord(dwMoveStr[3] - 'a' + FILE_LEFT, '9' - dwMoveStr[4] + RANK_TOP);
-        //    Debug.Assert(IN_BOARD[sqSrc]);
-        //    Debug.Assert(IN_BOARD[sqDst]);
-        //    return MOVE(sqSrc, sqDst);
-        //}
+        public Tuple<int, int> Coord2Move(string dwMoveStr)
+        { // 把字符串转换成着法
+            dwMoveStr = dwMoveStr.ToUpper();
+            int sqSrc, sqDst;
+            sqSrc = UI_XY2Coord(dwMoveStr[0] - 'A', '9' - dwMoveStr[1]);
+            sqDst = UI_XY2Coord(dwMoveStr[3] - 'A', '9' - dwMoveStr[4]);
+            Debug.Assert(IN_BOARD[sqSrc]);
+            Debug.Assert(IN_BOARD[sqDst]);
+            return new Tuple<int, int>(sqSrc, sqDst);
+        }
 
     }
 }

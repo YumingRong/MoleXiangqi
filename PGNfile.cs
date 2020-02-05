@@ -159,7 +159,7 @@ namespace MoleXiangqi
                             //phase = 0;
                         }
                         else if (s.Length == 4)
-                        {//is a move
+                        {//is a Chinese move
                             //Debug.WriteLine(s);
                             MOVE mv = ParseWord(s);
                             mv.comment = comment;
@@ -170,7 +170,16 @@ namespace MoleXiangqi
                             }
                             MakeMove(mv);
                             PGN.MoveList.Add(mv);
+                            comment = null;
                             //phase++;
+                        }
+                        else if (s.Length ==5)
+                        {// is a English move
+                            Tuple<int, int> coord = Coord2Move(s);
+                            MOVE mv = new MOVE(coord.Item1, coord.Item2, pcSquares[coord.Item1], pcSquares[coord.Item2]);
+                            MakeMove(mv);
+                            PGN.MoveList.Add(mv);
+                            comment = null;
                         }
                         else
                         {

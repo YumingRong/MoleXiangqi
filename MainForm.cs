@@ -11,8 +11,8 @@ namespace MoleXiangqi
 {
     public partial class MainForm : Form
     {
-        bool App_bSound = true;
-        readonly string App_szPath = @"J:\C#\MoleXiangqi\Resources\";
+        bool App_bSound = false;
+        readonly string App_szPath = @"G:\C#\MoleXiangqi\Resources\";
         bool App_inGame;
         Point mvLastFrom, mvLastTo, ptSelected;
         int pcSelected, pcLast;
@@ -145,7 +145,7 @@ namespace MoleXiangqi
                         MOVE step;
                         step.sqSrc = sqFrom;
                         step.sqDst = sqTo;
-                        step.pcSrc = pcSelected;
+                        step.pcSrc = pos.pcSquares[sqFrom];
                         step.pcDst = pcCaptured;
                         step.comment = textBoxComment.Text;
                         MoveList.Add(step);
@@ -380,7 +380,7 @@ namespace MoleXiangqi
         private void MenuActivePositionTest_Click(object sender, EventArgs e)
         {
             App_inGame = false;
-            string sourceDirectory = @"J:\象棋\全局\1-23届五羊杯";
+            string sourceDirectory = @"G:\象棋\全局\1-23届五羊杯";
             IEnumerable<string> pgnFiles = Directory.EnumerateFiles(sourceDirectory, "*.PGN", SearchOption.AllDirectories);
             int nFile = 0;
             //统计棋子活动位置的数组
@@ -402,7 +402,7 @@ namespace MoleXiangqi
                     side = 1 ^ side;
                 }
             }
-            POSITION.Write2Csv(@"J:\xqtest\capture.csv", activeGrid);
+            POSITION.Write2Csv(@"G:\xqtest\capture.csv", activeGrid);
             MessageBox.Show(String.Format("Finish reading.Total {0} files", nFile));
         }
 
@@ -412,8 +412,8 @@ namespace MoleXiangqi
             pos.FromFEN(@"3a5/5k3/5a3/5R3/5P3/r8/9/7C1/r2p5/4K4 w - - 0 2");
             SEARCH engine = new SEARCH(pos);
             engine.SearchQuiesce(-5000, 4998);
-            //WriteMap2Csv(pos.attackMap, @"J:\xqtest\attack.csv");
-            //WriteMap2Csv(pos.connectivityMap, @"J:\xqtest\connectivity.csv");
+            //WriteMap2Csv(pos.attackMap, @"G:\xqtest\attack.csv");
+            //WriteMap2Csv(pos.connectivityMap, @"G:\xqtest\connectivity.csv");
         }
 
         private void MenuContinuousEval_Click(object sender, EventArgs e)
@@ -436,7 +436,7 @@ namespace MoleXiangqi
                     Console.WriteLine(score);
             }
 
-            //Write2Csv(@"J:\xqtest\eval.csv", pos.ivpc, totalMoves, 48);
+            //Write2Csv(@"G:\xqtest\eval.csv", pos.ivpc, totalMoves, 48);
             /* 用顶级人类选手的对局来测试评估审局函数的有效性。
              * 理想情况下，双方分数应呈锯齿状交替上升，除去吃子的步骤，应该稳定渐变。
              */
@@ -476,7 +476,7 @@ namespace MoleXiangqi
 
         private void MenuRuleTest_Click(object sender, EventArgs e)
         {
-            pos.RuleTest(@"J:\xqtest\长照作负.PGN");
+            pos.RuleTest(@"G:\xqtest\单炮或双炮不能长捉一车2.PGN");
         }
 
         void Write2Csv(string csvPath, int[] array)

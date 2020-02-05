@@ -468,7 +468,7 @@ namespace MoleXiangqi
             //{
             //    return a.Value.CompareTo(b.Value);
             //}
-            string sourceDirectory = @"J:\象棋\全局\1-23届五羊杯";
+            string sourceDirectory = @"G:\象棋\全局\1-23届五羊杯";
             IEnumerable<string> pgnFiles = Directory.EnumerateFiles(sourceDirectory, "*.pgn", SearchOption.AllDirectories);
             int nFile = 0;
             int totalMoves = 0;
