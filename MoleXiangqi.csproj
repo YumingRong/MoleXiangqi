@@ -57,6 +57,17 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+    <None Include="TestPGN\SAMPLE.PGN" />
+    <None Include="TestPGN\一照一捉或多照一捉均作和局.PGN" />
+    <None Include="TestPGN\一照一杀作和1.PGN" />
+    <None Include="TestPGN\二照一还照，长照者作负.PGN" />
+    <None Include="TestPGN\单炮或双炮不能长捉一车1.PGN" />
+    <None Include="TestPGN\单炮或双炮不能长捉一车2.PGN" />
+    <None Include="TestPGN\循环长照作和1.PGN" />
+    <None Include="TestPGN\长杀作和.PGN" />
+    <None Include="TestPGN\长照作负1.PGN" />
+    <None Include="TestPGN\长照作负2.PGN" />
+    <None Include="TestPGN\长照作负3.PGN" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Evaluate.cs" />
