@@ -23,7 +23,7 @@ namespace MoleXiangqi
 
             int best, vl;
             List<MOVE> selectiveMoves = new List<MOVE>();
-            int sqCheck = board.stepList.Count >= 2 ? board.stepList[board.stepList.Count - 2].checking : 0;
+            int sqCheck = board.stepList[board.stepList.Count - 1].checking;
             if (sqCheck > 0)
             {
                 best = depth - MATE_VALUE;
@@ -56,7 +56,7 @@ namespace MoleXiangqi
                 }
                 //如果是将军导致的延伸搜索，则继续寻找连将的着法
                 //因为搜索将军着法是一件费时的事情，所以在非连将的情况下，只搜索吃子着法
-                if (board.stepList.Count >= 3 && board.stepList[board.stepList.Count - 3].checking > 0)
+                if (board.stepList.Count >= 2 && board.stepList[board.stepList.Count - 2].checking > 0)
                 {
                     List<MOVE> moves = board.GenerateMoves();
                     foreach (MOVE mv in moves)

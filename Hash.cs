@@ -16,7 +16,7 @@ namespace MoleXiangqi
               5, 6, 6, 7, 7, 8, 8, 5, 5, 5, 5, 5, 4, 4, 4, 4
             };
 
-            static long[,] table = new long[9, 256];
+            readonly static long[,] table = new long[9, 256];
 
             static Zobrist()
             {
@@ -31,8 +31,6 @@ namespace MoleXiangqi
                 return table[ZobristTypes[pc], sq];
             }
         };
-
-        long[] zobristRecords;
     }
 
     partial class POSITION

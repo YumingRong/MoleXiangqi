@@ -57,9 +57,10 @@ namespace MoleXiangqi
             for (int i = nstep; i >= repStart; i--)
                 UndoMovePiece(stepList[i].move);
             //先假设所有的棋子都被长捉，然后从集合里逐个排除
-            int sd, sq;
             SortedSet<int>[] PerpChase = new SortedSet<int>[2];
-            for (sd = 0; sd < 2; sd++)
+            PerpChase[0] = new SortedSet<int>();
+            PerpChase[1] = new SortedSet<int>();
+            for (int sd = 0; sd < 2; sd++)
             {
                 int bas = SIDE_TAG(sd);
                 for (int pc = bas + ROOK_FROM; pc <= bas + KNIGHT_TO; pc++)
@@ -68,7 +69,7 @@ namespace MoleXiangqi
 
                 for (int pc = bas + PAWN_FROM; pc <= bas + PAWN_TO; pc++)
                 {
-                    sq = sqPieces[pc];
+                    int sq = sqPieces[pc];
                     //攻击未过河的兵不算捉
                     if (sq > 0 && HOME_HALF[1 - sd, sq])
                         PerpChase[sd].Add(pc);
@@ -84,16 +85,10 @@ namespace MoleXiangqi
 
                 //一子轮捉两子或多子作和。两子分别轮捉两子或多子亦作和局
                 //本方被捉只在偶数层有，奇数层没有；对方被捉只在奇数层有，偶数层没有
-                foreach (int c in PerpChase[sdPlayer])
-                {
-                    if (!Chased(c))
-                        PerpChase[sd].Remove(c);
-                }
-
+                PerpChase[sdPlayer].RemoveWhere(delegate (int pc) { return !Chased(pc); });
                 //对方的棋子在此层应该不被捉
-                foreach (int c in PerpChase[1 - sdPlayer])
-                    if (Chased(c))
-                        PerpChase[1 - sdPlayer].Remove(c);
+                PerpChase[sdPlayer].RemoveWhere(delegate (int pc) { return Chased(pc); });
+                
                 MovePiece(stepList[i].move);
             }
 
@@ -138,7 +133,6 @@ namespace MoleXiangqi
             for (int sd = 0; sd < 2; sd++)
             {
                 int bas = SIDE_TAG(sd);
-                int sqOppKing = sqPieces[OPP_SIDE_TAG(sd) + KING_FROM];
                 for (int pc = bas; pc < bas + 16; pc++)
                 {
                     sqSrc = sqPieces[pc];

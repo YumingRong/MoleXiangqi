@@ -21,6 +21,23 @@ namespace MoleXiangqi
         {
             return POSITION.iMove2Coord(from, to);
         }
+        public override bool Equals(object obj)
+        {
+            return base.Equals(obj);
+        }
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+        public static bool operator ==(iMOVE left, iMOVE right)
+        {
+            return left.from == right.from && left.to == right.to;
+        }
+
+        public static bool operator !=(iMOVE left, iMOVE right)
+        {
+            return left.from != right.from || left.to != right.to;
+        }
     }
 
     public struct MOVE
@@ -39,6 +56,26 @@ namespace MoleXiangqi
         public override string ToString()
         {
             return POSITION.iMove2Coord(sqSrc, sqDst);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        public static bool operator ==(MOVE left, MOVE right)
+        {
+            return left.sqSrc == right.sqSrc && left.sqDst == right.sqDst;
+        }
+
+        public static bool operator !=(MOVE left, MOVE right)
+        {
+            return left.sqSrc != right.sqSrc || left.sqDst != right.sqDst;
         }
     }
 
@@ -138,7 +175,7 @@ namespace MoleXiangqi
             step.move = mv;
             step.zobrist = stepList[stepList.Count - 1].zobrist ^ Zobrist.Get(mv.pcSrc, mv.sqSrc) ^ Zobrist.Get(mv.pcSrc, mv.sqDst);
             step.capture = false;
-            step.checking = CheckedBy(sdPlayer); //暂时不必判断将军与否
+            step.checking = CheckedBy(sdPlayer);
             step.halfMoveClock = stepList[stepList.Count - 1].halfMoveClock + 1;
             if (mv.pcDst > 0)
             {
@@ -151,7 +188,7 @@ namespace MoleXiangqi
 
         public void UnmakeMove()
         {
-            MOVE mv = stepList[stepList.Count-1].move;
+            MOVE mv = stepList[stepList.Count - 1].move;
             UndoMovePiece(mv);
             stepList.RemoveAt(stepList.Count - 1);
         }

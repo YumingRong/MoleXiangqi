@@ -265,7 +265,7 @@ namespace MoleXiangqi
                         //ivpc[nStep, pc] = 0;
                         continue;
                     }
-                    int posv0 = positionValue[sd];
+                    //int posv0 = positionValue[sd];
                     switch (pcKind)
                     {
                         case PIECE_KING:

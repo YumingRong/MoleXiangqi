@@ -190,7 +190,6 @@ namespace MoleXiangqi
                     int piece = cnPieceImages[pos.iGetPiece(x, y)];
                     if (piece > 0)
                     {
-                        Image image = ilCPieces.Images[piece];
                         if (bFlipped)
                             DrawPiece(new Point(8 - x, 9 - y), piece, g);
                         else
@@ -410,7 +409,7 @@ namespace MoleXiangqi
             App_inGame = false;
             pos.FromFEN(@"3a5/5k3/5a3/5R3/5P3/r8/9/7C1/r2p5/4K4 w - - 0 2");
             SEARCH engine = new SEARCH(pos);
-            engine.SearchQuiesce(-5000, 4500);
+            engine.SearchQuiesce(-5000, 4998);
             //WriteMap2Csv(pos.attackMap, @"J:\xqtest\attack.csv");
             //WriteMap2Csv(pos.connectivityMap, @"J:\xqtest\connectivity.csv");
         }
