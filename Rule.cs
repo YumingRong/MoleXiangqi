@@ -235,6 +235,29 @@ namespace MoleXiangqi
             }
             return RepititionResult.NONE;
         }
-
+     /*   http://blog.sina.com.cn/s/blog_5fd97aa90100vq5p.html
+      *   [Game "Chinese Chess"]
+[Event ""]
+[Round ""]
+[Date ""]
+[Site ""]
+[RedTeam ""]
+[Red "象棋巫师(大师)"]
+[BlackTeam ""]
+[Black "象棋爱好者"]
+[Result "*"]
+[ECCO "B00"]
+[Opening "中炮局"]
+[Variation ""]
+[FEN "c2a1k3/2c1a2R1/b6P1/8p/9/9/9/9/4K4/9 w - - 0 1"]
+  1. 车二进一 将６进１
+  2. 车二退一 将６退１
+  3. 车二进一 将６进１
+  4. 车二退一 *
+======================
+欢迎访问象棋百科全书网
+推荐用象棋巫师观赏棋谱
+http://www.xqbase.com/
+/*
     }
 }
