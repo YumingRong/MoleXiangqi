@@ -14,7 +14,7 @@ namespace MoleXiangqi
         public string BlackTeam, Black, BlackElo;
         public string ECCO, Opening, Variation, Result;
         public string Format, StartFEN;
-        public List<iMOVE> iMoveList;
+        public List<UI_Move> iMoveList;
     }
 
     partial class POSITION
@@ -35,7 +35,7 @@ namespace MoleXiangqi
         {
             FromFEN(cszStartFen);
             PGN.StartFEN = cszStartFen;
-            List<iMOVE> iMoves = new List<iMOVE>();
+            List<UI_Move> iMoves = new List<UI_Move>();
 
             using (StreamReader fp = new StreamReader(szFileName, Encoding.GetEncoding("GB2312")))
             {
@@ -119,7 +119,7 @@ namespace MoleXiangqi
                     }
                 }
                 int index;
-                iMOVE imv = new iMOVE();
+                UI_Move imv = new UI_Move();
                 //int phase = 2; //phase = 0是序号，1是move#1，2是 move#2
                 do
                 {
@@ -169,9 +169,11 @@ namespace MoleXiangqi
                             }
                             MakeMove(mv);
                             iMoves.Add(imv);
-                            imv = new iMOVE();
-                            imv.from = mv.sqSrc;
-                            imv.to = mv.sqDst;
+                            imv = new UI_Move
+                            {
+                                from = mv.sqSrc,
+                                to = mv.sqDst
+                            };
                             //phase++;
                         }
                         else
@@ -193,9 +195,9 @@ namespace MoleXiangqi
         MOVE ParseWord(string word)
         {
             MOVE mv = new MOVE();
-            int pcType, sq, file0 = 0, file1;
+            int sq, file0 = 0, file1;
 
-            if (PieceDict.TryGetValue(word[0], out pcType))
+            if (PieceDict.TryGetValue(word[0], out int pcType))
             {//Normal case 炮八平五
                 file0 = FindFile(word[1]);
                 Tuple<int, int> t = FindPiece(pcType, file0);
@@ -316,8 +318,8 @@ namespace MoleXiangqi
         }
 
         // 每种子力的开始序号和结束序号
-        int[] pcFrom = { 0, KING_FROM, ROOK_FROM, CANNON_FROM, KNIGHT_FROM, PAWN_FROM, BISHOP_FROM, GUARD_FROM };
-        int[] pcTo = { 0, KING_TO, ROOK_TO, CANNON_TO, KNIGHT_TO, PAWN_TO, BISHOP_TO, GUARD_TO };
+        readonly int[] pcFrom = { 0, KING_FROM, ROOK_FROM, CANNON_FROM, KNIGHT_FROM, PAWN_FROM, BISHOP_FROM, GUARD_FROM };
+        readonly int[] pcTo = { 0, KING_TO, ROOK_TO, CANNON_TO, KNIGHT_TO, PAWN_TO, BISHOP_TO, GUARD_TO };
 
         Tuple<int, int> FindPiece(int pcType, int file)
         {

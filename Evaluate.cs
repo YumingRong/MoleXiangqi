@@ -86,8 +86,8 @@ namespace MoleXiangqi
                 for (int y = 0; y < 10; y++)
                 {
                     for (int x = 0; x < 4; x++)
-                        pos[iXY2Coord(x, y)] = pos[iXY2Coord(8 - x, y)] = origin[x + y * 5];
-                    pos[iXY2Coord(4, y)] = origin[4 + y * 5];
+                        pos[UI_XY2Coord(x, y)] = pos[UI_XY2Coord(8 - x, y)] = origin[x + y * 5];
+                    pos[UI_XY2Coord(4, y)] = origin[4 + y * 5];
                 }
                 return pos;
             }
@@ -487,7 +487,7 @@ namespace MoleXiangqi
             foreach (string fileName in pgnFiles)
             {
                 Console.WriteLine(fileName.Substring(sourceDirectory.Length + 1));
-                List<iMOVE> iMoveList = ReadPgnFile(fileName).iMoveList;
+                List<UI_Move> iMoveList = ReadPgnFile(fileName).iMoveList;
                 nFile++;
                 int nSteps = iMoveList.Count;
                 totalSteps += nSteps;
@@ -498,7 +498,7 @@ namespace MoleXiangqi
                 List<KeyValuePair<string, int>> mv_vals = new List<KeyValuePair<string, int>>();
                 for (int i = 1; i < nSteps; i++)
                 {
-                    iMOVE step = iMoveList[i];
+                    UI_Move step = iMoveList[i];
                     captures[i] = pcSquares[step.to] > 0;
                     if (pcSquares[step.to] == 0)
                     {

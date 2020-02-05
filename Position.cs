@@ -72,13 +72,13 @@ namespace MoleXiangqi
         };
 
         //Interface to graphic board. x, y is 0~9
-        public int iGetPiece(int x, int y)
+        public int UI_GetPiece(int x, int y)
         {
             return pcSquares[XY2Coord(x + FILE_LEFT, y + RANK_TOP)];
         }
 
         //Interface to graphic board. x, y is 0~9
-        public int iGetFlippedPiece(int x, int y)
+        public int UI_GetFlippedPiece(int x, int y)
         {
             x = FILE_FLIP(x + FILE_LEFT);
             y = RANK_FLIP(y + RANK_TOP);
@@ -86,12 +86,12 @@ namespace MoleXiangqi
         }
 
         //Interface to graphic board. x, y is 0~9
-        public static int iXY2Coord(int x, int y)
+        public static int UI_XY2Coord(int x, int y)
         {
             return XY2Coord(x + FILE_LEFT, y + RANK_TOP);
         }
 
-        public static System.Drawing.Point iCoord2XY(int sq, bool flipped)
+        public static System.Drawing.Point UI_Coord2XY(int sq, bool flipped)
         {
             if (flipped)
                 sq = SQUARE_FLIP(sq);

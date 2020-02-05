@@ -31,44 +31,44 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.saveFENDialog = new System.Windows.Forms.SaveFileDialog();
-            this.menuAboutEngine = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuAboutEngine = new System.Windows.Forms.ToolStripMenuItem();
             this.帮助HToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.menuPonder = new System.Windows.Forms.ToolStripMenuItem();
-            this.menuAIBlack = new System.Windows.Forms.ToolStripMenuItem();
-            this.menuAIRed = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuPonder = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuAIBlack = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuAIRed = new System.Windows.Forms.ToolStripMenuItem();
             this.电脑ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.menuSaveFEN = new System.Windows.Forms.ToolStripMenuItem();
-            this.menuLoadFEN = new System.Windows.Forms.ToolStripMenuItem();
-            this.menuPasteFEN = new System.Windows.Forms.ToolStripMenuItem();
-            this.menuCopyFEN = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuSaveFEN = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuLoadFEN = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuPasteFEN = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuCopyFEN = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
-            this.menuEditFEN = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuEditFEN = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
-            this.menuFlipBoard = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuFlipBoard = new System.Windows.Forms.ToolStripMenuItem();
             this.局面ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.连续审局ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.NewGameMenu = new System.Windows.Forms.ToolStripMenuItem();
             this.文件ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.menuOpen = new System.Windows.Forms.ToolStripMenuItem();
-            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
-            this.menuBatchEvaluation = new System.Windows.Forms.ToolStripMenuItem();
-            this.menuActivePositionTest = new System.Windows.Forms.ToolStripMenuItem();
-            this.menuEvaluate = new System.Windows.Forms.ToolStripMenuItem();
-            this.menuContinuousEval = new System.Windows.Forms.ToolStripMenuItem();
-            this.menuBatchEval = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuOpen = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.MenuBatchEvaluation = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuActivePositionTest = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuEvaluate = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuContinuousEval = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuBatchEval = new System.Windows.Forms.ToolStripMenuItem();
             this.ilCPieces = new System.Windows.Forms.ImageList(this.components);
             this.openFENDialog = new System.Windows.Forms.OpenFileDialog();
-            this.listboxMove = new System.Windows.Forms.ListBox();
+            this.ListboxMove = new System.Windows.Forms.ListBox();
             this.label1 = new System.Windows.Forms.Label();
-            this.panelBoard = new System.Windows.Forms.Panel();
+            this.PanelBoard = new System.Windows.Forms.Panel();
             this.label2 = new System.Windows.Forms.Label();
             this.textBoxComment = new System.Windows.Forms.TextBox();
             this.labelDateSite = new System.Windows.Forms.Label();
             this.labelPlayer = new System.Windows.Forms.Label();
             this.labelEvent = new System.Windows.Forms.Label();
             this.openPGNDialog = new System.Windows.Forms.OpenFileDialog();
-            this.menuStrip1.SuspendLayout();
-            this.panelBoard.SuspendLayout();
+            this.MenuStrip1.SuspendLayout();
+            this.PanelBoard.SuspendLayout();
             this.SuspendLayout();
             // 
             // saveFENDialog
@@ -76,117 +76,117 @@
             this.saveFENDialog.Filter = "象棋局面文件(*.FEN)|*.FEN";
             this.saveFENDialog.Title = "导出到局面文件";
             // 
-            // menuAboutEngine
+            // MenuAboutEngine
             // 
-            this.menuAboutEngine.Name = "menuAboutEngine";
-            this.menuAboutEngine.Size = new System.Drawing.Size(153, 22);
-            this.menuAboutEngine.Text = "关于UCCI引擎";
-            this.menuAboutEngine.Click += new System.EventHandler(this.menuAboutEngine_Click);
+            this.MenuAboutEngine.Name = "MenuAboutEngine";
+            this.MenuAboutEngine.Size = new System.Drawing.Size(153, 22);
+            this.MenuAboutEngine.Text = "关于UCCI引擎";
+            this.MenuAboutEngine.Click += new System.EventHandler(this.MenuAboutEngine_Click);
             // 
             // 帮助HToolStripMenuItem
             // 
             this.帮助HToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.menuAboutEngine});
+            this.MenuAboutEngine});
             this.帮助HToolStripMenuItem.Name = "帮助HToolStripMenuItem";
             this.帮助HToolStripMenuItem.Size = new System.Drawing.Size(62, 20);
             this.帮助HToolStripMenuItem.Text = "帮助(&H)";
             // 
-            // menuPonder
+            // MenuPonder
             // 
-            this.menuPonder.Name = "menuPonder";
-            this.menuPonder.Size = new System.Drawing.Size(141, 22);
-            this.menuPonder.Text = "后台思考(&P)";
-            this.menuPonder.Click += new System.EventHandler(this.menuPonder_Click);
+            this.MenuPonder.Name = "MenuPonder";
+            this.MenuPonder.Size = new System.Drawing.Size(141, 22);
+            this.MenuPonder.Text = "后台思考(&P)";
+            this.MenuPonder.Click += new System.EventHandler(this.MenuPonder_Click);
             // 
-            // menuAIBlack
+            // MenuAIBlack
             // 
-            this.menuAIBlack.Name = "menuAIBlack";
-            this.menuAIBlack.Size = new System.Drawing.Size(141, 22);
-            this.menuAIBlack.Text = "电脑执黑(&B)";
-            this.menuAIBlack.Click += new System.EventHandler(this.menuAIBlack_Click);
+            this.MenuAIBlack.Name = "MenuAIBlack";
+            this.MenuAIBlack.Size = new System.Drawing.Size(141, 22);
+            this.MenuAIBlack.Text = "电脑执黑(&B)";
+            this.MenuAIBlack.Click += new System.EventHandler(this.MenuAIBlack_Click);
             // 
-            // menuAIRed
+            // MenuAIRed
             // 
-            this.menuAIRed.Name = "menuAIRed";
-            this.menuAIRed.Size = new System.Drawing.Size(141, 22);
-            this.menuAIRed.Text = "电脑执红(&R)";
-            this.menuAIRed.Click += new System.EventHandler(this.menuAIRed_Click);
+            this.MenuAIRed.Name = "MenuAIRed";
+            this.MenuAIRed.Size = new System.Drawing.Size(141, 22);
+            this.MenuAIRed.Text = "电脑执红(&R)";
+            this.MenuAIRed.Click += new System.EventHandler(this.MenuAIRed_Click);
             // 
             // 电脑ToolStripMenuItem
             // 
             this.电脑ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.menuAIRed,
-            this.menuAIBlack,
-            this.menuPonder});
+            this.MenuAIRed,
+            this.MenuAIBlack,
+            this.MenuPonder});
             this.电脑ToolStripMenuItem.Name = "电脑ToolStripMenuItem";
             this.电脑ToolStripMenuItem.Size = new System.Drawing.Size(59, 20);
             this.电脑ToolStripMenuItem.Text = "电脑(&E)";
             // 
-            // menuSaveFEN
+            // MenuSaveFEN
             // 
-            this.menuSaveFEN.Name = "menuSaveFEN";
-            this.menuSaveFEN.Size = new System.Drawing.Size(235, 22);
-            this.menuSaveFEN.Text = "导出到局面文件(&S)...";
-            this.menuSaveFEN.Click += new System.EventHandler(this.menuSaveFEN_Click);
+            this.MenuSaveFEN.Name = "MenuSaveFEN";
+            this.MenuSaveFEN.Size = new System.Drawing.Size(235, 22);
+            this.MenuSaveFEN.Text = "导出到局面文件(&S)...";
+            this.MenuSaveFEN.Click += new System.EventHandler(this.MenuSaveFEN_Click);
             // 
-            // menuLoadFEN
+            // MenuLoadFEN
             // 
-            this.menuLoadFEN.Name = "menuLoadFEN";
-            this.menuLoadFEN.Size = new System.Drawing.Size(235, 22);
-            this.menuLoadFEN.Text = "从局面文件导入(&L)...";
-            this.menuLoadFEN.Click += new System.EventHandler(this.menuLoadFEN_Click);
+            this.MenuLoadFEN.Name = "MenuLoadFEN";
+            this.MenuLoadFEN.Size = new System.Drawing.Size(235, 22);
+            this.MenuLoadFEN.Text = "从局面文件导入(&L)...";
+            this.MenuLoadFEN.Click += new System.EventHandler(this.MenuLoadFEN_Click);
             // 
-            // menuPasteFEN
+            // MenuPasteFEN
             // 
-            this.menuPasteFEN.Name = "menuPasteFEN";
-            this.menuPasteFEN.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.Insert)));
-            this.menuPasteFEN.Size = new System.Drawing.Size(235, 22);
-            this.menuPasteFEN.Text = "粘贴局面代码(&P)";
-            this.menuPasteFEN.Click += new System.EventHandler(this.menuPasteFEN_Click);
+            this.MenuPasteFEN.Name = "MenuPasteFEN";
+            this.MenuPasteFEN.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.Insert)));
+            this.MenuPasteFEN.Size = new System.Drawing.Size(235, 22);
+            this.MenuPasteFEN.Text = "粘贴局面代码(&P)";
+            this.MenuPasteFEN.Click += new System.EventHandler(this.MenuPasteFEN_Click);
             // 
-            // menuCopyFEN
+            // MenuCopyFEN
             // 
-            this.menuCopyFEN.Name = "menuCopyFEN";
-            this.menuCopyFEN.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Insert)));
-            this.menuCopyFEN.Size = new System.Drawing.Size(235, 22);
-            this.menuCopyFEN.Text = "复制局面代码(&C)";
-            this.menuCopyFEN.Click += new System.EventHandler(this.menuCopyFEN_Click);
+            this.MenuCopyFEN.Name = "MenuCopyFEN";
+            this.MenuCopyFEN.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Insert)));
+            this.MenuCopyFEN.Size = new System.Drawing.Size(235, 22);
+            this.MenuCopyFEN.Text = "复制局面代码(&C)";
+            this.MenuCopyFEN.Click += new System.EventHandler(this.MenuCopyFEN_Click);
             // 
             // toolStripMenuItem2
             // 
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
             this.toolStripMenuItem2.Size = new System.Drawing.Size(232, 6);
             // 
-            // menuEditFEN
+            // MenuEditFEN
             // 
-            this.menuEditFEN.Name = "menuEditFEN";
-            this.menuEditFEN.Size = new System.Drawing.Size(235, 22);
-            this.menuEditFEN.Text = "编辑局面(&E) Ctrl+E...";
+            this.MenuEditFEN.Name = "MenuEditFEN";
+            this.MenuEditFEN.Size = new System.Drawing.Size(235, 22);
+            this.MenuEditFEN.Text = "编辑局面(&E) Ctrl+E...";
             // 
             // toolStripMenuItem1
             // 
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
             this.toolStripMenuItem1.Size = new System.Drawing.Size(232, 6);
             // 
-            // menuFlipBoard
+            // MenuFlipBoard
             // 
-            this.menuFlipBoard.Name = "menuFlipBoard";
-            this.menuFlipBoard.Size = new System.Drawing.Size(235, 22);
-            this.menuFlipBoard.Text = "翻转棋盘(&F)";
-            this.menuFlipBoard.Click += new System.EventHandler(this.menuFlipBoard_Click);
+            this.MenuFlipBoard.Name = "MenuFlipBoard";
+            this.MenuFlipBoard.Size = new System.Drawing.Size(235, 22);
+            this.MenuFlipBoard.Text = "翻转棋盘(&F)";
+            this.MenuFlipBoard.Click += new System.EventHandler(this.MenuFlipBoard_Click);
             // 
             // 局面ToolStripMenuItem
             // 
             this.局面ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.menuFlipBoard,
+            this.MenuFlipBoard,
             this.toolStripMenuItem1,
             this.连续审局ToolStripMenuItem,
-            this.menuEditFEN,
+            this.MenuEditFEN,
             this.toolStripMenuItem2,
-            this.menuCopyFEN,
-            this.menuPasteFEN,
-            this.menuLoadFEN,
-            this.menuSaveFEN});
+            this.MenuCopyFEN,
+            this.MenuPasteFEN,
+            this.MenuLoadFEN,
+            this.MenuSaveFEN});
             this.局面ToolStripMenuItem.Name = "局面ToolStripMenuItem";
             this.局面ToolStripMenuItem.Size = new System.Drawing.Size(60, 20);
             this.局面ToolStripMenuItem.Text = "局面(&P)";
@@ -209,71 +209,71 @@
             // 
             this.文件ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.NewGameMenu,
-            this.menuOpen});
+            this.MenuOpen});
             this.文件ToolStripMenuItem.Name = "文件ToolStripMenuItem";
             this.文件ToolStripMenuItem.Size = new System.Drawing.Size(59, 20);
             this.文件ToolStripMenuItem.Text = "文件(&F)";
             // 
-            // menuOpen
+            // MenuOpen
             // 
-            this.menuOpen.Name = "menuOpen";
-            this.menuOpen.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-            this.menuOpen.Size = new System.Drawing.Size(186, 22);
-            this.menuOpen.Text = "打开(&O)...";
-            this.menuOpen.Click += new System.EventHandler(this.menuOpen_Click);
+            this.MenuOpen.Name = "MenuOpen";
+            this.MenuOpen.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
+            this.MenuOpen.Size = new System.Drawing.Size(186, 22);
+            this.MenuOpen.Text = "打开(&O)...";
+            this.MenuOpen.Click += new System.EventHandler(this.MenuOpen_Click);
             // 
-            // menuStrip1
+            // MenuStrip1
             // 
-            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.MenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.文件ToolStripMenuItem,
             this.局面ToolStripMenuItem,
             this.电脑ToolStripMenuItem,
             this.帮助HToolStripMenuItem,
-            this.menuBatchEvaluation});
-            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
-            this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(748, 24);
-            this.menuStrip1.TabIndex = 2;
-            this.menuStrip1.Text = "menuStrip1";
+            this.MenuBatchEvaluation});
+            this.MenuStrip1.Location = new System.Drawing.Point(0, 0);
+            this.MenuStrip1.Name = "MenuStrip1";
+            this.MenuStrip1.Size = new System.Drawing.Size(748, 24);
+            this.MenuStrip1.TabIndex = 2;
+            this.MenuStrip1.Text = "MenuStrip1";
             // 
-            // menuBatchEvaluation
+            // MenuBatchEvaluation
             // 
-            this.menuBatchEvaluation.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.menuActivePositionTest,
-            this.menuEvaluate,
-            this.menuContinuousEval,
-            this.menuBatchEval});
-            this.menuBatchEvaluation.Name = "menuBatchEvaluation";
-            this.menuBatchEvaluation.Size = new System.Drawing.Size(45, 20);
-            this.menuBatchEvaluation.Text = "测试";
+            this.MenuBatchEvaluation.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.MenuActivePositionTest,
+            this.MenuEvaluate,
+            this.MenuContinuousEval,
+            this.MenuBatchEval});
+            this.MenuBatchEvaluation.Name = "MenuBatchEvaluation";
+            this.MenuBatchEvaluation.Size = new System.Drawing.Size(45, 20);
+            this.MenuBatchEvaluation.Text = "测试";
             // 
-            // menuActivePositionTest
+            // MenuActivePositionTest
             // 
-            this.menuActivePositionTest.Name = "menuActivePositionTest";
-            this.menuActivePositionTest.Size = new System.Drawing.Size(152, 22);
-            this.menuActivePositionTest.Text = "棋子活动范围";
-            this.menuActivePositionTest.Click += new System.EventHandler(this.menuActivePositionTest_Click);
+            this.MenuActivePositionTest.Name = "MenuActivePositionTest";
+            this.MenuActivePositionTest.Size = new System.Drawing.Size(152, 22);
+            this.MenuActivePositionTest.Text = "棋子活动范围";
+            this.MenuActivePositionTest.Click += new System.EventHandler(this.MenuActivePositionTest_Click);
             // 
-            // menuEvaluate
+            // MenuEvaluate
             // 
-            this.menuEvaluate.Name = "menuEvaluate";
-            this.menuEvaluate.Size = new System.Drawing.Size(152, 22);
-            this.menuEvaluate.Text = "审局";
-            this.menuEvaluate.Click += new System.EventHandler(this.menuEvaluate_Click);
+            this.MenuEvaluate.Name = "MenuEvaluate";
+            this.MenuEvaluate.Size = new System.Drawing.Size(152, 22);
+            this.MenuEvaluate.Text = "审局";
+            this.MenuEvaluate.Click += new System.EventHandler(this.MenuEvaluate_Click);
             // 
-            // menuContinuousEval
+            // MenuContinuousEval
             // 
-            this.menuContinuousEval.Name = "menuContinuousEval";
-            this.menuContinuousEval.Size = new System.Drawing.Size(152, 22);
-            this.menuContinuousEval.Text = "连续审局";
-            this.menuContinuousEval.Click += new System.EventHandler(this.menuContinuousEval_Click);
+            this.MenuContinuousEval.Name = "MenuContinuousEval";
+            this.MenuContinuousEval.Size = new System.Drawing.Size(152, 22);
+            this.MenuContinuousEval.Text = "连续审局";
+            this.MenuContinuousEval.Click += new System.EventHandler(this.MenuContinuousEval_Click);
             // 
-            // menuBatchEval
+            // MenuBatchEval
             // 
-            this.menuBatchEval.Name = "menuBatchEval";
-            this.menuBatchEval.Size = new System.Drawing.Size(152, 22);
-            this.menuBatchEval.Text = "批量连续审局";
-            this.menuBatchEval.Click += new System.EventHandler(this.menuBatchEval_Click);
+            this.MenuBatchEval.Name = "MenuBatchEval";
+            this.MenuBatchEval.Size = new System.Drawing.Size(152, 22);
+            this.MenuBatchEval.Text = "批量连续审局";
+            this.MenuBatchEval.Click += new System.EventHandler(this.MenuBatchEval_Click);
             // 
             // ilCPieces
             // 
@@ -300,17 +300,17 @@
             this.openFENDialog.Filter = "象棋局面文件(*.FEN)|*.FEN";
             this.openFENDialog.Title = "从局面文件导入";
             // 
-            // listboxMove
+            // ListboxMove
             // 
-            this.listboxMove.FormattingEnabled = true;
-            this.listboxMove.ItemHeight = 12;
-            this.listboxMove.Items.AddRange(new object[] {
+            this.ListboxMove.FormattingEnabled = true;
+            this.ListboxMove.ItemHeight = 12;
+            this.ListboxMove.Items.AddRange(new object[] {
             "==开始=="});
-            this.listboxMove.Location = new System.Drawing.Point(633, 119);
-            this.listboxMove.Name = "listboxMove";
-            this.listboxMove.Size = new System.Drawing.Size(103, 292);
-            this.listboxMove.TabIndex = 0;
-            this.listboxMove.SelectedIndexChanged += new System.EventHandler(this.listboxMove_SelectedIndexChanged);
+            this.ListboxMove.Location = new System.Drawing.Point(633, 119);
+            this.ListboxMove.Name = "ListboxMove";
+            this.ListboxMove.Size = new System.Drawing.Size(103, 292);
+            this.ListboxMove.TabIndex = 0;
+            this.ListboxMove.SelectedIndexChanged += new System.EventHandler(this.ListboxMove_SelectedIndexChanged);
             // 
             // label1
             // 
@@ -321,27 +321,27 @@
             this.label1.TabIndex = 1;
             this.label1.Text = "着法列表";
             // 
-            // panelBoard
+            // PanelBoard
             // 
-            this.panelBoard.AutoSize = true;
-            this.panelBoard.BackColor = System.Drawing.Color.LightGray;
-            this.panelBoard.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("panelBoard.BackgroundImage")));
-            this.panelBoard.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-            this.panelBoard.Controls.Add(this.label2);
-            this.panelBoard.Controls.Add(this.textBoxComment);
-            this.panelBoard.Controls.Add(this.labelDateSite);
-            this.panelBoard.Controls.Add(this.labelPlayer);
-            this.panelBoard.Controls.Add(this.labelEvent);
-            this.panelBoard.Controls.Add(this.label1);
-            this.panelBoard.Controls.Add(this.listboxMove);
-            this.panelBoard.Cursor = System.Windows.Forms.Cursors.Arrow;
-            this.panelBoard.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panelBoard.Location = new System.Drawing.Point(0, 24);
-            this.panelBoard.Name = "panelBoard";
-            this.panelBoard.Size = new System.Drawing.Size(748, 580);
-            this.panelBoard.TabIndex = 3;
-            this.panelBoard.Paint += new System.Windows.Forms.PaintEventHandler(this.panelBoard_Paint);
-            this.panelBoard.MouseClick += new System.Windows.Forms.MouseEventHandler(this.panelBoard_MouseClick);
+            this.PanelBoard.AutoSize = true;
+            this.PanelBoard.BackColor = System.Drawing.Color.LightGray;
+            this.PanelBoard.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("PanelBoard.BackgroundImage")));
+            this.PanelBoard.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
+            this.PanelBoard.Controls.Add(this.label2);
+            this.PanelBoard.Controls.Add(this.textBoxComment);
+            this.PanelBoard.Controls.Add(this.labelDateSite);
+            this.PanelBoard.Controls.Add(this.labelPlayer);
+            this.PanelBoard.Controls.Add(this.labelEvent);
+            this.PanelBoard.Controls.Add(this.label1);
+            this.PanelBoard.Controls.Add(this.ListboxMove);
+            this.PanelBoard.Cursor = System.Windows.Forms.Cursors.Arrow;
+            this.PanelBoard.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.PanelBoard.Location = new System.Drawing.Point(0, 24);
+            this.PanelBoard.Name = "PanelBoard";
+            this.PanelBoard.Size = new System.Drawing.Size(748, 580);
+            this.PanelBoard.TabIndex = 3;
+            this.PanelBoard.Paint += new System.Windows.Forms.PaintEventHandler(this.PanelBoard_Paint);
+            this.PanelBoard.MouseClick += new System.Windows.Forms.MouseEventHandler(this.PanelBoard_MouseClick);
             // 
             // label2
             // 
@@ -398,19 +398,19 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.ClientSize = new System.Drawing.Size(748, 604);
-            this.Controls.Add(this.panelBoard);
-            this.Controls.Add(this.menuStrip1);
+            this.Controls.Add(this.PanelBoard);
+            this.Controls.Add(this.MenuStrip1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MainMenuStrip = this.menuStrip1;
+            this.MainMenuStrip = this.MenuStrip1;
             this.MaximizeBox = false;
             this.Name = "MainForm";
             this.Text = "鼹鼠象棋";
             this.Load += new System.EventHandler(this.MainForm_Load);
-            this.menuStrip1.ResumeLayout(false);
-            this.menuStrip1.PerformLayout();
-            this.panelBoard.ResumeLayout(false);
-            this.panelBoard.PerformLayout();
+            this.MenuStrip1.ResumeLayout(false);
+            this.MenuStrip1.PerformLayout();
+            this.PanelBoard.ResumeLayout(false);
+            this.PanelBoard.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -419,41 +419,41 @@
         #endregion
 
         private System.Windows.Forms.SaveFileDialog saveFENDialog;
-        private System.Windows.Forms.ToolStripMenuItem menuAboutEngine;
+        private System.Windows.Forms.ToolStripMenuItem MenuAboutEngine;
         private System.Windows.Forms.ToolStripMenuItem 帮助HToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem menuPonder;
-        private System.Windows.Forms.ToolStripMenuItem menuAIBlack;
-        private System.Windows.Forms.ToolStripMenuItem menuAIRed;
+        private System.Windows.Forms.ToolStripMenuItem MenuPonder;
+        private System.Windows.Forms.ToolStripMenuItem MenuAIBlack;
+        private System.Windows.Forms.ToolStripMenuItem MenuAIRed;
         private System.Windows.Forms.ToolStripMenuItem 电脑ToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem menuSaveFEN;
-        private System.Windows.Forms.ToolStripMenuItem menuLoadFEN;
-        private System.Windows.Forms.ToolStripMenuItem menuPasteFEN;
-        private System.Windows.Forms.ToolStripMenuItem menuCopyFEN;
+        private System.Windows.Forms.ToolStripMenuItem MenuSaveFEN;
+        private System.Windows.Forms.ToolStripMenuItem MenuLoadFEN;
+        private System.Windows.Forms.ToolStripMenuItem MenuPasteFEN;
+        private System.Windows.Forms.ToolStripMenuItem MenuCopyFEN;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem2;
-        private System.Windows.Forms.ToolStripMenuItem menuEditFEN;
+        private System.Windows.Forms.ToolStripMenuItem MenuEditFEN;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem1;
-        private System.Windows.Forms.ToolStripMenuItem menuFlipBoard;
+        private System.Windows.Forms.ToolStripMenuItem MenuFlipBoard;
         private System.Windows.Forms.ToolStripMenuItem 局面ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem NewGameMenu;
         private System.Windows.Forms.ToolStripMenuItem 文件ToolStripMenuItem;
-        private System.Windows.Forms.MenuStrip menuStrip1;
+        private System.Windows.Forms.MenuStrip MenuStrip1;
         private System.Windows.Forms.ImageList ilCPieces;
         private System.Windows.Forms.OpenFileDialog openFENDialog;
-        private System.Windows.Forms.ListBox listboxMove;
+        private System.Windows.Forms.ListBox ListboxMove;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Panel panelBoard;
-        private System.Windows.Forms.ToolStripMenuItem menuOpen;
+        private System.Windows.Forms.Panel PanelBoard;
+        private System.Windows.Forms.ToolStripMenuItem MenuOpen;
         private System.Windows.Forms.OpenFileDialog openPGNDialog;
         private System.Windows.Forms.Label labelEvent;
         private System.Windows.Forms.Label labelPlayer;
         private System.Windows.Forms.Label labelDateSite;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox textBoxComment;
-        private System.Windows.Forms.ToolStripMenuItem menuBatchEvaluation;
-        private System.Windows.Forms.ToolStripMenuItem menuActivePositionTest;
-        private System.Windows.Forms.ToolStripMenuItem menuEvaluate;
+        private System.Windows.Forms.ToolStripMenuItem MenuBatchEvaluation;
+        private System.Windows.Forms.ToolStripMenuItem MenuActivePositionTest;
+        private System.Windows.Forms.ToolStripMenuItem MenuEvaluate;
         private System.Windows.Forms.ToolStripMenuItem 连续审局ToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem menuContinuousEval;
-        private System.Windows.Forms.ToolStripMenuItem menuBatchEval;
+        private System.Windows.Forms.ToolStripMenuItem MenuContinuousEval;
+        private System.Windows.Forms.ToolStripMenuItem MenuBatchEval;
     }
 }

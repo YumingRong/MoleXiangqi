@@ -12,14 +12,14 @@ namespace MoleXiangqi
     public partial class MainForm : Form
     {
         bool App_bSound = true;
-        string App_szPath = @"J:\C#\MoleXiangqi\Resources\";
+        readonly string App_szPath = @"J:\C#\MoleXiangqi\Resources\";
         bool App_inGame;
         Point mvLastFrom, mvLastTo, ptSelected;
         int pcSelected, pcLast;
         int FENStep; //用来决定要不要显示上一步方框
         bool bFlipped = false;
         bool bSelected;
-        List<iMOVE> iMoveList;
+        List<UI_Move> iMoveList;
         POSITION pos;
         const int gridSize = 57;
         SoundPlayer soundPlayer;
@@ -33,7 +33,7 @@ namespace MoleXiangqi
         {
             InitializeComponent();
             pos = new POSITION();
-            iMoveList = new List<iMOVE>();
+            iMoveList = new List<UI_Move>();
             soundPlayer = new SoundPlayer();
         }
 
@@ -45,16 +45,16 @@ namespace MoleXiangqi
         private void NewGame()
         {
             //swap side
-            if (menuAIBlack.Checked)
+            if (MenuAIBlack.Checked)
             {
-                menuAIRed.Checked = true;
-                menuAIBlack.Checked = false;
+                MenuAIRed.Checked = true;
+                MenuAIBlack.Checked = false;
                 bFlipped = false;
             }
-            else if (menuAIRed.Checked)
+            else if (MenuAIRed.Checked)
             {
-                menuAIRed.Checked = false;
-                menuAIBlack.Checked = true;
+                MenuAIRed.Checked = false;
+                MenuAIBlack.Checked = true;
                 bFlipped = true;
             }
             pos.FromFEN(POSITION.cszStartFen);
@@ -65,11 +65,11 @@ namespace MoleXiangqi
         {
             FENStep = 0;
             bSelected = false;
-            listboxMove.Items.Clear();
-            listboxMove.Items.Add("==开始==");
+            ListboxMove.Items.Clear();
+            ListboxMove.Items.Add("==开始==");
             iMoveList.Clear();
-            iMoveList.Add(new iMOVE());
-            panelBoard.Refresh();
+            iMoveList.Add(new UI_Move());
+            PanelBoard.Refresh();
             App_inGame = true;
         }
 
@@ -78,7 +78,7 @@ namespace MoleXiangqi
             NewGame();
         }
 
-        private void panelBoard_MouseClick(object sender, MouseEventArgs e)
+        private void PanelBoard_MouseClick(object sender, MouseEventArgs e)
         {
             if (!App_inGame)
                 return;
@@ -89,11 +89,11 @@ namespace MoleXiangqi
                 return;
             int piece;
             if (bFlipped)
-                piece = pos.iGetFlippedPiece(x, y);
+                piece = pos.UI_GetFlippedPiece(x, y);
             else
-                piece = pos.iGetPiece(x, y);
+                piece = pos.UI_GetPiece(x, y);
 
-            Graphics g = panelBoard.CreateGraphics();
+            Graphics g = PanelBoard.CreateGraphics();
             if (bSelected)
             {
                 if (POSITION.SIDE(piece) == pos.sdPlayer && ptSelected != new Point(x, y))
@@ -111,13 +111,13 @@ namespace MoleXiangqi
                     int sqFrom, sqTo;
                     if (bFlipped)
                     {
-                        sqFrom = POSITION.iXY2Coord(8 - ptSelected.X, 9 - ptSelected.Y);
-                        sqTo = POSITION.iXY2Coord(8 - x, 9 - y);
+                        sqFrom = POSITION.UI_XY2Coord(8 - ptSelected.X, 9 - ptSelected.Y);
+                        sqTo = POSITION.UI_XY2Coord(8 - x, 9 - y);
                     }
                     else
                     {
-                        sqFrom = POSITION.iXY2Coord(ptSelected.X, ptSelected.Y);
-                        sqTo = POSITION.iXY2Coord(x, y);
+                        sqFrom = POSITION.UI_XY2Coord(ptSelected.X, ptSelected.Y);
+                        sqTo = POSITION.UI_XY2Coord(x, y);
                     }
                     if (pos.IsLegalMove(sqFrom, sqTo))
                     {
@@ -143,7 +143,7 @@ namespace MoleXiangqi
                         int pcCaptured = pos.pcSquares[sqTo];
                         pos.MakeMove(sqFrom, sqTo);
 
-                        iMOVE step;
+                        UI_Move step;
                         step.from = sqFrom;
                         step.to = sqTo;
                         step.comment = textBoxComment.Text;
@@ -154,7 +154,7 @@ namespace MoleXiangqi
                         if (FENStep % 2 == 1)
                             label = ((FENStep / 2 + 1).ToString() + "." + label);
                         label = label.PadLeft(8);
-                        listboxMove.Items.Add(label);
+                        ListboxMove.Items.Add(label);
                         if (piece > 0)
                             PlaySound("CAPTURE");
                         else
@@ -181,13 +181,13 @@ namespace MoleXiangqi
 
         }
 
-        private void panelBoard_Paint(object sender, PaintEventArgs e)
+        private void PanelBoard_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
             for (int x = 0; x < 9; x++)
                 for (int y = 0; y < 10; y++)
                 {
-                    int piece = cnPieceImages[pos.iGetPiece(x, y)];
+                    int piece = cnPieceImages[pos.UI_GetPiece(x, y)];
                     if (piece > 0)
                     {
                         if (bFlipped)
@@ -208,10 +208,10 @@ namespace MoleXiangqi
             float xx = pt.X * gridSize;
             float yy = pt.Y * gridSize;
             RectangleF srcRect = new RectangleF(xx, yy, gridSize, gridSize);
-            g.DrawImage(panelBoard.BackgroundImage, xx, yy, srcRect, GraphicsUnit.Pixel);
+            g.DrawImage(PanelBoard.BackgroundImage, xx, yy, srcRect, GraphicsUnit.Pixel);
         }
 
-        private void menuOpen_Click(object sender, EventArgs e)
+        private void MenuOpen_Click(object sender, EventArgs e)
         {
             PgnFileStruct PGN;
             if (openPGNDialog.ShowDialog() == DialogResult.OK)
@@ -252,44 +252,44 @@ namespace MoleXiangqi
             labelDateSite.Text = PGN.Date + " 弈于 " + PGN.Site;
 
 
-            listboxMove.Items.Clear();
+            ListboxMove.Items.Clear();
 
             if (iMoveList[0].comment == null)
-                listboxMove.Items.Add("==开始==");
+                ListboxMove.Items.Add("==开始==");
             else
-                listboxMove.Items.Add("==开始==*");
+                ListboxMove.Items.Add("==开始==*");
 
             for (FENStep = 1; FENStep < iMoveList.Count; FENStep++)
             {
-                iMOVE step = iMoveList[FENStep];
+                UI_Move step = iMoveList[FENStep];
                 string label = step.ToString();
                 if (FENStep % 2 == 1)
                     label = ((FENStep / 2 + 1).ToString() + "." + label);
                 label = label.PadLeft(8);
                 if (step.comment != null)
                     label += "*";
-                listboxMove.Items.Add(label);
+                ListboxMove.Items.Add(label);
             }
             pos.FromFEN(PGN.StartFEN);
             FENStep = 0;
-            listboxMove.SelectedIndex = 0;
-            panelBoard.Refresh();
+            ListboxMove.SelectedIndex = 0;
+            PanelBoard.Refresh();
             App_inGame = false;
         }
 
-        private void menuFlipBoard_Click(object sender, EventArgs e)
+        private void MenuFlipBoard_Click(object sender, EventArgs e)
         {
-            menuFlipBoard.Checked = !menuFlipBoard.Checked;
-            bFlipped = menuFlipBoard.Checked;
-            panelBoard.Refresh();
+            MenuFlipBoard.Checked = !MenuFlipBoard.Checked;
+            bFlipped = MenuFlipBoard.Checked;
+            PanelBoard.Refresh();
         }
 
-        private void menuCopyFEN_Click(object sender, EventArgs e)
+        private void MenuCopyFEN_Click(object sender, EventArgs e)
         {
             Clipboard.SetText(pos.ToFen());
         }
 
-        private void menuPasteFEN_Click(object sender, EventArgs e)
+        private void MenuPasteFEN_Click(object sender, EventArgs e)
         {
             try
             {
@@ -302,7 +302,7 @@ namespace MoleXiangqi
             NewFEN();
         }
 
-        private void menuLoadFEN_Click(object sender, EventArgs e)
+        private void MenuLoadFEN_Click(object sender, EventArgs e)
         {
             if (openFENDialog.ShowDialog() == DialogResult.OK)
             {
@@ -316,7 +316,7 @@ namespace MoleXiangqi
             }
         }
 
-        private void menuSaveFEN_Click(object sender, EventArgs e)
+        private void MenuSaveFEN_Click(object sender, EventArgs e)
         {
             if (saveFENDialog.ShowDialog() == DialogResult.OK)
             {
@@ -328,54 +328,54 @@ namespace MoleXiangqi
             }
         }
 
-        private void menuAIRed_Click(object sender, EventArgs e)
+        private void MenuAIRed_Click(object sender, EventArgs e)
         {
-            menuAIRed.Checked = !menuAIRed.Checked;
-            menuPonder.Checked = false;
+            MenuAIRed.Checked = !MenuAIRed.Checked;
+            MenuPonder.Checked = false;
             bFlipped = true;
         }
 
-        private void menuAIBlack_Click(object sender, EventArgs e)
+        private void MenuAIBlack_Click(object sender, EventArgs e)
         {
-            menuAIBlack.Checked = !menuAIBlack.Checked;
-            menuPonder.Checked = false;
+            MenuAIBlack.Checked = !MenuAIBlack.Checked;
+            MenuPonder.Checked = false;
             bFlipped = false;
         }
 
-        private void menuPonder_Click(object sender, EventArgs e)
+        private void MenuPonder_Click(object sender, EventArgs e)
         {
-            menuAIRed.Checked = false;
-            menuAIBlack.Checked = false;
-            menuPonder.Checked = true;
+            MenuAIRed.Checked = false;
+            MenuAIBlack.Checked = false;
+            MenuPonder.Checked = true;
         }
 
-        private void menuAboutEngine_Click(object sender, EventArgs e)
+        private void MenuAboutEngine_Click(object sender, EventArgs e)
         {
             MessageBox.Show("引擎：鼹鼠象棋\n版本：0.1\n作者：荣宇明\n用户：测试人员", "UCCI引擎");
         }
 
-        private void listboxMove_SelectedIndexChanged(object sender, EventArgs e)
+        private void ListboxMove_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (listboxMove.SelectedIndex < 0)
+            if (ListboxMove.SelectedIndex < 0)
                 return;
-            textBoxComment.Text = iMoveList[listboxMove.SelectedIndex].comment;
-            if (listboxMove.SelectedIndex > FENStep)
+            textBoxComment.Text = iMoveList[ListboxMove.SelectedIndex].comment;
+            if (ListboxMove.SelectedIndex > FENStep)
             {
-                for (int i = FENStep + 1; i <= listboxMove.SelectedIndex; i++)
+                for (int i = FENStep + 1; i <= ListboxMove.SelectedIndex; i++)
                     pos.MakeMove(iMoveList[i].from, iMoveList[i].to);
             }
             else
             {
-                for (int i = FENStep - 1; i >= listboxMove.SelectedIndex; i--)
+                for (int i = FENStep - 1; i >= ListboxMove.SelectedIndex; i--)
                     pos.UnmakeMove();
             }
-            FENStep = listboxMove.SelectedIndex;
-            mvLastFrom = POSITION.iCoord2XY(iMoveList[listboxMove.SelectedIndex].from, bFlipped);
-            mvLastTo = POSITION.iCoord2XY(iMoveList[listboxMove.SelectedIndex].to, bFlipped);
-            panelBoard.Refresh();
+            FENStep = ListboxMove.SelectedIndex;
+            mvLastFrom = POSITION.UI_Coord2XY(iMoveList[ListboxMove.SelectedIndex].from, bFlipped);
+            mvLastTo = POSITION.UI_Coord2XY(iMoveList[ListboxMove.SelectedIndex].to, bFlipped);
+            PanelBoard.Refresh();
         }
 
-        private void menuActivePositionTest_Click(object sender, EventArgs e)
+        private void MenuActivePositionTest_Click(object sender, EventArgs e)
         {
             App_inGame = false;
             string sourceDirectory = @"J:\象棋\全局\1-23届五羊杯";
@@ -393,7 +393,7 @@ namespace MoleXiangqi
                 int side = 0;
                 for (int i = 1; i < pgn.iMoveList.Count; i++)
                 {
-                    iMOVE step = pgn.iMoveList[i];
+                    UI_Move step = pgn.iMoveList[i];
                     if (pos.pcSquares[step.to] > 0)
                         activeGrid[side, step.to]++;
                     pos.MakeMove(step.from, step.to);
@@ -404,7 +404,7 @@ namespace MoleXiangqi
             MessageBox.Show(String.Format("Finish reading.Total {0} files", nFile));
         }
 
-        private void menuEvaluate_Click(object sender, EventArgs e)
+        private void MenuEvaluate_Click(object sender, EventArgs e)
         {
             App_inGame = false;
             pos.FromFEN(@"3a5/5k3/5a3/5R3/5P3/r8/9/7C1/r2p5/4K4 w - - 0 2");
@@ -414,7 +414,7 @@ namespace MoleXiangqi
             //WriteMap2Csv(pos.connectivityMap, @"J:\xqtest\connectivity.csv");
         }
 
-        private void menuContinuousEval_Click(object sender, EventArgs e)
+        private void MenuContinuousEval_Click(object sender, EventArgs e)
         {
             App_inGame = false;
             string fileName = @"G:\象棋\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
@@ -425,7 +425,7 @@ namespace MoleXiangqi
             engine.SearchQuiesce(-5000, 5000);
             for (int i = 1; i < pgn.iMoveList.Count; i++)
             {
-                iMOVE step = pgn.iMoveList[i];
+                UI_Move step = pgn.iMoveList[i];
                 engine.board.MakeMove(step.from, step.to);
                 int score = -engine.SearchQuiesce(-5000, 5000);
                 if (i % 2 == 1)
@@ -440,7 +440,7 @@ namespace MoleXiangqi
              */
         }
 
-        private void menuBatchEval_Click(object sender, EventArgs e)
+        private void MenuBatchEval_Click(object sender, EventArgs e)
         {
             App_inGame = false;
             pos.TestEval();
@@ -521,7 +521,7 @@ namespace MoleXiangqi
                     {
                         for (int x = 0; x < 9; x++)
                         {
-                            int sq = POSITION.iXY2Coord(x, y);
+                            int sq = POSITION.UI_XY2Coord(x, y);
                             sw.Write("{0} | {1},", map[0, sq], map[1, sq]);
                         }
                         sw.WriteLine();

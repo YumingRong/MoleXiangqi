@@ -4,13 +4,13 @@ using System.Diagnostics;
 
 namespace MoleXiangqi
 {
-    public struct iMOVE
+    public struct UI_Move
     {
         public int from;
         public int to;
         public string comment;
 
-        public iMOVE(MOVE mv)
+        public UI_Move(MOVE mv)
         {
             from = mv.sqSrc;
             to = mv.sqDst;
@@ -19,7 +19,7 @@ namespace MoleXiangqi
 
         public override string ToString()
         {
-            return POSITION.iMove2Coord(from, to);
+            return POSITION.UI_Move2Coord(from, to);
         }
         public override bool Equals(object obj)
         {
@@ -29,12 +29,12 @@ namespace MoleXiangqi
         {
             return base.GetHashCode();
         }
-        public static bool operator ==(iMOVE left, iMOVE right)
+        public static bool operator ==(UI_Move left, UI_Move right)
         {
             return left.from == right.from && left.to == right.to;
         }
 
-        public static bool operator !=(iMOVE left, iMOVE right)
+        public static bool operator !=(UI_Move left, UI_Move right)
         {
             return left.from != right.from || left.to != right.to;
         }
@@ -55,7 +55,7 @@ namespace MoleXiangqi
 
         public override string ToString()
         {
-            return POSITION.iMove2Coord(sqSrc, sqDst);
+            return POSITION.UI_Move2Coord(sqSrc, sqDst);
         }
 
         public override bool Equals(object obj)

@@ -151,7 +151,7 @@ namespace MoleXiangqi
             return lpFen.ToString();
         }
 
-        public static string iMove2Coord(int from, int to)
+        public static string UI_Move2Coord(int from, int to)
         {      // 把着法转换成字符串
             char[] ret = new char[5];
             ret[0] = Convert.ToChar(FILE_X(from) - FILE_LEFT + 'A');

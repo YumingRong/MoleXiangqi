@@ -139,7 +139,6 @@ namespace MoleXiangqi
                     if (sqSrc == 0)
                         continue;
                     int pcKind = cnPieceKinds[pc];
-                    int sqSrcMirror = sd == 0 ? sqSrc : SQUARE_FLIP(sqSrc);
 
                     switch (pcKind)
                     {
