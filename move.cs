@@ -4,46 +4,11 @@ using System.Diagnostics;
 
 namespace MoleXiangqi
 {
-    public struct UI_Move
-    {
-        public int from;
-        public int to;
-        public string comment;
-
-        public UI_Move(MOVE mv)
-        {
-            from = mv.sqSrc;
-            to = mv.sqDst;
-            comment = "";
-        }
-
-        public override string ToString()
-        {
-            return POSITION.UI_Move2Coord(from, to);
-        }
-        public override bool Equals(object obj)
-        {
-            return base.Equals(obj);
-        }
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
-        public static bool operator ==(UI_Move left, UI_Move right)
-        {
-            return left.from == right.from && left.to == right.to;
-        }
-
-        public static bool operator !=(UI_Move left, UI_Move right)
-        {
-            return left.from != right.from || left.to != right.to;
-        }
-    }
-
     public struct MOVE
     {
         public int sqSrc, sqDst;      // 起始格和目标格
         public int pcSrc, pcDst;
+        public string comment;
 
         public MOVE(int sqFrom, int sqTo, int pcFrom, int pcTo)
         {
@@ -51,6 +16,7 @@ namespace MoleXiangqi
             sqDst = sqTo;
             pcSrc = pcFrom;
             pcDst = pcTo;
+            comment = "";
         }
 
         public override string ToString()
@@ -60,22 +26,30 @@ namespace MoleXiangqi
 
         public override bool Equals(object obj)
         {
-            return base.Equals(obj);
+            if (!(obj is MOVE))
+                return false;
+            return Equals((MOVE)obj);
+        }
+
+        public bool Equals(MOVE other)
+        {
+            //比较着法只发生在同一个局面下不同算法（将军、捉子）生成的着法，所以只需要比较起讫位置
+            return sqSrc == other.sqSrc && sqDst == other.sqDst;
         }
 
         public override int GetHashCode()
         {
-            return base.GetHashCode();
+            return (sqSrc<<8) + sqDst;
         }
 
         public static bool operator ==(MOVE left, MOVE right)
         {
-            return left.sqSrc == right.sqSrc && left.sqDst == right.sqDst;
+            return left.Equals(right);
         }
 
         public static bool operator !=(MOVE left, MOVE right)
         {
-            return left.sqSrc != right.sqSrc || left.sqDst != right.sqDst;
+            return !left.Equals(right);
         }
     }
 
@@ -191,16 +165,6 @@ namespace MoleXiangqi
             MOVE mv = stepList[stepList.Count - 1].move;
             UndoMovePiece(mv);
             stepList.RemoveAt(stepList.Count - 1);
-        }
-
-        public void MakeMove(int from, int to)
-        {
-            MOVE move;
-            move.sqSrc = from;
-            move.sqDst = to;
-            move.pcSrc = pcSquares[from];
-            move.pcDst = pcSquares[to];
-            MakeMove(move);
         }
 
     }

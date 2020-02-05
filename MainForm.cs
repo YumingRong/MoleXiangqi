@@ -19,7 +19,7 @@ namespace MoleXiangqi
         int FENStep; //用来决定要不要显示上一步方框
         bool bFlipped = false;
         bool bSelected;
-        List<UI_Move> iMoveList;
+        List<MOVE> MoveList;
         POSITION pos;
         const int gridSize = 57;
         SoundPlayer soundPlayer;
@@ -33,7 +33,7 @@ namespace MoleXiangqi
         {
             InitializeComponent();
             pos = new POSITION();
-            iMoveList = new List<UI_Move>();
+            MoveList = new List<MOVE>();
             soundPlayer = new SoundPlayer();
         }
 
@@ -67,8 +67,8 @@ namespace MoleXiangqi
             bSelected = false;
             ListboxMove.Items.Clear();
             ListboxMove.Items.Add("==开始==");
-            iMoveList.Clear();
-            iMoveList.Add(new UI_Move());
+            MoveList.Clear();
+            MoveList.Add(new MOVE());
             PanelBoard.Refresh();
             App_inGame = true;
         }
@@ -141,13 +141,15 @@ namespace MoleXiangqi
                         DrawPiece(mvLastTo, pcSelected, g);
                         bSelected = false;
                         int pcCaptured = pos.pcSquares[sqTo];
-                        pos.MakeMove(sqFrom, sqTo);
 
-                        UI_Move step;
-                        step.from = sqFrom;
-                        step.to = sqTo;
+                        MOVE step;
+                        step.sqSrc = sqFrom;
+                        step.sqDst = sqTo;
+                        step.pcSrc = pcSelected;
+                        step.pcDst = pcCaptured;
                         step.comment = textBoxComment.Text;
-                        iMoveList.Add(step);
+                        MoveList.Add(step);
+                        pos.MakeMove(step);
 
                         FENStep++;
                         string label = step.ToString();
@@ -217,7 +219,7 @@ namespace MoleXiangqi
             if (openPGNDialog.ShowDialog() == DialogResult.OK)
             {
                 PGN = pos.ReadPgnFile(openPGNDialog.FileName);
-                iMoveList = PGN.iMoveList;
+                MoveList = PGN.MoveList;
             }
             else
                 return;
@@ -254,14 +256,14 @@ namespace MoleXiangqi
 
             ListboxMove.Items.Clear();
 
-            if (iMoveList[0].comment == null)
+            if (MoveList[0].comment == null)
                 ListboxMove.Items.Add("==开始==");
             else
                 ListboxMove.Items.Add("==开始==*");
 
-            for (FENStep = 1; FENStep < iMoveList.Count; FENStep++)
+            for (FENStep = 1; FENStep < MoveList.Count; FENStep++)
             {
-                UI_Move step = iMoveList[FENStep];
+                MOVE step = MoveList[FENStep];
                 string label = step.ToString();
                 if (FENStep % 2 == 1)
                     label = ((FENStep / 2 + 1).ToString() + "." + label);
@@ -358,11 +360,11 @@ namespace MoleXiangqi
         {
             if (ListboxMove.SelectedIndex < 0)
                 return;
-            textBoxComment.Text = iMoveList[ListboxMove.SelectedIndex].comment;
+            textBoxComment.Text = MoveList[ListboxMove.SelectedIndex].comment;
             if (ListboxMove.SelectedIndex > FENStep)
             {
                 for (int i = FENStep + 1; i <= ListboxMove.SelectedIndex; i++)
-                    pos.MakeMove(iMoveList[i].from, iMoveList[i].to);
+                    pos.MakeMove(MoveList[i]);
             }
             else
             {
@@ -370,8 +372,8 @@ namespace MoleXiangqi
                     pos.UnmakeMove();
             }
             FENStep = ListboxMove.SelectedIndex;
-            mvLastFrom = POSITION.UI_Coord2XY(iMoveList[ListboxMove.SelectedIndex].from, bFlipped);
-            mvLastTo = POSITION.UI_Coord2XY(iMoveList[ListboxMove.SelectedIndex].to, bFlipped);
+            mvLastFrom = POSITION.UI_Coord2XY(MoveList[ListboxMove.SelectedIndex].sqSrc, bFlipped);
+            mvLastTo = POSITION.UI_Coord2XY(MoveList[ListboxMove.SelectedIndex].sqDst, bFlipped);
             PanelBoard.Refresh();
         }
 
@@ -391,12 +393,12 @@ namespace MoleXiangqi
                 nFile++;
                 pos.FromFEN(pgn.StartFEN);
                 int side = 0;
-                for (int i = 1; i < pgn.iMoveList.Count; i++)
+                for (int i = 1; i < pgn.MoveList.Count; i++)
                 {
-                    UI_Move step = pgn.iMoveList[i];
-                    if (pos.pcSquares[step.to] > 0)
-                        activeGrid[side, step.to]++;
-                    pos.MakeMove(step.from, step.to);
+                    MOVE step = pgn.MoveList[i];
+                    if (pos.pcSquares[step.sqDst] > 0)
+                        activeGrid[side, step.sqDst]++;
+                    pos.MakeMove(step);
                     side = 1 ^ side;
                 }
             }
@@ -423,10 +425,10 @@ namespace MoleXiangqi
             pos.FromFEN(pgn.StartFEN);
             SEARCH engine = new SEARCH(pos);
             engine.SearchQuiesce(-5000, 5000);
-            for (int i = 1; i < pgn.iMoveList.Count; i++)
+            for (int i = 1; i < pgn.MoveList.Count; i++)
             {
-                UI_Move step = pgn.iMoveList[i];
-                engine.board.MakeMove(step.from, step.to);
+                MOVE step = pgn.MoveList[i];
+                engine.board.MakeMove(step);
                 int score = -engine.SearchQuiesce(-5000, 5000);
                 if (i % 2 == 1)
                     Console.Write("{0}. {1}  ", (i + 1) / 2, score);
@@ -470,6 +472,11 @@ namespace MoleXiangqi
             {
                 MessageBox.Show("Cannot find sound file");
             }
+        }
+
+        private void MenuRuleTest_Click(object sender, EventArgs e)
+        {
+            pos.RuleTest(@"J:\xqtest\长照作负.PGN");
         }
 
         void Write2Csv(string csvPath, int[] array)

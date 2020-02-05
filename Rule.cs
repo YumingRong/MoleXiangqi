@@ -63,18 +63,7 @@ namespace MoleXiangqi
             for (int sd = 0; sd < 2; sd++)
             {
                 int bas = SIDE_TAG(sd);
-                for (int pc = bas + ROOK_FROM; pc <= bas + KNIGHT_TO; pc++)
-                    if (sqPieces[pc] > 0)
-                        PerpChase[sd].Add(pc);
-
-                for (int pc = bas + PAWN_FROM; pc <= bas + PAWN_TO; pc++)
-                {
-                    int sq = sqPieces[pc];
-                    //攻击未过河的兵不算捉
-                    if (sq > 0 && HOME_HALF[1 - sd, sq])
-                        PerpChase[sd].Add(pc);
-                }
-                for (int pc = bas + BISHOP_FROM; pc <= bas + GUARD_TO; pc++)
+                for (int pc = bas + ROOK_FROM; pc <= bas + GUARD_TO; pc++)
                     if (sqPieces[pc] > 0)
                         PerpChase[sd].Add(pc);
             }
@@ -88,7 +77,7 @@ namespace MoleXiangqi
                 PerpChase[sdPlayer].RemoveWhere(delegate (int pc) { return !Chased(pc); });
                 //对方的棋子在此层应该不被捉
                 PerpChase[sdPlayer].RemoveWhere(delegate (int pc) { return Chased(pc); });
-                
+
                 MovePiece(stepList[i].move);
             }
 
@@ -106,12 +95,19 @@ namespace MoleXiangqi
         //这里的捉指亚洲规则的捉，调用此函数前必须先执行GenAttMap()
         bool Chased(int pc)
         {
+            int[] rulePieceValue =
+            { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+            4, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            4, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            };
             int sq = sqPieces[pc];
             int sd = SIDE(pc);
             int sdOpp = 1 - sd;
             int pcOpp = attackMap[sdOpp, sq];
             if (pcOpp == 0)
                 return false;  //没有捉子，排除
+            else if (cnPieceKinds[pc] == PIECE_PAWN && HOME_HALF[sd, sq])
+                return false;                     //可以长捉未过河的兵
             else
             {
                 int sqOpp = sqPieces[pcOpp];
@@ -119,13 +115,13 @@ namespace MoleXiangqi
                     return false;  //兵和将允许长捉其它子
                 if (attackMap[sdOpp, sqOpp] == pc)
                     return false;  	//两子互捉，算成兑子，作和
-                if (cnPieceValue[pc] <= cnPieceValue[pcOpp] && attackMap[sd, sq] > 0)
+                if (rulePieceValue[pc] <= rulePieceValue[pcOpp] && attackMap[sd, sq] > 0)
                     return false;   //攻击有根子不算捉，除非被攻击子价值更大
             }
             return true;
         }
 
-        //该函数等同于Evaluate的内部函数，只是去掉检查absolute pin和位置数组赋值，以提高速度，并减少耦合
+        //该函数等同于Evaluate的内部函数，只是去掉位置数组赋值，以提高速度，并减少耦合
         //如发现任何bug，须一同修改
         void GenAttackMap()
         {
@@ -224,6 +220,20 @@ namespace MoleXiangqi
                 attackMap[sd, sqPieces[bas + KING_FROM]] = 0;
             }
 
+        }
+
+        public RepititionResult RuleTest(string filename)
+        {
+            PgnFileStruct pgn = ReadPgnFile(@"J:\xqtest\长照作负.PGN");
+            FromFEN(pgn.StartFEN);
+            foreach (MOVE mv in pgn.MoveList)
+            {
+                MakeMove(mv);
+                RepititionResult rep = Repitition();
+                if (rep != RepititionResult.NONE)
+                    return rep;
+            }
+            return RepititionResult.NONE;
         }
 
     }

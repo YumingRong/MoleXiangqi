@@ -19,8 +19,8 @@ namespace MoleXiangqi
 
         static readonly int[] cnPieceValue =
             { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-            MAT_KING, MAT_ROOK, MAT_ROOK, MAT_CANNON, MAT_CANNON, MAT_KNIGHT, MAT_KNIGHT, MAT_PAWN, MAT_PAWN, MAT_PAWN, MAT_PAWN, MAT_PAWN, MAT_BISHOP,  MAT_BISHOP, MAT_ADVISOR, MAT_ADVISOR,
-            MAT_KING, MAT_ROOK, MAT_ROOK, MAT_CANNON, MAT_CANNON, MAT_KNIGHT, MAT_KNIGHT, MAT_PAWN, MAT_PAWN, MAT_PAWN, MAT_PAWN, MAT_PAWN, MAT_BISHOP,  MAT_BISHOP, MAT_ADVISOR, MAT_ADVISOR};
+            MAT_KING, MAT_ROOK, MAT_ROOK, MAT_CANNON, MAT_CANNON, MAT_KNIGHT, MAT_KNIGHT, MAT_PAWN, MAT_PAWN, MAT_PAWN, MAT_PAWN, MAT_PAWN, MAT_BISHOP, MAT_BISHOP, MAT_ADVISOR, MAT_ADVISOR,
+            MAT_KING, MAT_ROOK, MAT_ROOK, MAT_CANNON, MAT_CANNON, MAT_KNIGHT, MAT_KNIGHT, MAT_PAWN, MAT_PAWN, MAT_PAWN, MAT_PAWN, MAT_PAWN, MAT_BISHOP, MAT_BISHOP, MAT_ADVISOR, MAT_ADVISOR};
 
         int[] cKingPawnValue, cRookValue;
         int[] cKnightValue;
@@ -409,11 +409,7 @@ namespace MoleXiangqi
                                 else
                                 {
                                     connectivity[1 - sd] += Math.Max(cnPieceValue[pcDst] - cnPieceValue[attack], 5);
-                                    MOVE mv;
-                                    mv.sqSrc = sqPieces[attack];
-                                    mv.sqDst = sqDst;
-                                    mv.pcSrc = attack;
-                                    mv.pcDst = pcDst;
+                                    MOVE mv = new MOVE(sqPieces[attack], sqDst, attack, pcDst);
                                     captureMoves.Add(new KeyValuePair<MOVE, int>(mv, cnPieceValue[pcDst] - cnPieceValue[attack]));
                                 }
                             }
@@ -424,11 +420,7 @@ namespace MoleXiangqi
                                 else  //如果轮到对方走棋，可以直接吃无根子
                                 {
                                     connectivity[1 - sd] += cnPieceValue[pcDst] * 3 / 4;
-                                    MOVE mv;
-                                    mv.sqSrc = sqPieces[attack];
-                                    mv.sqDst = sqDst;
-                                    mv.pcSrc = attack;
-                                    mv.pcDst = pcDst;
+                                    MOVE mv = new MOVE(sqPieces[attack], sqDst, attack, pcDst);
                                     captureMoves.Add(new KeyValuePair<MOVE, int>(mv, cnPieceValue[pcDst]));
                                 }
                             }
@@ -487,7 +479,7 @@ namespace MoleXiangqi
             foreach (string fileName in pgnFiles)
             {
                 Console.WriteLine(fileName.Substring(sourceDirectory.Length + 1));
-                List<UI_Move> iMoveList = ReadPgnFile(fileName).iMoveList;
+                List<MOVE> iMoveList = ReadPgnFile(fileName).MoveList;
                 nFile++;
                 int nSteps = iMoveList.Count;
                 totalSteps += nSteps;
@@ -498,9 +490,9 @@ namespace MoleXiangqi
                 List<KeyValuePair<string, int>> mv_vals = new List<KeyValuePair<string, int>>();
                 for (int i = 1; i < nSteps; i++)
                 {
-                    UI_Move step = iMoveList[i];
-                    captures[i] = pcSquares[step.to] > 0;
-                    if (pcSquares[step.to] == 0)
+                    MOVE step = iMoveList[i];
+                    captures[i] = pcSquares[step.sqDst] > 0;
+                    if (pcSquares[step.sqDst] == 0)
                     {
                         mv_vals.Clear();
                         List<MOVE> moves = GenerateMoves();
@@ -537,7 +529,7 @@ namespace MoleXiangqi
                         }
                     }
 
-                    MakeMove(step.from, step.to);
+                    MakeMove(step);
                     Console.WriteLine("-------------------");
                 }
                 for (int i = 1; i < nSteps; i += 2)

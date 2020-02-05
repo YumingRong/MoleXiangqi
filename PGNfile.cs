@@ -14,7 +14,7 @@ namespace MoleXiangqi
         public string BlackTeam, Black, BlackElo;
         public string ECCO, Opening, Variation, Result;
         public string Format, StartFEN;
-        public List<UI_Move> iMoveList;
+        public List<MOVE> MoveList;
     }
 
     partial class POSITION
@@ -35,7 +35,7 @@ namespace MoleXiangqi
         {
             FromFEN(cszStartFen);
             PGN.StartFEN = cszStartFen;
-            List<UI_Move> iMoves = new List<UI_Move>();
+            PGN.MoveList = new List<MOVE>();
 
             using (StreamReader fp = new StreamReader(szFileName, Encoding.GetEncoding("GB2312")))
             {
@@ -119,7 +119,7 @@ namespace MoleXiangqi
                     }
                 }
                 int index;
-                UI_Move imv = new UI_Move();
+                string comment = "";
                 //int phase = 2; //phase = 0是序号，1是move#1，2是 move#2
                 do
                 {
@@ -133,7 +133,7 @@ namespace MoleXiangqi
                         int index1 = line.IndexOf('}');
                         if (index1 > 0)
                         {//is comment
-                            imv.comment = line.Substring(1, index1 - 1);
+                            comment = line.Substring(1, index1 - 1);
                             line = line.Substring(index1 + 1);
                         }
                         continue;
@@ -162,33 +162,27 @@ namespace MoleXiangqi
                         {//is a move
                             //Debug.WriteLine(s);
                             MOVE mv = ParseWord(s);
+                            mv.comment = comment;
                             if (mv.pcSrc == 0)
                             {
                                 Console.WriteLine("警告：棋谱错误！");
                                 return PGN;
                             }
                             MakeMove(mv);
-                            iMoves.Add(imv);
-                            imv = new UI_Move
-                            {
-                                from = mv.sqSrc,
-                                to = mv.sqDst
-                            };
+                            PGN.MoveList.Add(mv);
                             //phase++;
                         }
                         else
                         {
                             if (s != PGN.Result)
                                 Debug.WriteLine(s);
-                            iMoves.Add(imv);
-                            PGN.iMoveList = iMoves;
+                            //iMoves.Add(mv);
                             return PGN;
                         }
                     }
 
                 } while (line.Length > 0 & index >= 0);
             }
-            PGN.iMoveList = iMoves;
             return PGN;
         }
 

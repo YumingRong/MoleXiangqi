@@ -8,6 +8,7 @@ namespace MoleXiangqi
     {
         public POSITION board;
         int depth = 1;
+        int quiesceNodes = 0;   //for performance measurement
 
         public SEARCH(POSITION pos)
         {
@@ -17,6 +18,7 @@ namespace MoleXiangqi
         const int MATE_VALUE = 5000;
         public int SearchQuiesce(int alpha, int beta)
         {
+            quiesceNodes++;
             RepititionResult rep = board.Repitition();
             if (rep != RepititionResult.NONE)
                 return (int)rep;
