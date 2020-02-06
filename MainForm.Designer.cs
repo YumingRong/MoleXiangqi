@@ -56,6 +56,7 @@
             this.MenuEvaluate = new System.Windows.Forms.ToolStripMenuItem();
             this.MenuContinuousEval = new System.Windows.Forms.ToolStripMenuItem();
             this.MenuBatchEval = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuRuleTest = new System.Windows.Forms.ToolStripMenuItem();
             this.ilCPieces = new System.Windows.Forms.ImageList(this.components);
             this.openFENDialog = new System.Windows.Forms.OpenFileDialog();
             this.ListboxMove = new System.Windows.Forms.ListBox();
@@ -67,7 +68,6 @@
             this.labelPlayer = new System.Windows.Forms.Label();
             this.labelEvent = new System.Windows.Forms.Label();
             this.openPGNDialog = new System.Windows.Forms.OpenFileDialog();
-            this.MenuRuleTest = new System.Windows.Forms.ToolStripMenuItem();
             this.MenuStrip1.SuspendLayout();
             this.PanelBoard.SuspendLayout();
             this.SuspendLayout();
@@ -252,30 +252,37 @@
             // MenuActivePositionTest
             // 
             this.MenuActivePositionTest.Name = "MenuActivePositionTest";
-            this.MenuActivePositionTest.Size = new System.Drawing.Size(180, 22);
+            this.MenuActivePositionTest.Size = new System.Drawing.Size(152, 22);
             this.MenuActivePositionTest.Text = "棋子活动范围";
             this.MenuActivePositionTest.Click += new System.EventHandler(this.MenuActivePositionTest_Click);
             // 
             // MenuEvaluate
             // 
             this.MenuEvaluate.Name = "MenuEvaluate";
-            this.MenuEvaluate.Size = new System.Drawing.Size(180, 22);
+            this.MenuEvaluate.Size = new System.Drawing.Size(152, 22);
             this.MenuEvaluate.Text = "审局";
             this.MenuEvaluate.Click += new System.EventHandler(this.MenuEvaluate_Click);
             // 
             // MenuContinuousEval
             // 
             this.MenuContinuousEval.Name = "MenuContinuousEval";
-            this.MenuContinuousEval.Size = new System.Drawing.Size(180, 22);
+            this.MenuContinuousEval.Size = new System.Drawing.Size(152, 22);
             this.MenuContinuousEval.Text = "连续审局";
             this.MenuContinuousEval.Click += new System.EventHandler(this.MenuContinuousEval_Click);
             // 
             // MenuBatchEval
             // 
             this.MenuBatchEval.Name = "MenuBatchEval";
-            this.MenuBatchEval.Size = new System.Drawing.Size(180, 22);
+            this.MenuBatchEval.Size = new System.Drawing.Size(152, 22);
             this.MenuBatchEval.Text = "批量连续审局";
             this.MenuBatchEval.Click += new System.EventHandler(this.MenuBatchEval_Click);
+            // 
+            // MenuRuleTest
+            // 
+            this.MenuRuleTest.Name = "MenuRuleTest";
+            this.MenuRuleTest.Size = new System.Drawing.Size(152, 22);
+            this.MenuRuleTest.Text = "棋规";
+            this.MenuRuleTest.Click += new System.EventHandler(this.MenuRuleTest_Click);
             // 
             // ilCPieces
             // 
@@ -392,14 +399,7 @@
             // openPGNDialog
             // 
             this.openPGNDialog.Filter = "象棋对局面文件(*.PGN)|*.PGN";
-            this.openPGNDialog.InitialDirectory = "G:\\象棋\\全局\\1-23届五羊杯\\第01届五羊杯象棋赛(1981)";
-            // 
-            // MenuRuleTest
-            // 
-            this.MenuRuleTest.Name = "MenuRuleTest";
-            this.MenuRuleTest.Size = new System.Drawing.Size(180, 22);
-            this.MenuRuleTest.Text = "棋规";
-            this.MenuRuleTest.Click += new System.EventHandler(this.MenuRuleTest_Click);
+            this.openPGNDialog.InitialDirectory = "J:\\C#\\MoleXiangqi\\TestPGN\\SAMPLE.PGN";
             // 
             // MainForm
             // 

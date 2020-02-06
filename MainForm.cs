@@ -12,7 +12,7 @@ namespace MoleXiangqi
     public partial class MainForm : Form
     {
         bool App_bSound = false;
-        readonly string App_szPath = @"G:\C#\MoleXiangqi\Resources\";
+        readonly string App_szPath = @"J:\C#\MoleXiangqi\Resources\";
         bool App_inGame;
         Point mvLastFrom, mvLastTo, ptSelected;
         int pcSelected, pcLast;
@@ -272,7 +272,7 @@ namespace MoleXiangqi
                 if (FENStep % 2 == 1)
                     label = ((FENStep / 2 + 1).ToString() + "." + label);
                 label = label.PadLeft(8);
-                if (CommentList[FENStep].Length == 0)
+                if (!string.IsNullOrEmpty(CommentList[FENStep]))
                     label += "*";
                 ListboxMove.Items.Add(label);
             }
@@ -384,7 +384,7 @@ namespace MoleXiangqi
         private void MenuActivePositionTest_Click(object sender, EventArgs e)
         {
             App_inGame = false;
-            string sourceDirectory = @"G:\象棋\全局\1-23届五羊杯";
+            string sourceDirectory = @"J:\象棋\全局\1-23届五羊杯";
             IEnumerable<string> pgnFiles = Directory.EnumerateFiles(sourceDirectory, "*.PGN", SearchOption.AllDirectories);
             int nFile = 0;
             //统计棋子活动位置的数组
@@ -406,7 +406,7 @@ namespace MoleXiangqi
                     side = 1 ^ side;
                 }
             }
-            POSITION.Write2Csv(@"G:\xqtest\capture.csv", activeGrid);
+            POSITION.Write2Csv(@"J:\xqtest\capture.csv", activeGrid);
             MessageBox.Show(String.Format("Finish reading.Total {0} files", nFile));
         }
 
@@ -416,14 +416,14 @@ namespace MoleXiangqi
             pos.FromFEN(@"3a5/5k3/5a3/5R3/5P3/r8/9/7C1/r2p5/4K4 w - - 0 2");
             SEARCH engine = new SEARCH(pos);
             engine.SearchQuiesce(-5000, 4998);
-            //WriteMap2Csv(pos.attackMap, @"G:\xqtest\attack.csv");
-            //WriteMap2Csv(pos.connectivityMap, @"G:\xqtest\connectivity.csv");
+            //WriteMap2Csv(pos.attackMap, @"J:\xqtest\attack.csv");
+            //WriteMap2Csv(pos.connectivityMap, @"J:\xqtest\connectivity.csv");
         }
 
         private void MenuContinuousEval_Click(object sender, EventArgs e)
         {
             App_inGame = false;
-            string fileName = @"G:\象棋\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
+            string fileName = @"J:\象棋\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
             PgnFileStruct pgn = pos.ReadPgnFile(fileName);
 
             pos.FromFEN(pgn.StartFEN);
@@ -440,7 +440,7 @@ namespace MoleXiangqi
                     Console.WriteLine(score);
             }
 
-            //Write2Csv(@"G:\xqtest\eval.csv", pos.ivpc, totalMoves, 48);
+            //Write2Csv(@"J:\xqtest\eval.csv", pos.ivpc, totalMoves, 48);
             /* 用顶级人类选手的对局来测试评估审局函数的有效性。
              * 理想情况下，双方分数应呈锯齿状交替上升，除去吃子的步骤，应该稳定渐变。
              */
@@ -480,7 +480,7 @@ namespace MoleXiangqi
 
         private void MenuRuleTest_Click(object sender, EventArgs e)
         {
-            pos.RuleTest(@"G:\xqtest\单炮或双炮不能长捉一车2.PGN");
+            pos.RuleTest(@"J:\C#\MoleXiangqi\TestPGN\车被炮牵制不能离线时，车在该线移动不作捉子论.PGN");
         }
 
         void Write2Csv(string csvPath, int[] array)
