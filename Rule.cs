@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-//凡是以i开头的变量都是为了与图形界面沟通使用的
 
 namespace MoleXiangqi
 {
@@ -120,6 +119,13 @@ namespace MoleXiangqi
                     return false;  	//两子互捉，算成兑子，作和
                 if (rulePieceValue[pc] <= rulePieceValue[pcOpp] && attackMap[sd, sq] > 0)
                     return false;   //攻击有根子不算捉，除非被攻击子价值更大
+                //如果吃子导致被将军，则该棋子被牵制中，不算捉子
+                MOVE mv = new MOVE(sqOpp, sq, pcOpp, pc);
+                MovePiece(mv);
+                int suicide = CheckedBy(sdOpp);
+                UndoMovePiece(mv);
+                if (suicide > 0)
+                    return false;
             }
             return true;
         }

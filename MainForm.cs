@@ -480,7 +480,7 @@ namespace MoleXiangqi
 
         private void MenuRuleTest_Click(object sender, EventArgs e)
         {
-            pos.RuleTest(@"J:\C#\MoleXiangqi\TestPGN\车被炮牵制不能离线时，车在该线移动不作捉子论.PGN");
+            pos.RuleTest(@"J:\C#\MoleXiangqi\TestPGN\将帅或兵卒若每步都联合其他子长捉一子仍作负局.PGN");
         }
 
         void Write2Csv(string csvPath, int[] array)
