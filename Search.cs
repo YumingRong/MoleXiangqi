@@ -24,7 +24,8 @@ namespace MoleXiangqi
             {
                 return vl;
             }
-
+            if (board.stepList[board.stepList.Count - 1].halfMoveClock >= 120)
+                return 0;
             RepititionResult rep = board.Repitition();
             if (rep != RepititionResult.NONE)
                 return (int)rep;
