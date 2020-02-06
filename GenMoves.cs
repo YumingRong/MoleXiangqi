@@ -321,17 +321,25 @@ namespace MoleXiangqi
             }
 
             //4. 判断是否将帅对脸
-            sqSrc = sqPieces[32 + KING_FROM];
-            sqDst = sqPieces[16 + KING_FROM];
-            if (SAME_FILE(sqSrc, sqDst))
-            {
-                for (i = sqSrc + 16; i < sqDst; i += 16)
-                    if (pcSquares[i] > 0)
-                        return 0;
+            if (KingsFace2Face())
                 return sqPieces[pcOppSide + KING_FROM];
-            }
             else
                 return 0;
+        }
+
+        //判断是否将帅对脸
+        public bool KingsFace2Face()
+        {
+            int sqSrc = sqPieces[32 + KING_FROM];
+            int sqDst = sqPieces[16 + KING_FROM];
+            if (SAME_FILE(sqSrc, sqDst))
+            {
+                for (int i = sqSrc + 16; i < sqDst; i += 16)
+                    if (pcSquares[i] > 0)
+                        return false;
+                return true;
+            }
+            return false;
         }
 
         // 判断是否被杀

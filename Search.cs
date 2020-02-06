@@ -8,7 +8,7 @@ namespace MoleXiangqi
     {
         public POSITION board;
         int depth = 1;
-        int quiesceNodes = 0;   //for performance measurement
+        public int quiesceNodes = 0;   //for performance measurement
 
         public SEARCH(POSITION pos)
         {
@@ -18,12 +18,19 @@ namespace MoleXiangqi
         const int MATE_VALUE = 5000;
         public int SearchQuiesce(int alpha, int beta)
         {
-            quiesceNodes++;
+            // 1. 杀棋步数裁剪；
+            int vl = depth - MATE_VALUE;
+            if (vl >= beta)
+            {
+                return vl;
+            }
+
             RepititionResult rep = board.Repitition();
             if (rep != RepititionResult.NONE)
                 return (int)rep;
+            quiesceNodes++;
 
-            int best, vl;
+            int best;
             List<MOVE> selectiveMoves = new List<MOVE>();
             int sqCheck = board.stepList[board.stepList.Count - 1].checking;
             if (sqCheck > 0)
@@ -64,7 +71,7 @@ namespace MoleXiangqi
                     foreach (MOVE mv in moves)
                     {
                         board.MovePiece(mv);
-                        if (board.CheckedBy(board.sdPlayer) > 0)
+                        if (!board.KingsFace2Face() && board.CheckedBy(board.sdPlayer) > 0)
                             if (!selectiveMoves.Contains(mv))
                                 selectiveMoves.Add(mv);
                         board.UndoMovePiece(mv);
@@ -77,7 +84,16 @@ namespace MoleXiangqi
                 Debug.Write(new string('\t', depth));
                 Debug.WriteLine("{0} {1} {2} {3}", mv, alpha, beta, best);
                 board.MakeMove(mv);
+                //// 如果移动后被将军了，那么着法是非法的，撤消该着法
+                //if (board.CheckedBy(1 - board.sdPlayer) > 0)
+                //{
+                //    board.UnmakeMove();
+                //    continue;
+                //}
+
                 depth++;
+                if (mv.ToString() == "H8-H9")
+                    Debug.WriteLine("Stop line");
                 vl = -SearchQuiesce(-beta, -alpha);
                 board.UnmakeMove();
                 depth--;
