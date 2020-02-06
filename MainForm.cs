@@ -20,6 +20,7 @@ namespace MoleXiangqi
         bool bFlipped = false;
         bool bSelected;
         List<MOVE> MoveList;
+        List<string> CommentList;
         POSITION pos;
         const int gridSize = 57;
         SoundPlayer soundPlayer;
@@ -34,6 +35,7 @@ namespace MoleXiangqi
             InitializeComponent();
             pos = new POSITION();
             MoveList = new List<MOVE>();
+            CommentList = new List<string>();
             soundPlayer = new SoundPlayer();
         }
 
@@ -69,6 +71,7 @@ namespace MoleXiangqi
             ListboxMove.Items.Add("==开始==");
             MoveList.Clear();
             MoveList.Add(new MOVE());
+            CommentList.Add("");
             PanelBoard.Refresh();
             App_inGame = true;
         }
@@ -147,9 +150,9 @@ namespace MoleXiangqi
                         step.sqDst = sqTo;
                         step.pcSrc = pos.pcSquares[sqFrom];
                         step.pcDst = pcCaptured;
-                        step.comment = textBoxComment.Text;
                         MoveList.Add(step);
                         pos.MakeMove(step);
+                        CommentList.Add(textBoxComment.Text);
 
                         FENStep++;
                         string label = step.ToString();
@@ -220,6 +223,7 @@ namespace MoleXiangqi
             {
                 PGN = pos.ReadPgnFile(openPGNDialog.FileName);
                 MoveList = PGN.MoveList;
+                CommentList = PGN.CommentList;
             }
             else
                 return;
@@ -256,7 +260,7 @@ namespace MoleXiangqi
 
             ListboxMove.Items.Clear();
 
-            if (MoveList[0].comment == null)
+            if (string.IsNullOrEmpty(CommentList[0]))
                 ListboxMove.Items.Add("==开始==");
             else
                 ListboxMove.Items.Add("==开始==*");
@@ -268,7 +272,7 @@ namespace MoleXiangqi
                 if (FENStep % 2 == 1)
                     label = ((FENStep / 2 + 1).ToString() + "." + label);
                 label = label.PadLeft(8);
-                if (step.comment != null)
+                if (CommentList[FENStep].Length == 0)
                     label += "*";
                 ListboxMove.Items.Add(label);
             }
@@ -360,7 +364,7 @@ namespace MoleXiangqi
         {
             if (ListboxMove.SelectedIndex < 0)
                 return;
-            textBoxComment.Text = MoveList[ListboxMove.SelectedIndex].comment;
+            textBoxComment.Text = CommentList[ListboxMove.SelectedIndex];
             if (ListboxMove.SelectedIndex > FENStep)
             {
                 for (int i = FENStep + 1; i <= ListboxMove.SelectedIndex; i++)
@@ -421,7 +425,7 @@ namespace MoleXiangqi
             App_inGame = false;
             string fileName = @"G:\象棋\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
             PgnFileStruct pgn = pos.ReadPgnFile(fileName);
-            
+
             pos.FromFEN(pgn.StartFEN);
             SEARCH engine = new SEARCH(pos);
             engine.SearchQuiesce(-5000, 5000);

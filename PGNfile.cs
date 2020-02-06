@@ -15,6 +15,7 @@ namespace MoleXiangqi
         public string ECCO, Opening, Variation, Result;
         public string Format, StartFEN;
         public List<MOVE> MoveList;
+        public List<string> CommentList;
     }
 
     partial class POSITION
@@ -36,6 +37,7 @@ namespace MoleXiangqi
             FromFEN(cszStartFen);
             PGN.StartFEN = cszStartFen;
             PGN.MoveList = new List<MOVE>();
+            PGN.CommentList = new List<string>();
 
             using (StreamReader fp = new StreamReader(szFileName, Encoding.GetEncoding("GB2312")))
             {
@@ -162,7 +164,6 @@ namespace MoleXiangqi
                         {//is a Chinese move
                             //Debug.WriteLine(s);
                             MOVE mv = ParseWord(s);
-                            mv.comment = comment;
                             if (mv.pcSrc == 0)
                             {
                                 Console.WriteLine("警告：棋谱错误！");
@@ -170,6 +171,7 @@ namespace MoleXiangqi
                             }
                             MakeMove(mv);
                             PGN.MoveList.Add(mv);
+                            PGN.CommentList.Add(comment);
                             comment = null;
                             //phase++;
                         }
@@ -179,6 +181,7 @@ namespace MoleXiangqi
                             MOVE mv = new MOVE(coord.Item1, coord.Item2, pcSquares[coord.Item1], pcSquares[coord.Item2]);
                             MakeMove(mv);
                             PGN.MoveList.Add(mv);
+                            PGN.CommentList.Add("");
                             comment = null;
                         }
                         else

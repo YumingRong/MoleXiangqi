@@ -8,7 +8,6 @@ namespace MoleXiangqi
     {
         public int sqSrc, sqDst;      // 起始格和目标格
         public int pcSrc, pcDst;
-        public string comment;
 
         public MOVE(int sqFrom, int sqTo, int pcFrom, int pcTo)
         {
@@ -16,7 +15,6 @@ namespace MoleXiangqi
             sqDst = sqTo;
             pcSrc = pcFrom;
             pcDst = pcTo;
-            comment = "";
         }
 
         public override string ToString()
