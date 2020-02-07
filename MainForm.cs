@@ -433,7 +433,7 @@ namespace MoleXiangqi
             {
                 MOVE step = pgn.MoveList[i];
                 engine.board.MakeMove(step);
-                int score = -engine.SearchQuiesce(-5000, 5000);
+                int score = -engine.SearchQuiesce(-G.MATE, G.MATE - 100);
                 if (i % 2 == 1)
                     Console.Write("{0}. {1}  ", (i + 1) / 2, score);
                 else

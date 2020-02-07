@@ -6,6 +6,10 @@ using MathNet.Numerics.Statistics;
 
 namespace MoleXiangqi
 {
+    public static class G
+    {
+        public const int MATE = 5000;
+    }
     partial class POSITION
     {
         //各种子力的价值
