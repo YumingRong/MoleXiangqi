@@ -14,7 +14,7 @@ namespace MoleXiangqi
         bool App_bSound = false;
         readonly string App_szPath = @"J:\C#\MoleXiangqi\Resources\";
         bool App_inGame;
-        Point mvLastFrom, mvLastTo, ptSelected;
+        Point ptLastFrom, ptLastTo, ptSelected;
         int pcSelected, pcLast;
         int FENStep; //用来决定要不要显示上一步方框
         bool bFlipped = false;
@@ -70,15 +70,22 @@ namespace MoleXiangqi
             CommentList.Add("");
             PanelBoard.Refresh();
             App_inGame = true;
+
+            //相当于给引擎发出option newgame 指令
             engine = new SEARCH(pos);
+
             if (MenuAIRed.Checked)
             {
-                engine.SearchMain();
+                //相当于go depth指令和bestmove反馈
+                MOVE bestmove = engine.SearchMain(1);
+                MakeMove(bestmove.sqSrc, bestmove.sqDst);
+                PanelBoard.Refresh();
             }
         }
 
         private void MainForm_Load(object sender, EventArgs e)
         {
+            //position startpos指令
             pos.FromFEN(POSITION.cszStartFen);
             NewGame();
         }
@@ -102,8 +109,8 @@ namespace MoleXiangqi
             if (bSelected)
             {
                 if (POSITION.SIDE(piece) == pos.sdPlayer && ptSelected != new Point(x, y))
-                //又选择别的己方子
                 {
+                    //又选择别的己方子
                     DrawBoard(ptSelected, g);
                     DrawPiece(ptSelected, pcSelected, g);
                     ptSelected = new Point(x, y);
@@ -124,58 +131,7 @@ namespace MoleXiangqi
                         sqFrom = POSITION.UI_XY2Coord(ptSelected.X, ptSelected.Y);
                         sqTo = POSITION.UI_XY2Coord(x, y);
                     }
-                    if (pos.IsLegalMove(sqFrom, sqTo))
-                    {
-                        if (FENStep > 0)
-                        {
-                            //擦除上一步的起始和结束位置选择框
-                            DrawBoard(mvLastFrom, g);
-                            DrawBoard(mvLastTo, g);
-                            DrawPiece(mvLastTo, pcLast, g);
-                        }
-
-                        mvLastFrom = ptSelected;
-                        mvLastTo = new Point(x, y);
-                        pcLast = pcSelected;
-
-                        //擦除原来的位置
-                        DrawBoard(mvLastFrom, g);
-                        DrawSelection(mvLastFrom, g);
-                        //移动到新位置
-                        DrawSelection(mvLastTo, g);
-                        DrawPiece(mvLastTo, pcSelected, g);
-                        bSelected = false;
-                        int pcCaptured = pos.pcSquares[sqTo];
-
-                        MOVE step;
-                        step.sqSrc = sqFrom;
-                        step.sqDst = sqTo;
-                        step.pcSrc = pos.pcSquares[sqFrom];
-                        step.pcDst = pcCaptured;
-                        MoveList.Add(step);
-                        pos.MakeMove(step);
-                        CommentList.Add(textBoxComment.Text);
-
-                        FENStep++;
-                        string label = step.ToString();
-                        if (FENStep % 2 == 1)
-                            label = ((FENStep / 2 + 1).ToString() + "." + label);
-                        label = label.PadLeft(8);
-                        ListboxMove.Items.Add(label);
-                        if (piece > 0)
-                            PlaySound("CAPTURE");
-                        else
-                            PlaySound("MOVE");
-
-                        if (POSITION.PIECE_INDEX(pcCaptured) == 1 || pos.IsMate())
-                        {//直接吃王或者绝杀
-                            MessageBox.Show("祝贺你取得胜利！");
-                            PlaySound("WIN");
-                            App_inGame = false;
-                        }
-                    }
-                    //else
-                    //    PlaySound("ILLEGAL");
+                    MakeMove(sqFrom, sqTo);
                 }
             }
             else if (POSITION.SIDE(piece) == pos.sdPlayer)
@@ -191,6 +147,7 @@ namespace MoleXiangqi
         private void PanelBoard_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
+
             for (int x = 0; x < 9; x++)
                 for (int y = 0; y < 10; y++)
                 {
@@ -205,8 +162,8 @@ namespace MoleXiangqi
                 }
             if (FENStep > 0)
             {
-                DrawSelection(mvLastFrom, g);
-                DrawSelection(mvLastTo, g);
+                DrawSelection(ptLastFrom, g);
+                DrawSelection(ptLastTo, g);
             }
         }
 
@@ -289,6 +246,7 @@ namespace MoleXiangqi
         {
             MenuFlipBoard.Checked = !MenuFlipBoard.Checked;
             bFlipped = MenuFlipBoard.Checked;
+            PanelBoard.BackgroundImage.RotateFlip(RotateFlipType.Rotate180FlipXY);
             PanelBoard.Refresh();
         }
 
@@ -357,6 +315,7 @@ namespace MoleXiangqi
             MenuPonder.Checked = true;
         }
 
+        //该函数相当于UCCI 的id命令
         private void MenuAboutEngine_Click(object sender, EventArgs e)
         {
             MessageBox.Show("引擎：鼹鼠象棋\n版本：0.1\n作者：荣宇明\n用户：测试人员", "UCCI引擎");
@@ -378,8 +337,8 @@ namespace MoleXiangqi
                     pos.UnmakeMove();
             }
             FENStep = ListboxMove.SelectedIndex;
-            mvLastFrom = POSITION.UI_Coord2XY(MoveList[ListboxMove.SelectedIndex].sqSrc, bFlipped);
-            mvLastTo = POSITION.UI_Coord2XY(MoveList[ListboxMove.SelectedIndex].sqDst, bFlipped);
+            ptLastFrom = POSITION.UI_Coord2XY(MoveList[ListboxMove.SelectedIndex].sqSrc, bFlipped);
+            ptLastTo = POSITION.UI_Coord2XY(MoveList[ListboxMove.SelectedIndex].sqDst, bFlipped);
             PanelBoard.Refresh();
         }
 
@@ -487,6 +446,62 @@ namespace MoleXiangqi
             pos.RuleTest(@"J:\C#\MoleXiangqi\TestPGN\将帅或兵卒若每步都联合其他子长捉一子仍作负局.PGN");
         }
 
+        void MakeMove(int sqFrom, int sqTo)
+        {
+            Graphics g = PanelBoard.CreateGraphics();
+            if (pos.IsLegalMove(sqFrom, sqTo))
+            {
+                if (FENStep > 0)
+                {
+                    //擦除上一步的起始和结束位置选择框
+                    DrawBoard(ptLastFrom, g);
+                    DrawBoard(ptLastTo, g);
+                    DrawPiece(ptLastTo, pcLast, g);
+                }
+
+                ptLastFrom = POSITION.UI_Coord2XY(sqFrom, bFlipped);
+                ptLastTo = POSITION.UI_Coord2XY(sqTo, bFlipped);
+                pcLast = cnPieceImages[pos.pcSquares[sqFrom]];
+
+                //擦除原来的位置
+                DrawBoard(ptLastFrom, g);
+                DrawSelection(ptLastFrom, g);
+                //移动到新位置
+                DrawSelection(ptLastTo, g);
+                DrawPiece(ptLastTo, pcLast, g);
+                bSelected = false;
+                int pcCaptured = pos.pcSquares[sqTo];
+
+                MOVE step;
+                step.sqSrc = sqFrom;
+                step.sqDst = sqTo;
+                step.pcSrc = pos.pcSquares[sqFrom];
+                step.pcDst = pcCaptured;
+                MoveList.Add(step);
+                pos.MakeMove(step);
+                CommentList.Add(textBoxComment.Text);
+
+                FENStep++;
+                string label = step.ToString();
+                if (FENStep % 2 == 1)
+                    label = ((FENStep / 2 + 1).ToString() + "." + label);
+                label = label.PadLeft(8);
+                ListboxMove.Items.Add(label);
+                if (pos.pcSquares[sqTo] > 0)
+                    PlaySound("CAPTURE");
+                else
+                    PlaySound("MOVE");
+
+                if (POSITION.PIECE_INDEX(pcCaptured) == 1 || pos.IsMate())
+                {//直接吃王或者绝杀
+                    MessageBox.Show("祝贺你取得胜利！");
+                    PlaySound("WIN");
+                    App_inGame = false;
+                }
+            }
+            //else
+            //    PlaySound("ILLEGAL");
+        }
         void Write2Csv(string csvPath, int[] array)
         {
             using (FileStream fs = new FileStream(csvPath.Trim(), FileMode.OpenOrCreate, FileAccess.ReadWrite))

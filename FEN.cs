@@ -37,6 +37,7 @@ namespace MoleXiangqi
             }
         }
 
+        //该函数相当于UCCI的position指令
         public void FromFEN(string szFen)
         {
 
@@ -151,8 +152,8 @@ namespace MoleXiangqi
             return lpFen.ToString();
         }
 
-        public static string UI_Move2Coord(int from, int to)
-        {      // 把着法转换成字符串
+        public static string MOVE2ICCS(int from, int to)
+        {      // 把着法转换成ICCS字符串
             char[] ret = new char[5];
             ret[0] = Convert.ToChar(FILE_X(from) - FILE_LEFT + 'A');
             ret[1] = Convert.ToChar('9' - RANK_Y(from) + RANK_TOP);
@@ -162,7 +163,7 @@ namespace MoleXiangqi
             return new string(ret);
         }
 
-        public Tuple<int, int> Coord2Move(string dwMoveStr)
+        public Tuple<int, int> ICCS2Move(string dwMoveStr)
         { // 把字符串转换成着法
             dwMoveStr = dwMoveStr.ToUpper();
             int sqSrc, sqDst;

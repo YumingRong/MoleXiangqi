@@ -17,7 +17,7 @@ namespace MoleXiangqi
 
         const int MATE = 5000;
 
-        public MOVE SearchMain()
+        public MOVE SearchMain(int depthleft)
         {
             int alpha = -MATE;
             int beta = MATE - 100;
