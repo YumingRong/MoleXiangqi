@@ -22,6 +22,7 @@ namespace MoleXiangqi
         List<MOVE> MoveList;
         List<string> CommentList;
         POSITION pos;
+        SEARCH engine;
         const int gridSize = 57;
         SoundPlayer soundPlayer;
         readonly static int[] cnPieceImages = {
@@ -41,6 +42,7 @@ namespace MoleXiangqi
 
         private void NewGameMenu_Click(object sender, EventArgs e)
         {
+            pos.FromFEN(POSITION.cszStartFen);
             NewGame();
         }
 
@@ -59,12 +61,6 @@ namespace MoleXiangqi
                 MenuAIBlack.Checked = true;
                 bFlipped = true;
             }
-            pos.FromFEN(POSITION.cszStartFen);
-            NewFEN();
-        }
-
-        void NewFEN()
-        {
             FENStep = 0;
             bSelected = false;
             ListboxMove.Items.Clear();
@@ -74,10 +70,16 @@ namespace MoleXiangqi
             CommentList.Add("");
             PanelBoard.Refresh();
             App_inGame = true;
+            engine = new SEARCH(pos);
+            if (MenuAIRed.Checked)
+            {
+                engine.SearchMain();
+            }
         }
 
         private void MainForm_Load(object sender, EventArgs e)
         {
+            pos.FromFEN(POSITION.cszStartFen);
             NewGame();
         }
 
@@ -305,7 +307,7 @@ namespace MoleXiangqi
             {
                 MessageBox.Show("不能识别的局面");
             }
-            NewFEN();
+            NewGame();
         }
 
         private void MenuLoadFEN_Click(object sender, EventArgs e)
@@ -317,7 +319,7 @@ namespace MoleXiangqi
                 {
                     string fen = reader.ReadToEnd();
                     pos.FromFEN(fen);
-                    NewFEN();
+                    NewGame();
                 }
             }
         }
@@ -414,8 +416,8 @@ namespace MoleXiangqi
         {
             App_inGame = false;
             pos.FromFEN(@"c2a1k1n1/2c1a2R1/b6P1/8p/9/9/9/9/4K4/9 w - - 0 1");
-            NewFEN();
-            SEARCH engine = new SEARCH(pos);
+            NewGame();
+            engine = new SEARCH(pos);
             int score = engine.SearchQuiesce(-5000, 4998);
             MessageBox.Show("静态搜索分数" + score + ",搜索节点" + engine.quiesceNodes);
             //WriteMap2Csv(pos.attackMap, @"J:\xqtest\attack.csv");
@@ -429,7 +431,7 @@ namespace MoleXiangqi
             PgnFileStruct pgn = pos.ReadPgnFile(fileName);
 
             pos.FromFEN(pgn.StartFEN);
-            SEARCH engine = new SEARCH(pos);
+            engine = new SEARCH(pos);
             engine.SearchQuiesce(-5000, 5000);
             for (int i = 1; i < pgn.MoveList.Count; i++)
             {

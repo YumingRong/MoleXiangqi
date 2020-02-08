@@ -15,11 +15,60 @@ namespace MoleXiangqi
             board = pos;
         }
 
-        const int MATE_VALUE = 5000;
+        const int MATE = 5000;
+
+        public MOVE SearchMain()
+        {
+            int alpha = -MATE;
+            int beta = MATE - 100;
+            MOVE mvBest = new MOVE();
+            List<MOVE> moves = board.GenerateMoves();
+            foreach(MOVE mv in moves)
+            {
+                board.MakeMove(mv);
+                int vl = SearchPV(alpha, beta, 1);
+                board.UnmakeMove();
+                if (vl > beta)
+                    return mv;
+                if (vl > alpha)
+                {
+                    alpha = vl;
+                    mvBest = mv;
+                }
+            }
+            return mvBest;
+        }
+
+        public int SearchPV(int alpha, int beta, int depthleft)
+        {
+            int best = -MATE;
+            int vl;
+            if (depthleft <= 0)
+                return SearchQuiesce(alpha, beta);
+            List<MOVE> moves = board.GenerateMoves();
+            foreach (MOVE mv in moves)
+            {
+                Debug.Write(new string('\t', depth));
+                Debug.WriteLine("{0} {1} {2} {3}", mv, alpha, beta, best);
+                board.MakeMove(mv);
+                vl = -SearchPV(-beta, -alpha, depthleft - 1);
+                board.UnmakeMove();
+                if (vl > beta)
+                    return vl;
+                if (vl > best)
+                {
+                    best = vl;
+                    if (vl > alpha)
+                        alpha = vl;
+                }
+            }
+            return best;
+        }
+
         public int SearchQuiesce(int alpha, int beta)
         {
             // 1. 杀棋步数裁剪；
-            int vl = depth - MATE_VALUE;
+            int vl = depth - MATE;
             if (vl >= beta)
             {
                 return vl;
@@ -36,7 +85,7 @@ namespace MoleXiangqi
             int sqCheck = board.stepList[board.stepList.Count - 1].checking;
             if (sqCheck > 0)
             {
-                best = depth - MATE_VALUE;
+                best = depth - MATE;
                 // 6. 对于被将军的局面，生成全部着法；
                 List<MOVE> moves = board.GenerateMoves();
                 foreach (MOVE mv in moves)
