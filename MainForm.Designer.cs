@@ -89,27 +89,27 @@
             this.帮助HToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.MenuAboutEngine});
             this.帮助HToolStripMenuItem.Name = "帮助HToolStripMenuItem";
-            this.帮助HToolStripMenuItem.Size = new System.Drawing.Size(62, 20);
+            this.帮助HToolStripMenuItem.Size = new System.Drawing.Size(61, 21);
             this.帮助HToolStripMenuItem.Text = "帮助(&H)";
             // 
             // MenuPonder
             // 
             this.MenuPonder.Name = "MenuPonder";
-            this.MenuPonder.Size = new System.Drawing.Size(141, 22);
+            this.MenuPonder.Size = new System.Drawing.Size(140, 22);
             this.MenuPonder.Text = "后台思考(&P)";
             this.MenuPonder.Click += new System.EventHandler(this.MenuPonder_Click);
             // 
             // MenuAIBlack
             // 
             this.MenuAIBlack.Name = "MenuAIBlack";
-            this.MenuAIBlack.Size = new System.Drawing.Size(141, 22);
+            this.MenuAIBlack.Size = new System.Drawing.Size(140, 22);
             this.MenuAIBlack.Text = "电脑执黑(&B)";
             this.MenuAIBlack.Click += new System.EventHandler(this.MenuAIBlack_Click);
             // 
             // MenuAIRed
             // 
             this.MenuAIRed.Name = "MenuAIRed";
-            this.MenuAIRed.Size = new System.Drawing.Size(141, 22);
+            this.MenuAIRed.Size = new System.Drawing.Size(140, 22);
             this.MenuAIRed.Text = "电脑执红(&R)";
             this.MenuAIRed.Click += new System.EventHandler(this.MenuAIRed_Click);
             // 
@@ -120,20 +120,20 @@
             this.MenuAIBlack,
             this.MenuPonder});
             this.电脑ToolStripMenuItem.Name = "电脑ToolStripMenuItem";
-            this.电脑ToolStripMenuItem.Size = new System.Drawing.Size(59, 20);
+            this.电脑ToolStripMenuItem.Size = new System.Drawing.Size(59, 21);
             this.电脑ToolStripMenuItem.Text = "电脑(&E)";
             // 
             // MenuSaveFEN
             // 
             this.MenuSaveFEN.Name = "MenuSaveFEN";
-            this.MenuSaveFEN.Size = new System.Drawing.Size(235, 22);
+            this.MenuSaveFEN.Size = new System.Drawing.Size(238, 22);
             this.MenuSaveFEN.Text = "导出到局面文件(&S)...";
             this.MenuSaveFEN.Click += new System.EventHandler(this.MenuSaveFEN_Click);
             // 
             // MenuLoadFEN
             // 
             this.MenuLoadFEN.Name = "MenuLoadFEN";
-            this.MenuLoadFEN.Size = new System.Drawing.Size(235, 22);
+            this.MenuLoadFEN.Size = new System.Drawing.Size(238, 22);
             this.MenuLoadFEN.Text = "从局面文件导入(&L)...";
             this.MenuLoadFEN.Click += new System.EventHandler(this.MenuLoadFEN_Click);
             // 
@@ -141,7 +141,7 @@
             // 
             this.MenuPasteFEN.Name = "MenuPasteFEN";
             this.MenuPasteFEN.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.Insert)));
-            this.MenuPasteFEN.Size = new System.Drawing.Size(235, 22);
+            this.MenuPasteFEN.Size = new System.Drawing.Size(238, 22);
             this.MenuPasteFEN.Text = "粘贴局面代码(&P)";
             this.MenuPasteFEN.Click += new System.EventHandler(this.MenuPasteFEN_Click);
             // 
@@ -149,30 +149,30 @@
             // 
             this.MenuCopyFEN.Name = "MenuCopyFEN";
             this.MenuCopyFEN.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Insert)));
-            this.MenuCopyFEN.Size = new System.Drawing.Size(235, 22);
+            this.MenuCopyFEN.Size = new System.Drawing.Size(238, 22);
             this.MenuCopyFEN.Text = "复制局面代码(&C)";
             this.MenuCopyFEN.Click += new System.EventHandler(this.MenuCopyFEN_Click);
             // 
             // toolStripMenuItem2
             // 
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(232, 6);
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(235, 6);
             // 
             // MenuEditFEN
             // 
             this.MenuEditFEN.Name = "MenuEditFEN";
-            this.MenuEditFEN.Size = new System.Drawing.Size(235, 22);
+            this.MenuEditFEN.Size = new System.Drawing.Size(238, 22);
             this.MenuEditFEN.Text = "编辑局面(&E) Ctrl+E...";
             // 
             // toolStripMenuItem1
             // 
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(232, 6);
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(235, 6);
             // 
             // MenuFlipBoard
             // 
             this.MenuFlipBoard.Name = "MenuFlipBoard";
-            this.MenuFlipBoard.Size = new System.Drawing.Size(235, 22);
+            this.MenuFlipBoard.Size = new System.Drawing.Size(238, 22);
             this.MenuFlipBoard.Text = "翻转棋盘(&F)";
             this.MenuFlipBoard.Click += new System.EventHandler(this.MenuFlipBoard_Click);
             // 
@@ -189,20 +189,20 @@
             this.MenuLoadFEN,
             this.MenuSaveFEN});
             this.局面ToolStripMenuItem.Name = "局面ToolStripMenuItem";
-            this.局面ToolStripMenuItem.Size = new System.Drawing.Size(60, 20);
+            this.局面ToolStripMenuItem.Size = new System.Drawing.Size(59, 21);
             this.局面ToolStripMenuItem.Text = "局面(&P)";
             // 
             // 连续审局ToolStripMenuItem
             // 
             this.连续审局ToolStripMenuItem.Name = "连续审局ToolStripMenuItem";
-            this.连续审局ToolStripMenuItem.Size = new System.Drawing.Size(235, 22);
+            this.连续审局ToolStripMenuItem.Size = new System.Drawing.Size(238, 22);
             this.连续审局ToolStripMenuItem.Text = "连续审局";
             // 
             // NewGameMenu
             // 
             this.NewGameMenu.Name = "NewGameMenu";
             this.NewGameMenu.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
-            this.NewGameMenu.Size = new System.Drawing.Size(186, 22);
+            this.NewGameMenu.Size = new System.Drawing.Size(189, 22);
             this.NewGameMenu.Text = "新的对局(&N)";
             this.NewGameMenu.Click += new System.EventHandler(this.NewGameMenu_Click);
             // 
@@ -212,14 +212,14 @@
             this.NewGameMenu,
             this.MenuOpen});
             this.文件ToolStripMenuItem.Name = "文件ToolStripMenuItem";
-            this.文件ToolStripMenuItem.Size = new System.Drawing.Size(59, 20);
+            this.文件ToolStripMenuItem.Size = new System.Drawing.Size(58, 21);
             this.文件ToolStripMenuItem.Text = "文件(&F)";
             // 
             // MenuOpen
             // 
             this.MenuOpen.Name = "MenuOpen";
             this.MenuOpen.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-            this.MenuOpen.Size = new System.Drawing.Size(186, 22);
+            this.MenuOpen.Size = new System.Drawing.Size(189, 22);
             this.MenuOpen.Text = "打开(&O)...";
             this.MenuOpen.Click += new System.EventHandler(this.MenuOpen_Click);
             // 
@@ -233,7 +233,7 @@
             this.MenuBatchEvaluation});
             this.MenuStrip1.Location = new System.Drawing.Point(0, 0);
             this.MenuStrip1.Name = "MenuStrip1";
-            this.MenuStrip1.Size = new System.Drawing.Size(748, 24);
+            this.MenuStrip1.Size = new System.Drawing.Size(748, 25);
             this.MenuStrip1.TabIndex = 2;
             this.MenuStrip1.Text = "MenuStrip1";
             // 
@@ -246,41 +246,41 @@
             this.MenuBatchEval,
             this.MenuRuleTest});
             this.MenuBatchEvaluation.Name = "MenuBatchEvaluation";
-            this.MenuBatchEvaluation.Size = new System.Drawing.Size(45, 20);
+            this.MenuBatchEvaluation.Size = new System.Drawing.Size(44, 21);
             this.MenuBatchEvaluation.Text = "测试";
             // 
             // MenuActivePositionTest
             // 
             this.MenuActivePositionTest.Name = "MenuActivePositionTest";
-            this.MenuActivePositionTest.Size = new System.Drawing.Size(152, 22);
+            this.MenuActivePositionTest.Size = new System.Drawing.Size(148, 22);
             this.MenuActivePositionTest.Text = "棋子活动范围";
             this.MenuActivePositionTest.Click += new System.EventHandler(this.MenuActivePositionTest_Click);
             // 
             // MenuEvaluate
             // 
             this.MenuEvaluate.Name = "MenuEvaluate";
-            this.MenuEvaluate.Size = new System.Drawing.Size(152, 22);
+            this.MenuEvaluate.Size = new System.Drawing.Size(148, 22);
             this.MenuEvaluate.Text = "审局";
             this.MenuEvaluate.Click += new System.EventHandler(this.MenuEvaluate_Click);
             // 
             // MenuContinuousEval
             // 
             this.MenuContinuousEval.Name = "MenuContinuousEval";
-            this.MenuContinuousEval.Size = new System.Drawing.Size(152, 22);
+            this.MenuContinuousEval.Size = new System.Drawing.Size(148, 22);
             this.MenuContinuousEval.Text = "连续审局";
             this.MenuContinuousEval.Click += new System.EventHandler(this.MenuContinuousEval_Click);
             // 
             // MenuBatchEval
             // 
             this.MenuBatchEval.Name = "MenuBatchEval";
-            this.MenuBatchEval.Size = new System.Drawing.Size(152, 22);
+            this.MenuBatchEval.Size = new System.Drawing.Size(148, 22);
             this.MenuBatchEval.Text = "批量连续审局";
             this.MenuBatchEval.Click += new System.EventHandler(this.MenuBatchEval_Click);
             // 
             // MenuRuleTest
             // 
             this.MenuRuleTest.Name = "MenuRuleTest";
-            this.MenuRuleTest.Size = new System.Drawing.Size(152, 22);
+            this.MenuRuleTest.Size = new System.Drawing.Size(148, 22);
             this.MenuRuleTest.Text = "棋规";
             this.MenuRuleTest.Click += new System.EventHandler(this.MenuRuleTest_Click);
             // 
@@ -345,9 +345,9 @@
             this.PanelBoard.Controls.Add(this.ListboxMove);
             this.PanelBoard.Cursor = System.Windows.Forms.Cursors.Arrow;
             this.PanelBoard.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.PanelBoard.Location = new System.Drawing.Point(0, 24);
+            this.PanelBoard.Location = new System.Drawing.Point(0, 25);
             this.PanelBoard.Name = "PanelBoard";
-            this.PanelBoard.Size = new System.Drawing.Size(748, 580);
+            this.PanelBoard.Size = new System.Drawing.Size(748, 579);
             this.PanelBoard.TabIndex = 3;
             this.PanelBoard.Paint += new System.Windows.Forms.PaintEventHandler(this.PanelBoard_Paint);
             this.PanelBoard.MouseClick += new System.Windows.Forms.MouseEventHandler(this.PanelBoard_MouseClick);

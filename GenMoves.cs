@@ -350,9 +350,9 @@ namespace MoleXiangqi
             mvs = GenerateMoves();
             foreach (MOVE mv in mvs)
             {
-                //Debug.WriteLine(UI_Move2Coord(mv) + "," + SRC(mv) + "-" + DST(mv));
+                //Debug.WriteLine(MOVE2ICCS(mv) + "," + SRC(mv) + "-" + DST(mv));
                 MovePiece(mv);
-                if (CheckedBy(sdPlayer) == 0)
+                if (CheckedBy(1 ^ sdPlayer) == 0)
                 {
                     UndoMovePiece(mv);
                     return false;

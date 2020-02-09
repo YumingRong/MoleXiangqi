@@ -176,8 +176,8 @@ namespace MoleXiangqi
                             //phase++;
                         }
                         else if (s.Length ==5)
-                        {// is a English move
-                            Tuple<int, int> coord = Coord2Move(s);
+                        {// is a ICCS format move
+                            Tuple<int, int> coord = ICCS2Move(s);
                             MOVE mv = new MOVE(coord.Item1, coord.Item2, pcSquares[coord.Item1], pcSquares[coord.Item2]);
                             MakeMove(mv);
                             PGN.MoveList.Add(mv);
@@ -285,7 +285,6 @@ namespace MoleXiangqi
                     mv.sqDst = XY2Coord(file1, rank1);
                     if (!IsLegalMove(mv.sqSrc, mv.sqDst))
                     {//有些棋谱会出现相、仕在同一列不用前后表示的情况
-                        //Debug.WriteLine("不规范的记谱:" + word);
                         mv.pcSrc++;
                         mv.sqSrc = sqPieces[mv.pcSrc];
                         Debug.Assert(FILE_X(sqPieces[mv.pcSrc]) == file0);

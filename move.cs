@@ -19,7 +19,7 @@ namespace MoleXiangqi
 
         public override string ToString()
         {
-            return POSITION.UI_Move2Coord(sqSrc, sqDst);
+            return POSITION.MOVE2ICCS(sqSrc, sqDst);
         }
 
         public override bool Equals(object obj)

@@ -17,7 +17,7 @@ namespace MoleXiangqi
 
         const int MATE = 5000;
 
-        public MOVE SearchMain()
+        public MOVE SearchRoot(int depthleft)
         {
             int alpha = -MATE;
             int beta = MATE - 100;
@@ -25,8 +25,10 @@ namespace MoleXiangqi
             List<MOVE> moves = board.GenerateMoves();
             foreach(MOVE mv in moves)
             {
+                Debug.Write(new string('\t', depth));
+                Debug.WriteLine("{0} {1} {2}", mv, alpha, beta);
                 board.MakeMove(mv);
-                int vl = SearchPV(alpha, beta, 1);
+                int vl = -SearchPV(-beta, -alpha, depthleft - 1);
                 board.UnmakeMove();
                 if (vl > beta)
                     return mv;
