@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Media;
 using System.Text;
 using System.Windows.Forms;
+using System.Threading.Tasks;
 
 namespace MoleXiangqi
 {
