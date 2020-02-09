@@ -74,7 +74,6 @@ namespace MoleXiangqi
             engine = new SEARCH(pos);
             if (MenuAIRed.Checked)
             {
-                engine.SearchMain();
             }
         }
 
