@@ -12,7 +12,7 @@ namespace MoleXiangqi
 {
     public partial class MainForm : Form
     {
-        bool App_bSound = false;
+        bool App_bSound = true;
         readonly string App_szPath = @"J:\C#\MoleXiangqi\Resources\";
         bool App_inGame;
         Point ptLastFrom, ptLastTo, ptSelected;
@@ -84,10 +84,9 @@ namespace MoleXiangqi
         async Task GoAsync()
         {
             //相当于go depth指令和bestmove反馈
-            Task<MOVE> GetBestMove = Task<MOVE>.Run(() => engine.SearchMain(1));
+            Task<MOVE> GetBestMove = Task<MOVE>.Run(() => engine.SearchRoot(1));
             MOVE bestmove = await GetBestMove;
             MakeMove(bestmove.sqSrc, bestmove.sqDst);
-            PanelBoard.Refresh();
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -504,8 +503,20 @@ namespace MoleXiangqi
 
                 if (POSITION.PIECE_INDEX(pcCaptured) == 1 || pos.IsMate())
                 {//直接吃王或者绝杀
-                    MessageBox.Show("祝贺你取得胜利！");
-                    PlaySound("WIN");
+                    if (pos.sdPlayer == 1 && MenuAIBlack.Checked && !MenuAIRed.Checked
+      || pos.sdPlayer == 0 && MenuAIRed.Checked && !MenuAIBlack.Checked)
+                    {
+                        PlaySound("WIN");
+                    }
+                    else if (pos.sdPlayer == 1 && !MenuAIBlack.Checked && MenuAIRed.Checked
+                        || pos.sdPlayer == 0 && !MenuAIRed.Checked && MenuAIBlack.Checked)
+                    {
+                        PlaySound("LOSS");
+                    }
+                    if (pos.sdPlayer == 0)
+                        MessageBox.Show("黑方胜！");
+                    else
+                        MessageBox.Show("红方胜！");
                     App_inGame = false;
                 }
             }

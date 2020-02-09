@@ -352,7 +352,7 @@ namespace MoleXiangqi
             {
                 //Debug.WriteLine(MOVE2ICCS(mv) + "," + SRC(mv) + "-" + DST(mv));
                 MovePiece(mv);
-                if (CheckedBy(sdPlayer) == 0)
+                if (CheckedBy(1 ^ sdPlayer) == 0)
                 {
                     UndoMovePiece(mv);
                     return false;
