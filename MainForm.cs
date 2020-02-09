@@ -289,6 +289,7 @@ namespace MoleXiangqi
         {
             MenuFlipBoard.Checked = !MenuFlipBoard.Checked;
             bFlipped = MenuFlipBoard.Checked;
+            PanelBoard.BackgroundImage.RotateFlip(RotateFlipType.Rotate180FlipNone);
             PanelBoard.Refresh();
         }
 
