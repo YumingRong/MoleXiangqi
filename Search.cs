@@ -23,7 +23,7 @@ namespace MoleXiangqi
             int beta = MATE - 100;
             MOVE mvBest = new MOVE();
             List<MOVE> moves = board.GenerateMoves();
-            foreach(MOVE mv in moves)
+            foreach (MOVE mv in moves)
             {
                 Debug.Write(new string('\t', depth));
                 Debug.WriteLine("{0} {1} {2}", mv, alpha, beta);
@@ -102,7 +102,7 @@ namespace MoleXiangqi
             }
             else
             {
-                // 7. 对于未被将军的局面，在生成着法前首先尝试空着(空着启发)，即对局面作评价；
+                //对于未被将军的局面，在生成着法前首先对局面作评价；
                 vl = board.Complex_Evaluate();
                 if (vl > beta)
                     return vl;
@@ -123,9 +123,8 @@ namespace MoleXiangqi
                     foreach (MOVE mv in moves)
                     {
                         board.MovePiece(mv);
-                        if (!board.KingsFace2Face() && board.CheckedBy(board.sdPlayer) > 0)
-                            if (!selectiveMoves.Contains(mv))
-                                selectiveMoves.Add(mv);
+                        if (!board.KingsFace2Face() && board.CheckedBy(board.sdPlayer) > 0 && mv.pcDst == 0)
+                            selectiveMoves.Add(mv);
                         board.UndoMovePiece(mv);
                     }
                 }
