@@ -147,6 +147,7 @@ namespace MoleXiangqi
                 pcSelected = cnPieceImages[piece];
                 DrawSelection(ptSelected, g);
                 bSelected = true;
+                PlaySound("CLICK");
             }
 
         }
@@ -500,11 +501,13 @@ namespace MoleXiangqi
                     PlaySound("CAPTURE");
                 else
                     PlaySound("MOVE");
+                if (pos.CheckedBy(pos.sdPlayer) > 0)
+                    PlaySound("CHECK");
 
                 if (POSITION.PIECE_INDEX(pcCaptured) == 1 || pos.IsMate())
                 {//直接吃王或者绝杀
                     if (pos.sdPlayer == 1 && MenuAIBlack.Checked && !MenuAIRed.Checked
-      || pos.sdPlayer == 0 && MenuAIRed.Checked && !MenuAIBlack.Checked)
+                        || pos.sdPlayer == 0 && MenuAIRed.Checked && !MenuAIBlack.Checked)
                     {
                         PlaySound("WIN");
                     }
