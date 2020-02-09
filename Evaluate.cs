@@ -110,13 +110,13 @@ namespace MoleXiangqi
             //举例：当头炮与对方的帅之间隔了自己的马和对方的相，
             //自己的马就放在DiscoveredAttack里，对方的相就在PinnedPieces里
             int[] tacticValue = new int[2];
-            bool[] PinnedPieces = new bool[48];
+            int[] PinnedPieces = new int[48];   //0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
             bool[,] BannedGrids = new bool[2, 256]; //空头炮与将之间不能走子
             int sqSrc, sqDst, pcDst, delta;
 
             int[] cDiscoveredAttack = { 0, 1, 25, 20, 20, 7, 3, 3 };
             //对阻挡将军的子进行判断
-            void CheckBlocker(int side, int pcBlocker, int sqPinner)
+            void CheckBlocker(int side, int pcBlocker, int sqPinner, int direction)
             {
                 int sdBlocker = SIDE(pcBlocker);
                 int pcKind = cnPieceKinds[pcBlocker];
@@ -130,14 +130,14 @@ namespace MoleXiangqi
                 }
                 else
                 {
-                    PinnedPieces[pcBlocker] = true;
+                    PinnedPieces[pcBlocker] |= direction;
                     //在形如红炮-黑车-红兵-黑将的棋型中，黑车是可以吃红炮的
                     if (IsLegalMove(sqPieces[pcBlocker], sqPinner))
                         attackMap[sdBlocker, sqPinner] = pcBlocker;
 
                 }
             }
-            //find absolute pin.
+            //find absolute pin. 0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
             for (int sd = 0; sd < 2; sd++)
             {
                 int bas = SIDE_TAG(sd);
@@ -159,7 +159,7 @@ namespace MoleXiangqi
                             }
                         }
                         if (nblock == 1)
-                            CheckBlocker(sd, pcBlocker, sqSrc);
+                            CheckBlocker(sd, pcBlocker, sqSrc, 1);
                     }
 
                     if (SAME_RANK(sqSrc, sqOppKing))
@@ -175,7 +175,7 @@ namespace MoleXiangqi
                             }
                         }
                         if (nblock == 1)
-                            CheckBlocker(sd, pcBlocker, sqSrc);
+                            CheckBlocker(sd, pcBlocker, sqSrc, 2);
                     }
                 }
 
@@ -193,7 +193,7 @@ namespace MoleXiangqi
                         }
                         if (nblock == 2)
                             for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
-                                CheckBlocker(sd, pcSquares[sq], sqSrc);
+                                CheckBlocker(sd, pcSquares[sq], sqSrc, 1);
                         else if (nblock == 0) //空心炮
                         {
                             for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
@@ -211,7 +211,7 @@ namespace MoleXiangqi
                         }
                         if (nblock == 2)
                             for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
-                                CheckBlocker(sd, pcSquares[sq], sqSrc);
+                                CheckBlocker(sd, pcSquares[sq], sqSrc, 2);
                         else if (nblock == 0) //空心炮
                         {
                             for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
@@ -229,7 +229,7 @@ namespace MoleXiangqi
                         {
                             pcDst = pcSquares[sqOppKing + ccKnightCheckDelta[i, j]];
                             if (cnPieceTypes[pcDst] == bas + PIECE_KNIGHT)
-                                CheckBlocker(sd, pcBlocker, sqPieces[pcDst]);
+                                CheckBlocker(sd, pcBlocker, sqPieces[pcDst], 3);
                         }
                 }
             }
@@ -254,17 +254,11 @@ namespace MoleXiangqi
                         continue;
                     int pcKind = cnPieceKinds[pc];
                     int sqSrcMirror = sd == 0 ? sqSrc : SQUARE_FLIP(sqSrc);
-
+                    int pin = PinnedPieces[pc];
                     totalPieces++;
                     nP[sd, pcKind]++;
                     materialValue[sd] += cnPieceValue[pc];
-                    //对于pinned的棋子，不考虑其攻击力。
-                    //这是一种简化的计算，实际上pin是有方向的，但这样太过复杂
-                    if (PinnedPieces[pc])
-                    {
-                        //ivpc[nStep, pc] = 0;
-                        continue;
-                    }
+
                     //int posv0 = positionValue[sd];
                     switch (pcKind)
                     {
@@ -280,6 +274,8 @@ namespace MoleXiangqi
                         case PIECE_ROOK:
                             for (int j = 0; j < 4; j++)
                             {
+                                if (ccPinDelta[pin, j])
+                                    continue;
                                 delta = ccKingDelta[j];
                                 for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
                                 {
@@ -294,6 +290,8 @@ namespace MoleXiangqi
                         case PIECE_CANNON:
                             for (int j = 0; j < 4; j++)
                             {
+                                if (ccPinDelta[pin, j])
+                                    continue;
                                 int nDelta = ccKingDelta[j];
                                 for (sqDst = sqSrc + nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
                                 {
@@ -313,6 +311,8 @@ namespace MoleXiangqi
                                 positionValue[sd] += 5;
                             break;
                         case PIECE_KNIGHT:
+                            if (pin > 0)
+                                continue;
                             for (int j = 0; j < 4; j++)
                             {
                                 if (pcSquares[sqSrc + ccKingDelta[j]] == 0)
@@ -324,15 +324,19 @@ namespace MoleXiangqi
                             positionValue[sd] += cKnightValue[sqSrcMirror];
                             break;
                         case PIECE_PAWN:
-                            attackMap[sd, SQUARE_FORWARD(sqSrc, sd)] = pc;
-                            if (HOME_HALF[1 - sd, sqSrc])
-                            {
-                                attackMap[sd, sqSrc + 1] = pc;
-                                attackMap[sd, sqSrc - 1] = pc;
-                            }
+                            if ((pin & 1) == 0)
+                                attackMap[sd, SQUARE_FORWARD(sqSrc, sd)] = pc;
+                            if ((pin & 2) == 0)
+                                if (HOME_HALF[1 - sd, sqSrc])
+                                {
+                                    attackMap[sd, sqSrc + 1] = pc;
+                                    attackMap[sd, sqSrc - 1] = pc;
+                                }
                             positionValue[sd] += cKingPawnValue[sqSrcMirror];
                             break;
                         case PIECE_BISHOP:
+                            if (pin > 0)
+                                continue;
                             for (int j = 0; j < 4; j++)
                             {
                                 sqDst = sqSrc + ccGuardDelta[j];
@@ -342,6 +346,8 @@ namespace MoleXiangqi
                             positionValue[sd] += cBishopGuardValue[sqSrcMirror];
                             break;
                         case PIECE_GUARD:
+                            if (pin > 0)
+                                continue;
                             for (int j = 0; j < 4; j++)
                             {
                                 sqDst = sqSrc + ccGuardDelta[j];

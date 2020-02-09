@@ -6,13 +6,15 @@ namespace MoleXiangqi
     public partial class POSITION
     {
         // 帅(将)的步长
-        static readonly int[] ccKingDelta = { -0x10, -0x01, +0x01, +0x10 };
+        static readonly int[] ccKingDelta = { -0x10, +0x10, - 0x01, +0x01 };
         // 仕(士)的步长
-        static readonly int[] ccGuardDelta = { -0x11, -0x0f, +0x0f, +0x11 };
+        static readonly int[] ccGuardDelta = { -0x11, +0x11, -0x0f, +0x0f };
         // 马的步长，以帅(将)的步长作为马腿
-        static readonly int[,] ccKnightDelta = { { -33, -31 }, { -18, 14 }, { -14, 18 }, { 31, 33 } };
+        static readonly int[,] ccKnightDelta = { { -33, -31 }, { 31, 33 }, { -18, 14 }, { -14, 18 } };
         // 马被将军的步长，以仕(士)的步长作为马腿
-        static readonly int[,] ccKnightCheckDelta = { { -33, -18 }, { -31, -14 }, { 14, 31 }, { 18, 33 } };
+        static readonly int[,] ccKnightCheckDelta = { { -33, -18 }, { 18, 33 }, { -31, -14 }, { 14, 31 } };
+        //[pin, direction]，用来判断棋子运动方向受不受牵制
+        static readonly bool[,] ccPinDelta = { { false, false, false, false }, { false, false, true, true, }, { true, true, false, false }, { true, true, true, true } };
 
         //着法生成器
         public List<MOVE> GenerateMoves()
