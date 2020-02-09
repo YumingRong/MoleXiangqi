@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Media;
 using System.Text;
 using System.Windows.Forms;
+using System.Threading.Tasks;
 
 namespace MoleXiangqi
 {
@@ -43,10 +44,10 @@ namespace MoleXiangqi
         private void NewGameMenu_Click(object sender, EventArgs e)
         {
             pos.FromFEN(POSITION.cszStartFen);
-            NewGame();
+            NewGameAsync();
         }
 
-        private void NewGame()
+        private async void NewGameAsync()
         {
             //swap side
             if (MenuAIBlack.Checked)
@@ -76,18 +77,25 @@ namespace MoleXiangqi
 
             if (MenuAIRed.Checked)
             {
-                //相当于go depth指令和bestmove反馈
-                MOVE bestmove = engine.SearchMain(1);
-                MakeMove(bestmove.sqSrc, bestmove.sqDst);
-                PanelBoard.Refresh();
+                await GoAsync();
             }
+        }
+
+        async Task GoAsync()
+        {
+            //相当于go depth指令和bestmove反馈
+            Task<MOVE> GetBestMove = Task<MOVE>.Run(() => engine.SearchMain(1));
+            MOVE bestmove = await GetBestMove;
+            MakeMove(bestmove.sqSrc, bestmove.sqDst);
+            PanelBoard.Refresh();
         }
 
         private void MainForm_Load(object sender, EventArgs e)
         {
             //position startpos指令
-            pos.FromFEN(POSITION.cszStartFen);
-            NewGame();
+            pos.FromFEN(@"r4k3/9/9/9/9/4R4/9/9/9/4K4 w - - 0 1");
+            //pos.FromFEN(POSITION.cszStartFen);
+            NewGameAsync();
         }
 
         private void PanelBoard_MouseClick(object sender, MouseEventArgs e)
@@ -246,7 +254,7 @@ namespace MoleXiangqi
         {
             MenuFlipBoard.Checked = !MenuFlipBoard.Checked;
             bFlipped = MenuFlipBoard.Checked;
-            PanelBoard.BackgroundImage.RotateFlip(RotateFlipType.Rotate180FlipXY);
+            PanelBoard.BackgroundImage.RotateFlip(RotateFlipType.Rotate180FlipNone);
             PanelBoard.Refresh();
         }
 
@@ -265,7 +273,7 @@ namespace MoleXiangqi
             {
                 MessageBox.Show("不能识别的局面");
             }
-            NewGame();
+            NewGameAsync();
         }
 
         private void MenuLoadFEN_Click(object sender, EventArgs e)
@@ -277,7 +285,7 @@ namespace MoleXiangqi
                 {
                     string fen = reader.ReadToEnd();
                     pos.FromFEN(fen);
-                    NewGame();
+                    NewGameAsync();
                 }
             }
         }
@@ -294,18 +302,20 @@ namespace MoleXiangqi
             }
         }
 
-        private void MenuAIRed_Click(object sender, EventArgs e)
+        private async void MenuAIRed_Click(object sender, EventArgs e)
         {
             MenuAIRed.Checked = !MenuAIRed.Checked;
             MenuPonder.Checked = false;
-            bFlipped = true;
+            //bFlipped = true;
+            if (MenuAIRed.Checked && pos.sdPlayer == 0 || MenuAIBlack.Checked && pos.sdPlayer == 1)
+                await GoAsync();
         }
 
         private void MenuAIBlack_Click(object sender, EventArgs e)
         {
             MenuAIBlack.Checked = !MenuAIBlack.Checked;
             MenuPonder.Checked = false;
-            bFlipped = false;
+            //bFlipped = false;
         }
 
         private void MenuPonder_Click(object sender, EventArgs e)
@@ -375,7 +385,7 @@ namespace MoleXiangqi
         {
             App_inGame = false;
             pos.FromFEN(@"c2a1k1n1/2c1a2R1/b6P1/8p/9/9/9/9/4K4/9 w - - 0 1");
-            NewGame();
+            NewGameAsync();
             engine = new SEARCH(pos);
             int score = engine.SearchQuiesce(-5000, 4998);
             MessageBox.Show("静态搜索分数" + score + ",搜索节点" + engine.quiesceNodes);
