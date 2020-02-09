@@ -416,13 +416,13 @@ namespace MoleXiangqi
         private void MenuEvaluate_Click(object sender, EventArgs e)
         {
             App_inGame = false;
-            pos.FromFEN(@"4kab1C/3P5/4c1N2/4p4/9/9/9/4R3C/2pp1pp2/4K4 w - - 0 1");
-            int score = pos.Complex_Evaluate();
-            //NewGame();
-            //engine = new SEARCH(pos);
-            //int score = engine.SearchQuiesce(-5000, 4998);
-            //MessageBox.Show("静态搜索分数" + score + ",搜索节点" + engine.quiesceNodes);
-            WriteMap2Csv(pos.attackMap, @"G:\xqtest\attack.csv");
+            pos.FromFEN(@"3a5/5k3/5a3/5R3/5P3/r8/9/7C1/r2p5/4K4 w - - 0 2");
+            //int score = pos.Complex_Evaluate();
+            NewGame();
+            engine = new SEARCH(pos);
+            int score = engine.SearchQuiesce(-5000, 4000);
+            MessageBox.Show("静态搜索分数" + score + ",搜索节点" + engine.quiesceNodes);
+            //WriteMap2Csv(pos.attackMap, @"G:\xqtest\attack.csv");
             //WriteMap2Csv(pos.connectivityMap, @"J:\xqtest\connectivity.csv");
         }
 
