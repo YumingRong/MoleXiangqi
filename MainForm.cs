@@ -87,7 +87,7 @@ namespace MoleXiangqi
             //相当于go depth指令和bestmove反馈
             while (pos.sdPlayer == 1 && MenuAIBlack.Checked || pos.sdPlayer == 0 && MenuAIRed.Checked)
             {
-                Task<MOVE> GetBestMove = Task<MOVE>.Run(() => engine.SearchRoot(1));
+                Task<MOVE> GetBestMove = Task<MOVE>.Run(() => engine.SearchMain(1));
                 MOVE bestmove = await GetBestMove;
                 MakeMove(bestmove.sqSrc, bestmove.sqDst);
             }
@@ -394,7 +394,7 @@ namespace MoleXiangqi
             NewGameAsync();
             engine = new SEARCH(pos);
             int score = engine.SearchQuiesce(-5000, 4998);
-            MessageBox.Show("静态搜索分数" + score + ",搜索节点" + engine.quiesceNodes);
+            MessageBox.Show("静态搜索分数" + score + ",搜索节点" + engine.stat.QuiesceNodes);
             //WriteMap2Csv(pos.attackMap, @"G:\xqtest\attack.csv");
             //WriteMap2Csv(pos.connectivityMap, @"G:\xqtest\connectivity.csv");
         }

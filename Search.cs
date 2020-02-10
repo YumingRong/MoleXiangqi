@@ -11,7 +11,6 @@ namespace MoleXiangqi
         public long ElapsedTime;
         public long Cutoffs;
         public int CaptureExtensions, CheckExtesions;
-        public List<MOVE> PVLine;
 
         public static void DisplayTimerProperties()
         {
@@ -38,12 +37,6 @@ namespace MoleXiangqi
             sb.AppendLine(String.Format("Cutoffs: {0}", Cutoffs));
             sb.AppendLine(String.Format("Extesions: Check {0}, Capture {1}", CheckExtesions, CaptureExtensions));
             sb.Append("PV line: ");
-            foreach (MOVE mv in PVLine)
-            {
-                sb.Append(mv);
-                sb.Append(" -- ");
-            }
-            sb.AppendLine();
             return sb.ToString();
         }
     }
@@ -51,21 +44,44 @@ namespace MoleXiangqi
     partial class SEARCH
     {
         public POSITION board;
+        public STATISTICS stat;
+
+
+        Stopwatch stopwatch;
+        public List<MOVE> PVLine;
         int depth = 0;
-        public int quiesceNodes = 0;   //for performance measurement
-        STATISTICS stat;
 
         public SEARCH(POSITION pos)
         {
             board = pos;
+            stopwatch = new Stopwatch();
         }
 
-        public MOVE SearchRoot(int depthleft)
+        public MOVE SearchMain(int depthleft)
         {
-            Stopwatch stopwatch = new Stopwatch();
+            // 6. 做迭代加深搜索
+            for (int i = 1; i <= depthleft; i++)
+            {
+                int vl = SearchRoot(i);
+
+                StringBuilder sb = new StringBuilder();
+                foreach (MOVE mv in PVLine)
+                {
+                    sb.Append(mv);
+                    sb.Append(" -- ");
+                }
+                sb.AppendLine();
+
+            }
+            return PVLine[0];
+        }
+
+
+        public int SearchRoot(int depthleft)
+        {
             stopwatch.Start();
             stat = new STATISTICS();
-            stat.PVLine = new List<MOVE>();
+            PVLine = new List<MOVE>();
             killers = new MOVE[G.MAX_PLY,2];
             history = new int[256, 256];
 
@@ -89,10 +105,10 @@ namespace MoleXiangqi
                 {
                     alpha = vl;
                     mvBest = mv;
-                    stat.PVLine.Clear();
-                    stat.PVLine.Add(mvBest);
+                    PVLine.Clear();
+                    PVLine.Add(mvBest);
                     if (subpv != null)
-                        stat.PVLine.AddRange(subpv);
+                        PVLine.AddRange(subpv);
                     if (vl > beta)
                     {
                         stat.Cutoffs++;
@@ -101,10 +117,10 @@ namespace MoleXiangqi
                 }
             }
             stopwatch.Stop();
-            stat.ElapsedTime = stopwatch.ElapsedMilliseconds;
+            stat.ElapsedTime += stopwatch.ElapsedMilliseconds;
             Console.WriteLine(stat);
             Console.WriteLine("Best move {0}, score {1}", mvBest, alpha);
-            return mvBest;
+            return alpha;
         }
 
         public int SearchPV(int alpha, int beta, int depthleft, out List<MOVE> pvs)
