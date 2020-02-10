@@ -79,29 +79,30 @@ namespace MoleXiangqi
             //相当于给引擎发出option newgame 指令
             engine = new SEARCH(pos);
 
-            if (MenuAIRed.Checked)
-            {
-                await GoAsync();
-            }
+            await GoAsync();
         }
 
         async Task GoAsync()
         {
             //相当于go depth指令和bestmove反馈
-            Task<MOVE> GetBestMove = Task<MOVE>.Run(() => engine.SearchRoot(1));
-            MOVE bestmove = await GetBestMove;
-            MakeMove(bestmove.sqSrc, bestmove.sqDst);
+            while (pos.sdPlayer == 1 && MenuAIBlack.Checked || pos.sdPlayer == 0 && MenuAIRed.Checked)
+            {
+                Task<MOVE> GetBestMove = Task<MOVE>.Run(() => engine.SearchRoot(1));
+                MOVE bestmove = await GetBestMove;
+                MakeMove(bestmove.sqSrc, bestmove.sqDst);
+            }
+
         }
 
         private void MainForm_Load(object sender, EventArgs e)
         {
             //position startpos指令
-            pos.FromFEN(@"r4k3/9/9/9/9/4R4/9/9/9/4K4 w - - 0 1");
+            pos.FromFEN(@"3a5/4ak3/9/3R5/5P3/r8/9/7C1/r2p5/4K4 w - - 0 1");
             //pos.FromFEN(POSITION.cszStartFen);
             NewGameAsync();
         }
 
-        private void PanelBoard_MouseClick(object sender, MouseEventArgs e)
+        private async void PanelBoard_MouseClick(object sender, MouseEventArgs e)
         {
             if (!App_inGame)
                 return;
@@ -143,15 +144,17 @@ namespace MoleXiangqi
                         sqTo = POSITION.UI_XY2Coord(x, y);
                     }
                     MakeMove(sqFrom, sqTo);
+                    await GoAsync();
                 }
             }
             else if (POSITION.SIDE(piece) == pos.sdPlayer)
-            {
-                ptSelected = new Point(x, y);
-                pcSelected = cnPieceImages[piece];
-                DrawSelection(ptSelected, g);
-                bSelected = true;
-            }
+                if (pos.sdPlayer == 0 && !MenuAIRed.Checked || pos.sdPlayer == 1 && !MenuAIBlack.Checked)
+                {
+                    ptSelected = new Point(x, y);
+                    pcSelected = cnPieceImages[piece];
+                    DrawSelection(ptSelected, g);
+                    bSelected = true;
+                }
 
         }
 
@@ -505,7 +508,7 @@ namespace MoleXiangqi
                 else
                     PlaySound("MOVE");
 
-                if (POSITION.PIECE_INDEX(pcCaptured) == 1 || pos.IsMate())
+                if (pos.IsMate() || POSITION.cnPieceKinds[pcCaptured] == 1)
                 {//直接吃王或者绝杀
                     if (pos.sdPlayer == 1 && MenuAIBlack.Checked && !MenuAIRed.Checked
       || pos.sdPlayer == 0 && MenuAIRed.Checked && !MenuAIBlack.Checked)
