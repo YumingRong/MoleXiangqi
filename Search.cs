@@ -23,7 +23,7 @@ namespace MoleXiangqi
             int beta = MATE - 100;
             MOVE mvBest = new MOVE();
             List<MOVE> moves = board.GenerateMoves();
-            foreach(MOVE mv in moves)
+            foreach (MOVE mv in moves)
             {
                 Debug.Write(new string('\t', depth));
                 Debug.WriteLine("{0} {1} {2}", mv, alpha, beta);
@@ -123,9 +123,8 @@ namespace MoleXiangqi
                     foreach (MOVE mv in moves)
                     {
                         board.MovePiece(mv);
-                        if (!board.KingsFace2Face() && board.CheckedBy(board.sdPlayer) > 0)
-                            if (!selectiveMoves.Contains(mv))
-                                selectiveMoves.Add(mv);
+                        if (mv.sqDst > 0 && !board.KingsFace2Face() && board.CheckedBy(board.sdPlayer) > 0)
+                            selectiveMoves.Add(mv);
                         board.UndoMovePiece(mv);
                     }
                 }
