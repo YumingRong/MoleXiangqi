@@ -11,24 +11,15 @@ namespace MoleXiangqi
         public long ElapsedTime;
         public long Cutoffs;
         public int CaptureExtensions, CheckExtesions;
-
-        //public STATISTICS()
-        //{
-        //    QuiesceNodes = PVNodes = CutNodes = 0;
-        //    ElapsedTime = 0;
-        //}
+        public MOVE[] PVLine;
 
         public static void DisplayTimerProperties()
         {
             // Display the timer frequency and resolution.
             if (Stopwatch.IsHighResolution)
-            {
                 Console.WriteLine("Operations timed using the system's high-resolution performance counter.");
-            }
             else
-            {
                 Console.WriteLine("Operations timed using the DateTime class.");
-            }
 
             long frequency = Stopwatch.Frequency;
             Console.WriteLine("  Timer frequency in ticks per second = {0}",
@@ -40,14 +31,21 @@ namespace MoleXiangqi
 
         public override string ToString()
         {
-            DisplayTimerProperties();
             int totalNodes = QuiesceNodes + PVNodes + CutNodes; 
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(String.Format("Nodes: total {0}， PV {1}, Cut {2}, Quiesce {3}", totalNodes, QuiesceNodes, PVNodes, CutNodes));
             sb.AppendLine(String.Format("Elapsed time: {0} millisecondN. Nodes per second: {1}", ElapsedTime, totalNodes * 1000 / ElapsedTime));
             sb.AppendLine(String.Format("Cutoffs: {0}", Cutoffs));
             sb.AppendLine(String.Format("Extesions: Check {0}, Capture {1}", CheckExtesions, CaptureExtensions));
-
+            sb.Append("PV line: ");
+            foreach (MOVE mv in PVLine)
+            {
+                if (mv.sqSrc == 0)
+                    break;
+                sb.Append(mv);
+                sb.Append(" -- ");
+            }
+            sb.AppendLine();
             return sb.ToString();
         }
     }
@@ -62,17 +60,17 @@ namespace MoleXiangqi
         public SEARCH(POSITION pos)
         {
             board = pos;
-            stat = new STATISTICS();
         }
-
-        const int MATE = 5000;
 
         public MOVE SearchRoot(int depthleft)
         {
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
-            int alpha = -MATE;
-            int beta = MATE - 100;
+            stat = new STATISTICS();
+            stat.PVLine = new MOVE[G.MAX_PLY];
+
+            int alpha = -G.MATE;
+            int beta = G.MATE - 100;
             MOVE mvBest = new MOVE();
             List<MOVE> moves = board.GenerateMoves();
             foreach (MOVE mv in moves)
@@ -89,7 +87,7 @@ namespace MoleXiangqi
                 {
                     alpha = vl;
                     mvBest = mv;
-
+                    stat.PVLine[0] = mvBest;
                     if (vl > beta)
                     {
                         stat.Cutoffs++;
@@ -100,12 +98,13 @@ namespace MoleXiangqi
             stopwatch.Stop();
             stat.ElapsedTime = stopwatch.ElapsedMilliseconds;
             Console.WriteLine(stat);
+            Console.WriteLine("Best move {0}, score {1}", mvBest, alpha);
             return mvBest;
         }
 
         public int SearchPV(int alpha, int beta, int depthleft)
         {
-            int best = -MATE;
+            int best = -G.MATE;
             int vl;
             stat.PVNodes++;
             if (depthleft <= 0)
@@ -130,6 +129,7 @@ namespace MoleXiangqi
                     best = vl;
                     if (vl > alpha)
                         alpha = vl;
+                    stat.PVLine[depth] = mv;
                 }
             }
             return best;
@@ -138,7 +138,7 @@ namespace MoleXiangqi
         public int SearchQuiesce(int alpha, int beta)
         {
             // 1. 杀棋步数裁剪；
-            int vl = depth - MATE;
+            int vl = depth - G.MATE;
             if (vl >= beta)
             {
                 return vl;
@@ -155,7 +155,7 @@ namespace MoleXiangqi
             int sqCheck = board.stepList[board.stepList.Count - 1].checking;
             if (sqCheck > 0)
             {
-                best = depth - MATE;
+                best = depth - G.MATE;
                 // 6. 对于被将军的局面，生成全部着法；
                 List<MOVE> moves = board.GenerateMoves();
                 foreach (MOVE mv in moves)
@@ -234,6 +234,7 @@ namespace MoleXiangqi
                     }
                     best = vl;
                     alpha = Math.Max(alpha, vl);
+                    stat.PVLine[depth] = mv;
                 }
 
             }
