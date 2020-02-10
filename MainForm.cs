@@ -97,7 +97,7 @@ namespace MoleXiangqi
         private void MainForm_Load(object sender, EventArgs e)
         {
             //position startpos指令
-            pos.FromFEN(@"3a5/4ak3/9/3R5/5P3/r8/9/7C1/r2p5/4K4 w - - 0 1");
+            pos.FromFEN(@"3a1k3/9/5P3/9/9/5r3/9/5C3/r2p5/4K4 w - - 0 6");
             //pos.FromFEN(POSITION.cszStartFen);
             NewGameAsync();
         }

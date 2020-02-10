@@ -137,6 +137,8 @@ namespace MoleXiangqi
 
                 }
             }
+
+            attackMap = new int[2, 256];    //保存攻击该格的价值最低的棋子
             //find absolute pin. 0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
             for (int sd = 0; sd < 2; sd++)
             {
@@ -239,7 +241,6 @@ namespace MoleXiangqi
             int[,] nP = new int[2, 8];  //每个兵种的棋子数量
             int[] materialValue = new int[2];
             int[] positionValue = new int[2];
-            attackMap = new int[2, 256];    //保存攻击该格的价值最低的棋子
             connectivityMap = new int[2, 256];
 
             //Generate attack map, from most valuable piece to cheap piece

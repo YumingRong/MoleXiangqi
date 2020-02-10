@@ -7,7 +7,7 @@ namespace MoleXiangqi
     class SEARCH
     {
         public POSITION board;
-        int depth = 1;
+        int depth = 0;
         public int quiesceNodes = 0;   //for performance measurement
 
         public SEARCH(POSITION pos)
@@ -28,7 +28,9 @@ namespace MoleXiangqi
                 Debug.Write(new string('\t', depth));
                 Debug.WriteLine("{0} {1} {2}", mv, alpha, beta);
                 board.MakeMove(mv);
+                depth++;
                 int vl = -SearchPV(-beta, -alpha, depthleft - 1);
+                depth--;
                 board.UnmakeMove();
                 if (vl > beta)
                     return mv;
@@ -53,7 +55,9 @@ namespace MoleXiangqi
                 Debug.Write(new string('\t', depth));
                 Debug.WriteLine("{0} {1} {2} {3}", mv, alpha, beta, best);
                 board.MakeMove(mv);
+                depth++;
                 vl = -SearchPV(-beta, -alpha, depthleft - 1);
+                depth--;
                 board.UnmakeMove();
                 if (vl > beta)
                     return vl;
@@ -119,8 +123,8 @@ namespace MoleXiangqi
                         //选择不重复，未对将并将军对方的着法
                         if (mv.pcDst == 0 && !board.KingsFace2Face() && board.CheckedBy(board.sdPlayer) > 0)
                         {
-                            //给送吃的着法打低分
-                            int score = board.attackMap[1 - board.sdPlayer, mv.sqDst] == 0 ? 0 : -20;
+                            //给送吃的着法打稍低分
+                            int score = board.attackMap[1 - board.sdPlayer, mv.sqDst] == 0 ? 30 : 10;
                             board.captureMoves.Add(new KeyValuePair<MOVE, int>(mv, score));
                         }
                         board.UndoMovePiece(mv);
@@ -146,13 +150,10 @@ namespace MoleXiangqi
                 //    board.UnmakeMove();
                 //    continue;
                 //}
-
                 depth++;
-                if (mv.ToString() == "H8-H9")
-                    Debug.WriteLine("Stop line");
                 vl = -SearchQuiesce(-beta, -alpha);
-                board.UnmakeMove();
                 depth--;
+                board.UnmakeMove();
                 //Debug.Write(new string('\t', depth));
                 //Debug.WriteLine("{0} {1}", mv, best);
                 if (vl > best)
