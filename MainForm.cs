@@ -12,10 +12,10 @@ namespace MoleXiangqi
 {
     public partial class MainForm : Form
     {
-        bool App_bSound = false;
-        readonly string App_szPath = @"J:\C#\MoleXiangqi\Resources\";
+        bool App_bSound = true;
+        readonly string App_szPath;
         bool App_inGame;
-        Point mvLastFrom, mvLastTo, ptSelected;
+        Point ptLastFrom, ptLastTo, ptSelected;
         int pcSelected, pcLast;
         int FENStep; //用来决定要不要显示上一步方框
         bool bFlipped = false;
@@ -39,15 +39,19 @@ namespace MoleXiangqi
             MoveList = new List<MOVE>();
             CommentList = new List<string>();
             soundPlayer = new SoundPlayer();
+            string path = Application.StartupPath;
+            path = Path.GetDirectoryName(path);
+            path = Path.GetDirectoryName(path);
+            App_szPath = Path.Combine(path, "Resources");
         }
 
         private void NewGameMenu_Click(object sender, EventArgs e)
         {
             pos.FromFEN(POSITION.cszStartFen);
-            NewGame();
+            NewGameAsync();
         }
 
-        private void NewGame()
+        private async void NewGameAsync()
         {
             //swap side
             if (MenuAIBlack.Checked)
@@ -71,19 +75,34 @@ namespace MoleXiangqi
             CommentList.Add("");
             PanelBoard.Refresh();
             App_inGame = true;
+
+            //相当于给引擎发出option newgame 指令
             engine = new SEARCH(pos);
-            if (MenuAIRed.Checked)
+
+            await GoAsync();
+        }
+
+        async Task GoAsync()
+        {
+            //相当于go depth指令和bestmove反馈
+            while (pos.sdPlayer == 1 && MenuAIBlack.Checked || pos.sdPlayer == 0 && MenuAIRed.Checked)
             {
+                Task<MOVE> GetBestMove = Task<MOVE>.Run(() => engine.SearchRoot(1));
+                MOVE bestmove = await GetBestMove;
+                MakeMove(bestmove.sqSrc, bestmove.sqDst);
             }
+
         }
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            pos.FromFEN(POSITION.cszStartFen);
-            NewGame();
+            //position startpos指令
+            pos.FromFEN(@"3a5/4ak3/9/3R5/5P3/r8/9/7C1/r2p5/4K4 w - - 0 1");
+            //pos.FromFEN(POSITION.cszStartFen);
+            NewGameAsync();
         }
 
-        private void PanelBoard_MouseClick(object sender, MouseEventArgs e)
+        private async void PanelBoard_MouseClick(object sender, MouseEventArgs e)
         {
             if (!App_inGame)
                 return;
@@ -102,8 +121,8 @@ namespace MoleXiangqi
             if (bSelected)
             {
                 if (POSITION.SIDE(piece) == pos.sdPlayer && ptSelected != new Point(x, y))
-                //又选择别的己方子
                 {
+                    //又选择别的己方子
                     DrawBoard(ptSelected, g);
                     DrawPiece(ptSelected, pcSelected, g);
                     ptSelected = new Point(x, y);
@@ -124,73 +143,25 @@ namespace MoleXiangqi
                         sqFrom = POSITION.UI_XY2Coord(ptSelected.X, ptSelected.Y);
                         sqTo = POSITION.UI_XY2Coord(x, y);
                     }
-                    if (pos.IsLegalMove(sqFrom, sqTo))
-                    {
-                        if (FENStep > 0)
-                        {
-                            //擦除上一步的起始和结束位置选择框
-                            DrawBoard(mvLastFrom, g);
-                            DrawBoard(mvLastTo, g);
-                            DrawPiece(mvLastTo, pcLast, g);
-                        }
-
-                        mvLastFrom = ptSelected;
-                        mvLastTo = new Point(x, y);
-                        pcLast = pcSelected;
-
-                        //擦除原来的位置
-                        DrawBoard(mvLastFrom, g);
-                        DrawSelection(mvLastFrom, g);
-                        //移动到新位置
-                        DrawSelection(mvLastTo, g);
-                        DrawPiece(mvLastTo, pcSelected, g);
-                        bSelected = false;
-                        int pcCaptured = pos.pcSquares[sqTo];
-
-                        MOVE step;
-                        step.sqSrc = sqFrom;
-                        step.sqDst = sqTo;
-                        step.pcSrc = pos.pcSquares[sqFrom];
-                        step.pcDst = pcCaptured;
-                        MoveList.Add(step);
-                        pos.MakeMove(step);
-                        CommentList.Add(textBoxComment.Text);
-
-                        FENStep++;
-                        string label = step.ToString();
-                        if (FENStep % 2 == 1)
-                            label = ((FENStep / 2 + 1).ToString() + "." + label);
-                        label = label.PadLeft(8);
-                        ListboxMove.Items.Add(label);
-                        if (piece > 0)
-                            PlaySound("CAPTURE");
-                        else
-                            PlaySound("MOVE");
-
-                        if (POSITION.PIECE_INDEX(pcCaptured) == 1 || pos.IsMate())
-                        {//直接吃王或者绝杀
-                            MessageBox.Show("祝贺你取得胜利！");
-                            PlaySound("WIN");
-                            App_inGame = false;
-                        }
-                    }
-                    //else
-                    //    PlaySound("ILLEGAL");
+                    MakeMove(sqFrom, sqTo);
+                    await GoAsync();
                 }
             }
             else if (POSITION.SIDE(piece) == pos.sdPlayer)
-            {
-                ptSelected = new Point(x, y);
-                pcSelected = cnPieceImages[piece];
-                DrawSelection(ptSelected, g);
-                bSelected = true;
-            }
+                if (pos.sdPlayer == 0 && !MenuAIRed.Checked || pos.sdPlayer == 1 && !MenuAIBlack.Checked)
+                {
+                    ptSelected = new Point(x, y);
+                    pcSelected = cnPieceImages[piece];
+                    DrawSelection(ptSelected, g);
+                    bSelected = true;
+                }
 
         }
 
         private void PanelBoard_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
+
             for (int x = 0; x < 9; x++)
                 for (int y = 0; y < 10; y++)
                 {
@@ -205,8 +176,8 @@ namespace MoleXiangqi
                 }
             if (FENStep > 0)
             {
-                DrawSelection(mvLastFrom, g);
-                DrawSelection(mvLastTo, g);
+                DrawSelection(ptLastFrom, g);
+                DrawSelection(ptLastTo, g);
             }
         }
 
@@ -308,7 +279,7 @@ namespace MoleXiangqi
             {
                 MessageBox.Show("不能识别的局面");
             }
-            NewGame();
+            NewGameAsync();
         }
 
         private void MenuLoadFEN_Click(object sender, EventArgs e)
@@ -320,7 +291,7 @@ namespace MoleXiangqi
                 {
                     string fen = reader.ReadToEnd();
                     pos.FromFEN(fen);
-                    NewGame();
+                    NewGameAsync();
                 }
             }
         }
@@ -337,18 +308,20 @@ namespace MoleXiangqi
             }
         }
 
-        private void MenuAIRed_Click(object sender, EventArgs e)
+        private async void MenuAIRed_Click(object sender, EventArgs e)
         {
             MenuAIRed.Checked = !MenuAIRed.Checked;
             MenuPonder.Checked = false;
-            bFlipped = true;
+            //bFlipped = true;
+            if (MenuAIRed.Checked && pos.sdPlayer == 0 || MenuAIBlack.Checked && pos.sdPlayer == 1)
+                await GoAsync();
         }
 
         private void MenuAIBlack_Click(object sender, EventArgs e)
         {
             MenuAIBlack.Checked = !MenuAIBlack.Checked;
             MenuPonder.Checked = false;
-            bFlipped = false;
+            //bFlipped = false;
         }
 
         private void MenuPonder_Click(object sender, EventArgs e)
@@ -358,6 +331,7 @@ namespace MoleXiangqi
             MenuPonder.Checked = true;
         }
 
+        //该函数相当于UCCI 的id命令
         private void MenuAboutEngine_Click(object sender, EventArgs e)
         {
             MessageBox.Show("引擎：鼹鼠象棋\n版本：0.1\n作者：荣宇明\n用户：测试人员", "UCCI引擎");
@@ -379,15 +353,15 @@ namespace MoleXiangqi
                     pos.UnmakeMove();
             }
             FENStep = ListboxMove.SelectedIndex;
-            mvLastFrom = POSITION.UI_Coord2XY(MoveList[ListboxMove.SelectedIndex].sqSrc, bFlipped);
-            mvLastTo = POSITION.UI_Coord2XY(MoveList[ListboxMove.SelectedIndex].sqDst, bFlipped);
+            ptLastFrom = POSITION.UI_Coord2XY(MoveList[ListboxMove.SelectedIndex].sqSrc, bFlipped);
+            ptLastTo = POSITION.UI_Coord2XY(MoveList[ListboxMove.SelectedIndex].sqDst, bFlipped);
             PanelBoard.Refresh();
         }
 
         private void MenuActivePositionTest_Click(object sender, EventArgs e)
         {
             App_inGame = false;
-            string sourceDirectory = @"J:\象棋\全局\1-23届五羊杯";
+            string sourceDirectory = @"G:\象棋\全局\1-23届五羊杯";
             IEnumerable<string> pgnFiles = Directory.EnumerateFiles(sourceDirectory, "*.PGN", SearchOption.AllDirectories);
             int nFile = 0;
             //统计棋子活动位置的数组
@@ -409,27 +383,26 @@ namespace MoleXiangqi
                     side = 1 ^ side;
                 }
             }
-            POSITION.Write2Csv(@"J:\xqtest\capture.csv", activeGrid);
+            POSITION.Write2Csv(@"G:\xqtest\capture.csv", activeGrid);
             MessageBox.Show(String.Format("Finish reading.Total {0} files", nFile));
         }
 
         private void MenuEvaluate_Click(object sender, EventArgs e)
         {
             App_inGame = false;
-            pos.FromFEN(@"4kab1C/3P5/4c1N2/4p4/9/9/9/4R3C/2pp1pp2/4K4 w - - 0 1");
-            int score = pos.Complex_Evaluate();
-            //NewGame();
-            //engine = new SEARCH(pos);
-            //int score = engine.SearchQuiesce(-5000, 4998);
-            //MessageBox.Show("静态搜索分数" + score + ",搜索节点" + engine.quiesceNodes);
-            WriteMap2Csv(pos.attackMap, @"G:\xqtest\attack.csv");
-            //WriteMap2Csv(pos.connectivityMap, @"J:\xqtest\connectivity.csv");
+            pos.FromFEN(@"c2a1k1n1/2c1a2R1/b6P1/8p/9/9/9/9/4K4/9 w - - 0 1");
+            NewGameAsync();
+            engine = new SEARCH(pos);
+            int score = engine.SearchQuiesce(-5000, 4998);
+            MessageBox.Show("静态搜索分数" + score + ",搜索节点" + engine.quiesceNodes);
+            //WriteMap2Csv(pos.attackMap, @"G:\xqtest\attack.csv");
+            //WriteMap2Csv(pos.connectivityMap, @"G:\xqtest\connectivity.csv");
         }
 
         private void MenuContinuousEval_Click(object sender, EventArgs e)
         {
             App_inGame = false;
-            string fileName = @"J:\象棋\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
+            string fileName = @"G:\象棋\全局\1-23届五羊杯\第01届五羊杯象棋赛(1981)\第01局-胡荣华(红先负)柳大华.PGN";
             PgnFileStruct pgn = pos.ReadPgnFile(fileName);
 
             pos.FromFEN(pgn.StartFEN);
@@ -446,7 +419,7 @@ namespace MoleXiangqi
                     Console.WriteLine(score);
             }
 
-            //Write2Csv(@"J:\xqtest\eval.csv", pos.ivpc, totalMoves, 48);
+            //Write2Csv(@"G:\xqtest\eval.csv", pos.ivpc, totalMoves, 48);
             /* 用顶级人类选手的对局来测试评估审局函数的有效性。
              * 理想情况下，双方分数应呈锯齿状交替上升，除去吃子的步骤，应该稳定渐变。
              */
@@ -474,7 +447,7 @@ namespace MoleXiangqi
                 return;
             try
             {
-                soundPlayer.SoundLocation = App_szPath + "SOUNDS\\" + szWavFile + ".WAV";
+                soundPlayer.SoundLocation = App_szPath + @"\SOUNDS\" + szWavFile + ".WAV";
                 soundPlayer.Load();
                 soundPlayer.Play();
             }
@@ -486,9 +459,77 @@ namespace MoleXiangqi
 
         private void MenuRuleTest_Click(object sender, EventArgs e)
         {
-            pos.RuleTest(@"J:\C#\MoleXiangqi\TestPGN\将帅或兵卒若每步都联合其他子长捉一子仍作负局.PGN");
+            pos.RuleTest(@"G:\C#\MoleXiangqi\TestPGN\将帅或兵卒若每步都联合其他子长捉一子仍作负局.PGN");
         }
 
+        void MakeMove(int sqFrom, int sqTo)
+        {
+            Graphics g = PanelBoard.CreateGraphics();
+            if (pos.IsLegalMove(sqFrom, sqTo))
+            {
+                if (FENStep > 0)
+                {
+                    //擦除上一步的起始和结束位置选择框
+                    DrawBoard(ptLastFrom, g);
+                    DrawBoard(ptLastTo, g);
+                    DrawPiece(ptLastTo, pcLast, g);
+                }
+
+                ptLastFrom = POSITION.UI_Coord2XY(sqFrom, bFlipped);
+                ptLastTo = POSITION.UI_Coord2XY(sqTo, bFlipped);
+                pcLast = cnPieceImages[pos.pcSquares[sqFrom]];
+
+                //擦除原来的位置
+                DrawBoard(ptLastFrom, g);
+                DrawSelection(ptLastFrom, g);
+                //移动到新位置
+                DrawSelection(ptLastTo, g);
+                DrawPiece(ptLastTo, pcLast, g);
+                bSelected = false;
+                int pcCaptured = pos.pcSquares[sqTo];
+
+                MOVE step;
+                step.sqSrc = sqFrom;
+                step.sqDst = sqTo;
+                step.pcSrc = pos.pcSquares[sqFrom];
+                step.pcDst = pcCaptured;
+                MoveList.Add(step);
+                pos.MakeMove(step);
+                CommentList.Add(textBoxComment.Text);
+
+                FENStep++;
+                string label = step.ToString();
+                if (FENStep % 2 == 1)
+                    label = ((FENStep / 2 + 1).ToString() + "." + label);
+                label = label.PadLeft(8);
+                ListboxMove.Items.Add(label);
+                if (pos.pcSquares[sqTo] > 0)
+                    PlaySound("CAPTURE");
+                else
+                    PlaySound("MOVE");
+
+                if (pos.IsMate() || POSITION.cnPieceKinds[pcCaptured] == 1)
+                {//直接吃王或者绝杀
+                    if (pos.sdPlayer == 1 && MenuAIBlack.Checked && !MenuAIRed.Checked
+      || pos.sdPlayer == 0 && MenuAIRed.Checked && !MenuAIBlack.Checked)
+                    {
+                        PlaySound("WIN");
+                    }
+                    else if (pos.sdPlayer == 1 && !MenuAIBlack.Checked && MenuAIRed.Checked
+                        || pos.sdPlayer == 0 && !MenuAIRed.Checked && MenuAIBlack.Checked)
+                    {
+                        PlaySound("LOSS");
+                    }
+                    if (pos.sdPlayer == 0)
+                        MessageBox.Show("黑方胜！");
+                    else
+                        MessageBox.Show("红方胜！");
+                    App_inGame = false;
+                }
+            }
+            //else
+            //    PlaySound("ILLEGAL");
+        }
         void Write2Csv(string csvPath, int[] array)
         {
             using (FileStream fs = new FileStream(csvPath.Trim(), FileMode.OpenOrCreate, FileAccess.ReadWrite))

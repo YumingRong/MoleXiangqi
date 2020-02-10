@@ -116,17 +116,16 @@ namespace MoleXiangqi
                     foreach (MOVE mv in moves)
                     {
                         board.MovePiece(mv);
-                        //选择照将着法且不与已有吃子着法重复且不对将
+                        //选择不重复，未对将并将军对方的着法
                         if (mv.pcDst == 0 && !board.KingsFace2Face() && board.CheckedBy(board.sdPlayer) > 0)
                         {
-                            //对于送吃的走法给低分
+                            //给送吃的着法打低分
                             int score = board.attackMap[1 - board.sdPlayer, mv.sqDst] == 0 ? 0 : -20;
                             board.captureMoves.Add(new KeyValuePair<MOVE, int>(mv, score));
                         }
                         board.UndoMovePiece(mv);
                     }
                 }
-
                 if (board.captureMoves.Count > 0)
                 {
                     board.captureMoves.Sort(delegate (KeyValuePair<MOVE, int> a, KeyValuePair<MOVE, int> b)

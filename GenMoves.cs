@@ -273,8 +273,8 @@ namespace MoleXiangqi
             Debug.Assert(IN_BOARD[sqSrc]);
 
             // 1. 判断是否被对方的兵(卒)将军
-            if (cnPieceTypes[pcSquares[SQUARE_FORWARD(sqSrc, sdPlayer)]] == pcOppSide + PIECE_PAWN)
-                return SQUARE_FORWARD(sqSrc, sdPlayer);
+            if (cnPieceTypes[pcSquares[SQUARE_FORWARD(sqSrc, side)]] == pcOppSide + PIECE_PAWN)
+                return SQUARE_FORWARD(sqSrc, side);
             if (cnPieceTypes[pcSquares[sqSrc - 1]] == pcOppSide + PIECE_PAWN)
                 return sqSrc - 1;
             if (cnPieceTypes[pcSquares[sqSrc + 1]] == pcOppSide + PIECE_PAWN)
@@ -354,7 +354,7 @@ namespace MoleXiangqi
             {
                 //Debug.WriteLine(MOVE2ICCS(mv) + "," + SRC(mv) + "-" + DST(mv));
                 MovePiece(mv);
-                if (CheckedBy(1 ^ sdPlayer) == 0)
+                if (CheckedBy(1^sdPlayer) == 0)
                 {
                     UndoMovePiece(mv);
                     return false;
