@@ -108,13 +108,6 @@ namespace MoleXiangqi
                     return vl;
                 best = vl;
                 alpha = Math.Max(alpha, vl);
-                if (board.captureMoves.Count > 0)
-                {
-                    board.captureMoves.Sort(delegate (KeyValuePair<MOVE, int> a, KeyValuePair<MOVE, int> b)
-                    { return b.Value.CompareTo(a.Value); });
-                    foreach (KeyValuePair<MOVE, int> mv_vl in board.captureMoves)
-                        selectiveMoves.Add(mv_vl.Key);
-                }
                 //如果是将军导致的延伸搜索，则继续寻找连将的着法
                 //因为搜索将军着法是一件费时的事情，所以在非连将的情况下，只搜索吃子着法
                 if (board.stepList.Count >= 2 && board.stepList[board.stepList.Count - 2].checking > 0)
@@ -123,10 +116,22 @@ namespace MoleXiangqi
                     foreach (MOVE mv in moves)
                     {
                         board.MovePiece(mv);
-                        if (!board.KingsFace2Face() && board.CheckedBy(board.sdPlayer) > 0 && mv.pcDst == 0)
-                            selectiveMoves.Add(mv);
+                        //选择不重复，未对将并将军对方的着法
+                        if (mv.pcDst == 0 && !board.KingsFace2Face() && board.CheckedBy(board.sdPlayer) > 0)
+                        {
+                            //给送吃的着法打低分
+                            int score = board.attackMap[1 - board.sdPlayer, mv.sqDst] == 0 ? 0 : -20;
+                            board.captureMoves.Add(new KeyValuePair<MOVE, int>(mv, score));
+                        }
                         board.UndoMovePiece(mv);
                     }
+                }
+                if (board.captureMoves.Count > 0)
+                {
+                    board.captureMoves.Sort(delegate (KeyValuePair<MOVE, int> a, KeyValuePair<MOVE, int> b)
+                    { return b.Value.CompareTo(a.Value); });
+                    foreach (KeyValuePair<MOVE, int> mv_vl in board.captureMoves)
+                        selectiveMoves.Add(mv_vl.Key);
                 }
 
             }
