@@ -82,6 +82,7 @@
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
     <Compile Include="move.cs" />
+    <Compile Include="MoveSort.cs" />
     <Compile Include="PGNfile.cs" />
     <Compile Include="Position.cs" />
     <Compile Include="PreGen.cs" />

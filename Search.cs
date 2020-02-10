@@ -11,7 +11,7 @@ namespace MoleXiangqi
         public long ElapsedTime;
         public long Cutoffs;
         public int CaptureExtensions, CheckExtesions;
-        public MOVE[] PVLine;
+        public List<MOVE> PVLine;
 
         public static void DisplayTimerProperties()
         {
@@ -40,8 +40,6 @@ namespace MoleXiangqi
             sb.Append("PV line: ");
             foreach (MOVE mv in PVLine)
             {
-                if (mv.sqSrc == 0)
-                    break;
                 sb.Append(mv);
                 sb.Append(" -- ");
             }
@@ -50,7 +48,7 @@ namespace MoleXiangqi
         }
     }
 
-    class SEARCH
+    partial class SEARCH
     {
         public POSITION board;
         int depth = 0;
@@ -67,19 +65,23 @@ namespace MoleXiangqi
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
             stat = new STATISTICS();
-            stat.PVLine = new MOVE[G.MAX_PLY];
+            stat.PVLine = new List<MOVE>();
+            killers = new MOVE[G.MAX_PLY,2];
+            history = new int[256, 256];
 
             int alpha = -G.MATE;
             int beta = G.MATE - 100;
             MOVE mvBest = new MOVE();
             List<MOVE> moves = board.GenerateMoves();
+            List<MOVE> subpv;
+
             foreach (MOVE mv in moves)
             {
                 Debug.Write(new string('\t', depth));
                 Debug.WriteLine("{0} {1} {2}", mv, alpha, beta);
                 board.MakeMove(mv);
                 depth++;
-                int vl = -SearchPV(-beta, -alpha, depthleft - 1);
+                int vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
                 depth--;
                 board.UnmakeMove();
                 
@@ -87,7 +89,10 @@ namespace MoleXiangqi
                 {
                     alpha = vl;
                     mvBest = mv;
-                    stat.PVLine[0] = mvBest;
+                    stat.PVLine.Clear();
+                    stat.PVLine.Add(mvBest);
+                    if (subpv != null)
+                        stat.PVLine.AddRange(subpv);
                     if (vl > beta)
                     {
                         stat.Cutoffs++;
@@ -102,36 +107,49 @@ namespace MoleXiangqi
             return mvBest;
         }
 
-        public int SearchPV(int alpha, int beta, int depthleft)
+        public int SearchPV(int alpha, int beta, int depthleft, out List<MOVE> pvs)
         {
             int best = -G.MATE;
             int vl;
             stat.PVNodes++;
+            pvs = null;
             if (depthleft <= 0)
                 return SearchQuiesce(alpha, beta);
+            List<MOVE> subpv;
             List<MOVE> moves = board.GenerateMoves();
+            MOVE mvBest = new MOVE(); 
+
             foreach (MOVE mv in moves)
             {
                 Debug.Write(new string('\t', depth));
                 Debug.WriteLine("{0} {1} {2} {3}", mv, alpha, beta, best);
                 board.MakeMove(mv);
                 depth++;
-                vl = -SearchPV(-beta, -alpha, depthleft - 1);
+                vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
                 depth--;
                 board.UnmakeMove();
-                if (vl > beta)
-                {
-                    stat.Cutoffs++;
-                    return vl;
-                }
                 if (vl > best)
                 {
                     best = vl;
+                    if (vl > beta)
+                    {
+                        stat.Cutoffs++;
+                        mvBest = mv;
+                        break;
+                    }
                     if (vl > alpha)
+                    {
                         alpha = vl;
-                    stat.PVLine[depth] = mv;
+                        mvBest = mv;
+                        subpv.Insert(0, mv);
+                        pvs = subpv;
+
+                    }
                 }
             }
+
+            if (mvBest.sqSrc != 0)
+                SetBestMove(mvBest, depth);
             return best;
         }
 
@@ -234,7 +252,6 @@ namespace MoleXiangqi
                     }
                     best = vl;
                     alpha = Math.Max(alpha, vl);
-                    stat.PVLine[depth] = mv;
                 }
 
             }
