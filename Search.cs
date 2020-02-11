@@ -31,7 +31,7 @@ namespace MoleXiangqi
             int totalNodes = QuiesceNodes + PVNodes + CutNodes;
             StringBuilder sb = new StringBuilder();
             sb.AppendLine($"Nodes: total {totalNodes}， PV {PVNodes}, Cut {CutNodes}, Quiesce {QuiesceNodes}");
-            sb.AppendLine($"Elapsed time: {ElapsedTime} millisecondN. Nodes per second: {totalNodes * 1000 / ElapsedTime}");
+            sb.AppendLine($"Elapsed time: {ElapsedTime} millisecond. Nodes per second: {totalNodes * 1000 / ElapsedTime}");
             sb.AppendLine($"Cutoffs: {Cutoffs}");
             sb.AppendLine($"Extesions: Check {CheckExtesions}, Capture {CaptureExtensions}");
             return sb.ToString();

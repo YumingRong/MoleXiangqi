@@ -199,22 +199,22 @@ namespace MoleXiangqi
             switch (cnPieceKinds[pcMoved])
             {
                 // 3. 如果是帅(将)或仕(士)，则先看是否在九宫内，再看是否是合理位移
-                case PIECE_KING:
+                case KING:
                     return IN_FORT[sqDst] && KING_SPAN(sqSrc, sqDst);
-                case PIECE_GUARD:
+                case GUARD:
                     return IN_FORT[sqDst] && ADVISOR_SPAN(sqSrc, sqDst);
 
                 // 4. 如果是相(象)，则先看是否过河，再看是否是合理位移，最后看有没有被塞象眼
-                case PIECE_BISHOP:
+                case BISHOP:
                     return SAME_HALF(sqSrc, sqDst) && BISHOP_SPAN(sqSrc, sqDst) && pcSquares[BISHOP_PIN(sqSrc, sqDst)] == 0;
 
                 // 5. 如果是马，则先看看是否是合理位移，再看有没有被蹩马腿
-                case PIECE_KNIGHT:
+                case KNIGHT:
                     sqPin = KNIGHT_PIN(sqSrc, sqDst);
                     return sqPin != sqSrc && pcSquares[sqPin] == 0;
 
                 // 6. 如果是车，则先看是横向移动还是纵向移动
-                case PIECE_ROOK:
+                case ROOK:
                     if (SAME_RANK(sqSrc, sqDst))
                     {
                         nDelta = (sqDst < sqSrc ? -1 : 1);
@@ -235,7 +235,7 @@ namespace MoleXiangqi
                     return true;
 
                 // 7. 如果是炮，判断起来和车一样
-                case PIECE_CANNON:
+                case CANNON:
                     if (SAME_RANK(sqSrc, sqDst))
                         nDelta = (sqDst < sqSrc ? -1 : 1);
                     else if (SAME_FILE(sqSrc, sqDst))
@@ -273,11 +273,11 @@ namespace MoleXiangqi
             Debug.Assert(IN_BOARD[sqSrc]);
 
             // 1. 判断是否被对方的兵(卒)将军
-            if (cnPieceTypes[pcSquares[SQUARE_FORWARD(sqSrc, side)]] == pcOppSide + PIECE_PAWN)
+            if (cnPieceTypes[pcSquares[SQUARE_FORWARD(sqSrc, side)]] == pcOppSide + PAWN)
                 return SQUARE_FORWARD(sqSrc, side);
-            if (cnPieceTypes[pcSquares[sqSrc - 1]] == pcOppSide + PIECE_PAWN)
+            if (cnPieceTypes[pcSquares[sqSrc - 1]] == pcOppSide + PAWN)
                 return sqSrc - 1;
-            if (cnPieceTypes[pcSquares[sqSrc + 1]] == pcOppSide + PIECE_PAWN)
+            if (cnPieceTypes[pcSquares[sqSrc + 1]] == pcOppSide + PAWN)
                 return sqSrc + 1;
 
             // 2. 判断是否被对方的马将军(以仕(士)的步长当作马腿)
@@ -289,7 +289,7 @@ namespace MoleXiangqi
                     {
                         sqDst = sqSrc + ccKnightCheckDelta[i, j];
                         pcDst = pcSquares[sqDst];
-                        if (cnPieceTypes[pcDst] == pcOppSide + PIECE_KNIGHT)
+                        if (cnPieceTypes[pcDst] == pcOppSide + KNIGHT)
                             return sqDst;
                     }
             }
@@ -304,7 +304,7 @@ namespace MoleXiangqi
                     if (pcDst != 0)
                     {
                         pcDst = cnPieceTypes[pcDst];
-                        if (pcDst == pcOppSide + PIECE_ROOK)
+                        if (pcDst == pcOppSide + ROOK)
                             return sqDst;
                         else
                             for (sqDst += nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
@@ -312,7 +312,7 @@ namespace MoleXiangqi
                                 pcDst = pcSquares[sqDst];
                                 if (pcDst != 0)
                                 {
-                                    if (cnPieceTypes[pcDst] == pcOppSide + PIECE_CANNON)
+                                    if (cnPieceTypes[pcDst] == pcOppSide + CANNON)
                                         return sqDst;
                                     goto NextFor3;
                                 }

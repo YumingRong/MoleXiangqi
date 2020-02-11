@@ -21,14 +21,14 @@ namespace MoleXiangqi
         public List<STEP> stepList;
 
         // 每种子力的类型编号，按子力价值排序
-        const int PIECE_EMPTY = 0;
-        const int PIECE_KING = 1;
-        const int PIECE_ROOK = 2;
-        const int PIECE_CANNON = 3;
-        const int PIECE_KNIGHT = 4;
-        const int PIECE_PAWN = 5;
-        const int PIECE_BISHOP = 6;
-        const int PIECE_GUARD = 7;       //仕更准确的翻译是guard，而不是advisor
+        const int EMPTY = 0;
+        const int KING = 1;
+        const int ROOK = 2;
+        const int CANNON = 3;
+        const int KNIGHT = 4;
+        const int PAWN = 5;
+        const int BISHOP = 6;
+        const int GUARD = 7;       //仕更准确的翻译是guard，而不是advisor
 
 
         // 每种子力的开始序号和结束序号
@@ -128,7 +128,7 @@ namespace MoleXiangqi
             return (sd > 0 ? 16 : 32);
         }
 
-        public static int PIECE_INDEX(int pc)
+        public static int INDEX(int pc)
         {
             return pc & 15;
         }

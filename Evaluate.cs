@@ -121,7 +121,7 @@ namespace MoleXiangqi
                 int sdBlocker = SIDE(pcBlocker);
                 int pcKind = cnPieceKinds[pcBlocker];
                 //未过河兵没有牵制和闪击
-                if (pcKind == PIECE_PAWN && HOME_HALF[sdBlocker, sqPieces[pcBlocker]])
+                if (pcKind == PAWN && HOME_HALF[sdBlocker, sqPieces[pcBlocker]])
                     return;
                 if (sdBlocker == side)
                 {
@@ -230,7 +230,7 @@ namespace MoleXiangqi
                         for (int j = 0; j < 2; j++)
                         {
                             pcDst = pcSquares[sqOppKing + ccKnightCheckDelta[i, j]];
-                            if (cnPieceTypes[pcDst] == bas + PIECE_KNIGHT)
+                            if (cnPieceTypes[pcDst] == bas + KNIGHT)
                                 CheckBlocker(sd, pcBlocker, sqPieces[pcDst], 3);
                         }
                 }
@@ -263,7 +263,7 @@ namespace MoleXiangqi
                     //int posv0 = positionValue[sd];
                     switch (pcKind)
                     {
-                        case PIECE_KING:
+                        case KING:
                             for (int i = 0; i < 4; i++)
                             {
                                 sqDst = sqSrc + ccKingDelta[i];
@@ -272,7 +272,7 @@ namespace MoleXiangqi
                             }
                             positionValue[sd] += cKingPawnValue[sqSrcMirror];
                             break;
-                        case PIECE_ROOK:
+                        case ROOK:
                             for (int j = 0; j < 4; j++)
                             {
                                 if (ccPinDelta[pin, j])
@@ -288,7 +288,7 @@ namespace MoleXiangqi
                             }
                             positionValue[sd] += cRookValue[sqSrcMirror];
                             break;
-                        case PIECE_CANNON:
+                        case CANNON:
                             for (int j = 0; j < 4; j++)
                             {
                                 if (ccPinDelta[pin, j])
@@ -311,7 +311,7 @@ namespace MoleXiangqi
                             if (SAME_FILE(sqSrc, sqOppKing) || SAME_RANK(sqSrc, sqOppKing))
                                 positionValue[sd] += 5;
                             break;
-                        case PIECE_KNIGHT:
+                        case KNIGHT:
                             if (pin > 0)
                                 continue;
                             for (int j = 0; j < 4; j++)
@@ -324,7 +324,7 @@ namespace MoleXiangqi
                             }
                             positionValue[sd] += cKnightValue[sqSrcMirror];
                             break;
-                        case PIECE_PAWN:
+                        case PAWN:
                             if ((pin & 1) == 0)
                                 attackMap[sd, SQUARE_FORWARD(sqSrc, sd)] = pc;
                             if ((pin & 2) == 0)
@@ -335,7 +335,7 @@ namespace MoleXiangqi
                                 }
                             positionValue[sd] += cKingPawnValue[sqSrcMirror];
                             break;
-                        case PIECE_BISHOP:
+                        case BISHOP:
                             if (pin > 0)
                                 continue;
                             for (int j = 0; j < 4; j++)
@@ -346,7 +346,7 @@ namespace MoleXiangqi
                             }
                             positionValue[sd] += cBishopGuardValue[sqSrcMirror];
                             break;
-                        case PIECE_GUARD:
+                        case GUARD:
                             if (pin > 0)
                                 continue;
                             for (int j = 0; j < 4; j++)
@@ -371,23 +371,23 @@ namespace MoleXiangqi
             for (int sd = 0; sd < 2; sd++)
             {
                 //棋盘上的子越多，炮的威力越大，马的威力越小
-                pair[sd] += (int)(2.4 * totalPieces * nP[sd, PIECE_CANNON]);  //可调系数
-                pair[sd] -= (int)(0.9 * totalPieces * nP[sd, PIECE_KNIGHT]);  //可调系数
+                pair[sd] += (int)(2.4 * totalPieces * nP[sd, CANNON]);  //可调系数
+                pair[sd] -= (int)(0.9 * totalPieces * nP[sd, KNIGHT]);  //可调系数
                 //兵卒的价值随着对方攻击子力的减少而增加（即增加了过河的可能性）
-                int enemyAttack = nP[1 - sd, PIECE_ROOK] * 2 + nP[1 - sd, PIECE_CANNON] + nP[1 - sd, PIECE_KNIGHT];
+                int enemyAttack = nP[1 - sd, ROOK] * 2 + nP[1 - sd, CANNON] + nP[1 - sd, KNIGHT];
                 int[] additionalPawnValue = { 28, 21, 15, 10, 6, 3, 2, 1, 0 };
-                pair[sd] += nP[sd, PIECE_PAWN] * additionalPawnValue[enemyAttack];
+                pair[sd] += nP[sd, PAWN] * additionalPawnValue[enemyAttack];
                 //兵种不全扣分
-                if (nP[sd, PIECE_ROOK] == 0)
+                if (nP[sd, ROOK] == 0)
                     pair[sd] -= 30; //有车胜无车
-                if (nP[sd, PIECE_CANNON] == 0)
+                if (nP[sd, CANNON] == 0)
                     pair[sd] -= 20;
-                if (nP[sd, PIECE_KNIGHT] == 0)
+                if (nP[sd, KNIGHT] == 0)
                     pair[sd] -= 20;
                 //缺相怕炮
-                pair[sd] += (nP[sd, PIECE_BISHOP] - nP[1 - sd, PIECE_CANNON]) * 15;
+                pair[sd] += (nP[sd, BISHOP] - nP[1 - sd, CANNON]) * 15;
                 //缺仕怕车
-                pair[sd] += (nP[sd, PIECE_GUARD] - nP[1 - sd, PIECE_ROOK]) * 15;
+                pair[sd] += (nP[sd, GUARD] - nP[1 - sd, ROOK]) * 15;
             }
 
             int[] connectivity = new int[2];
@@ -441,7 +441,7 @@ namespace MoleXiangqi
                             if (BannedGrids[sd, sqDst])
                                 tacticValue[1 ^ sd] += attackMap[1 - sd, sqDst] > 0 ? cDiscoveredAttack[cnPieceKinds[attackMap[1 - sd, sqDst]]] : 2;
                             //机动性, 不考虑炮的空射，因为炮的射界与活动范围不同，且炮架可能是对方的车、炮或兵、帅
-                            else if (attackMap[sd, sqDst] > 0 && cnPieceKinds[attackMap[sd, sqDst]] != PIECE_CANNON && attackMap[1 - sd, sqDst] == 0)
+                            else if (attackMap[sd, sqDst] > 0 && cnPieceKinds[attackMap[sd, sqDst]] != CANNON && attackMap[1 - sd, sqDst] == 0)
                                 connectivity[sd] += 2;
                     }
                     connectivityMap[0, sqDst] = connectivity[0] - conn00;
@@ -587,18 +587,18 @@ namespace MoleXiangqi
                         materialValue[sd] += cnPieceValue[pc];
                         switch (pcKind)
                         {
-                            case PIECE_ROOK:
+                            case ROOK:
                                 if (SAME_FILE(sq, sqOppKing) || SAME_RANK(sq, sqOppKing))
                                     positionValue[sd] += 15;
                                 positionValue[sd] += cRookValue[sqMirror];
                                 break;
-                            case PIECE_CANNON:
+                            case CANNON:
                                 if (SAME_FILE(sq, sqOppKing))
                                     positionValue[sd] += 20;
                                 else if (SAME_RANK(sq, sqOppKing))
                                     positionValue[sd] += 12;
                                 break;
-                            case PIECE_KNIGHT:
+                            case KNIGHT:
                                 positionValue[sd] += cKnightValue[sqMirror];
                                 //检查绊马腿
                                 for (int j = 0; j < 4; j++)
@@ -608,12 +608,12 @@ namespace MoleXiangqi
                                         positionValue[sd] -= 8;
                                 }
                                 break;
-                            case PIECE_PAWN:
-                            case PIECE_KING:
+                            case PAWN:
+                            case KING:
                                 positionValue[sd] += cKingPawnValue[sqMirror];
                                 break;
-                            case PIECE_BISHOP:
-                            case PIECE_GUARD:
+                            case BISHOP:
+                            case GUARD:
                                 positionValue[sd] += cBishopGuardValue[sqMirror];
                                 break;
                         }
@@ -624,23 +624,23 @@ namespace MoleXiangqi
             for (int sd = 0; sd < 2; sd++)
             {
                 //棋盘上的子越多，炮的威力越大，马的威力越小
-                pair[sd] += (int)(2.4 * totalPieces * nP[sd, PIECE_CANNON]);  //可调系数
-                pair[sd] -= (int)(0.9 * totalPieces * nP[sd, PIECE_KNIGHT]);  //可调系数
+                pair[sd] += (int)(2.4 * totalPieces * nP[sd, CANNON]);  //可调系数
+                pair[sd] -= (int)(0.9 * totalPieces * nP[sd, KNIGHT]);  //可调系数
                 //兵卒的价值随着对方攻击子力的减少而增加（即增加了过河的可能性）
-                int enemyAttack = nP[1 - sd, PIECE_ROOK] * 2 + nP[1 - sd, PIECE_CANNON] + nP[1 - sd, PIECE_KNIGHT];
+                int enemyAttack = nP[1 - sd, ROOK] * 2 + nP[1 - sd, CANNON] + nP[1 - sd, KNIGHT];
                 int[] additionalPawnValue = { 28, 21, 15, 10, 6, 3, 2, 1, 0 };
-                pair[sd] += nP[sd, PIECE_PAWN] * additionalPawnValue[enemyAttack];
+                pair[sd] += nP[sd, PAWN] * additionalPawnValue[enemyAttack];
                 //兵种不全扣分
-                if (nP[sd, PIECE_ROOK] == 0)
+                if (nP[sd, ROOK] == 0)
                     pair[sd] -= 30; //有车胜无车
-                if (nP[sd, PIECE_CANNON] == 0)
+                if (nP[sd, CANNON] == 0)
                     pair[sd] -= 20;
-                if (nP[sd, PIECE_KNIGHT] == 0)
+                if (nP[sd, KNIGHT] == 0)
                     pair[sd] -= 20;
                 //缺相怕炮
-                pair[sd] += (nP[sd, PIECE_BISHOP] - nP[1 - sd, PIECE_CANNON]) * 15;
+                pair[sd] += (nP[sd, BISHOP] - nP[1 - sd, CANNON]) * 15;
                 //缺仕怕车
-                pair[sd] += (nP[sd, PIECE_GUARD] - nP[1 - sd, PIECE_ROOK]) * 15;
+                pair[sd] += (nP[sd, GUARD] - nP[1 - sd, ROOK]) * 15;
             }
             int scoreRed = materialValue[0] + positionValue[0] + pair[0];
             int scoreBlack = materialValue[1] + positionValue[1] + pair[1];

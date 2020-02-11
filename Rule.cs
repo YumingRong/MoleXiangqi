@@ -108,12 +108,12 @@ namespace MoleXiangqi
             int pcOpp = attackMap[sdOpp, sq];
             if (pcOpp == 0)
                 return false;  //没有捉子，排除
-            else if (cnPieceKinds[pc] == PIECE_PAWN && HOME_HALF[sd, sq])
+            else if (cnPieceKinds[pc] == PAWN && HOME_HALF[sd, sq])
                 return false;                     //可以长捉未过河的兵
             else
             {
                 int sqOpp = sqPieces[pcOpp];
-                if (cnPieceKinds[pcOpp] == PIECE_PAWN || cnPieceKinds[pcOpp] == PIECE_KING)
+                if (cnPieceKinds[pcOpp] == PAWN || cnPieceKinds[pcOpp] == KING)
                     return false;  //兵和将允许长捉其它子
                 if (attackMap[sdOpp, sqOpp] == pc)
                     return false;  	//两子互捉，算成兑子，作和
@@ -149,7 +149,7 @@ namespace MoleXiangqi
 
                     switch (pcKind)
                     {
-                        case PIECE_KING:
+                        case KING:
                             for (int i = 0; i < 4; i++)
                             {
                                 sqDst = sqSrc + ccKingDelta[i];
@@ -157,7 +157,7 @@ namespace MoleXiangqi
                                     attackMap[sd, sqDst] = pc;
                             }
                             break;
-                        case PIECE_ROOK:
+                        case ROOK:
                             for (int j = 0; j < 4; j++)
                             {
                                 delta = ccKingDelta[j];
@@ -170,7 +170,7 @@ namespace MoleXiangqi
                                 }
                             }
                             break;
-                        case PIECE_CANNON:
+                        case CANNON:
                             for (int j = 0; j < 4; j++)
                             {
                                 int nDelta = ccKingDelta[j];
@@ -189,7 +189,7 @@ namespace MoleXiangqi
                             NextFor:;
                             }
                             break;
-                        case PIECE_KNIGHT:
+                        case KNIGHT:
                             for (int j = 0; j < 4; j++)
                             {
                                 if (pcSquares[sqSrc + ccKingDelta[j]] == 0)
@@ -199,7 +199,7 @@ namespace MoleXiangqi
                                 }
                             }
                             break;
-                        case PIECE_PAWN:
+                        case PAWN:
                             attackMap[sd, SQUARE_FORWARD(sqSrc, sd)] = pc;
                             if (HOME_HALF[1 - sd, sqSrc])
                             {
@@ -207,7 +207,7 @@ namespace MoleXiangqi
                                 attackMap[sd, sqSrc - 1] = pc;
                             }
                             break;
-                        case PIECE_BISHOP:
+                        case BISHOP:
                             for (int j = 0; j < 4; j++)
                             {
                                 sqDst = sqSrc + ccGuardDelta[j];
@@ -215,7 +215,7 @@ namespace MoleXiangqi
                                     attackMap[sd, sqDst + ccGuardDelta[j]] = pc;
                             }
                             break;
-                        case PIECE_GUARD:
+                        case GUARD:
                             for (int j = 0; j < 4; j++)
                             {
                                 sqDst = sqSrc + ccGuardDelta[j];

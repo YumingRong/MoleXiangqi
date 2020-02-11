@@ -270,17 +270,17 @@ namespace MoleXiangqi
                     Debug.Fail("Unrecoginized move 2 {0}", word);
                 if (sdPlayer == 0)
                     dir = -dir;
-                if (pcType == PIECE_KNIGHT || pcType == PIECE_BISHOP || pcType == PIECE_GUARD)
+                if (pcType == KNIGHT || pcType == BISHOP || pcType == GUARD)
                 {
                 SecondHalf:
                     int rank0 = RANK_Y(mv.sqSrc);
                     int rank1;
                     file1 = FindFile(word[3]);
-                    if (pcType == PIECE_KNIGHT)
+                    if (pcType == KNIGHT)
                         rank1 = rank0 + (3 - Math.Abs(file1 - file0)) * dir;
-                    else if (pcType == PIECE_BISHOP)
+                    else if (pcType == BISHOP)
                         rank1 = rank0 + 2 * dir;
-                    else //PIECE_GUARD
+                    else //GUARD
                         rank1 = rank0 + dir;
                     mv.sqDst = XY2Coord(file1, rank1);
                     if (!IsLegalMove(mv.sqSrc, mv.sqDst))
@@ -341,17 +341,17 @@ namespace MoleXiangqi
 
         void FillDictionary()
         {
-            PieceDict.Add('帅', PIECE_KING);
-            PieceDict.Add('将', PIECE_KING);
-            PieceDict.Add('车', PIECE_ROOK);
-            PieceDict.Add('炮', PIECE_CANNON);
-            PieceDict.Add('马', PIECE_KNIGHT);
-            PieceDict.Add('兵', PIECE_PAWN);
-            PieceDict.Add('卒', PIECE_PAWN);
-            PieceDict.Add('相', PIECE_BISHOP);
-            PieceDict.Add('象', PIECE_BISHOP);
-            PieceDict.Add('仕', PIECE_GUARD);
-            PieceDict.Add('士', PIECE_GUARD);
+            PieceDict.Add('帅', KING);
+            PieceDict.Add('将', KING);
+            PieceDict.Add('车', ROOK);
+            PieceDict.Add('炮', CANNON);
+            PieceDict.Add('马', KNIGHT);
+            PieceDict.Add('兵', PAWN);
+            PieceDict.Add('卒', PAWN);
+            PieceDict.Add('相', BISHOP);
+            PieceDict.Add('象', BISHOP);
+            PieceDict.Add('仕', GUARD);
+            PieceDict.Add('士', GUARD);
             NumberDict.Add('一', 1);
             NumberDict.Add('二', 2);
             NumberDict.Add('三', 3);
