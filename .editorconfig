@@ -1,0 +1,31 @@
+﻿[*.cs]
+
+# CA1305: 指定 IFormatProvider
+dotnet_diagnostic.CA1305.severity = silent
+
+# CA1303: 请不要将文本作为本地化参数传递
+dotnet_diagnostic.CA1303.severity = silent
+
+# CA1051: 不要声明可见实例字段
+dotnet_diagnostic.CA1051.severity = silent
+
+# CA1814: 与多维数组相比，首选使用交错数组
+dotnet_diagnostic.CA1814.severity = none
+
+# CA1815: 重写值类型上的 Equals 和相等运算符
+dotnet_diagnostic.CA1815.severity = silent
+
+# CA1707: 标识符不应包含下划线
+dotnet_diagnostic.CA1707.severity = silent
+
+# CA2007: 考虑对等待的任务调用 ConfigureAwait
+dotnet_diagnostic.CA2007.severity = silent
+
+# CA1304: 指定 CultureInfo
+dotnet_diagnostic.CA1304.severity = silent
+
+# CA1016: 用程序集版本标记程序集
+dotnet_diagnostic.CA1016.severity = silent
+
+# CA1824: 用 NeutralResourcesLanguageAttribute 标记程序集
+dotnet_diagnostic.CA1824.severity = silent

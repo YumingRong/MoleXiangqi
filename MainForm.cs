@@ -186,7 +186,8 @@ namespace MoleXiangqi
             float xx = pt.X * gridSize;
             float yy = pt.Y * gridSize;
             RectangleF srcRect = new RectangleF(xx, yy, gridSize, gridSize);
-            g.DrawImage(PanelBoard.BackgroundImage, xx, yy, srcRect, GraphicsUnit.Pixel);
+            if (g != null)
+                g.DrawImage(PanelBoard.BackgroundImage, xx, yy, srcRect, GraphicsUnit.Pixel);
         }
 
         private void MenuOpen_Click(object sender, EventArgs e)
@@ -433,12 +434,14 @@ namespace MoleXiangqi
 
         public void DrawSelection(Point pt, Graphics g)
         {
-            g.DrawImage(ilCPieces.Images[0], pt.X * gridSize, pt.Y * gridSize);
+            if (g != null)
+                g.DrawImage(ilCPieces.Images[0], pt.X * gridSize, pt.Y * gridSize);
         }
 
         public void DrawPiece(Point pt, int pc, Graphics g)
         {
-            g.DrawImage(ilCPieces.Images[pc], pt.X * gridSize, pt.Y * gridSize);
+            if (g != null)
+                g.DrawImage(ilCPieces.Images[pc], pt.X * gridSize, pt.Y * gridSize);
         }
 
         void PlaySound(string szWavFile)
@@ -451,7 +454,7 @@ namespace MoleXiangqi
                 soundPlayer.Load();
                 soundPlayer.Play();
             }
-            catch (Exception)
+            catch (FileNotFoundException)
             {
                 MessageBox.Show("Cannot find sound file");
             }
@@ -530,6 +533,7 @@ namespace MoleXiangqi
             //else
             //    PlaySound("ILLEGAL");
         }
+
         void Write2Csv(string csvPath, int[] array)
         {
             using (FileStream fs = new FileStream(csvPath.Trim(), FileMode.OpenOrCreate, FileAccess.ReadWrite))

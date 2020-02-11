@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MoleXiangqi
 {
-    public struct STATISTICS
+    public struct STATISTIC
     {
         public int QuiesceNodes, PVNodes, CutNodes;
         public long ElapsedTime;
@@ -43,7 +43,7 @@ namespace MoleXiangqi
     partial class SEARCH
     {
         public POSITION board;
-        public STATISTICS stat;
+        public STATISTIC stat;
         public List<MOVE> PVLine;
         public List<KeyValuePair<MOVE, int>> rootMoves;
 
@@ -59,7 +59,7 @@ namespace MoleXiangqi
 
         public MOVE SearchMain(int depthleft)
         {
-            stat = new STATISTICS();
+            stat = new STATISTIC();
             PVLine = new List<MOVE>();
             killers = new MOVE[G.MAX_PLY, 2];
             history = new int[256, 256];
@@ -140,7 +140,7 @@ namespace MoleXiangqi
                 }
             }
             rootMoves.RemoveAll(x => x.Value < -G.WIN);
-            Console.WriteLine("Best move {0}, score {1}", mvBest, alpha);
+            Console.WriteLine("Best move {mvBest}, score {alpha}");
             return alpha;
         }
 

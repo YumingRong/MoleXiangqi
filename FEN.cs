@@ -8,7 +8,7 @@ namespace MoleXiangqi
     {
         public const string cszStartFen = "rnbgkgbnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBGKGBNR w - - 0 0";
 
-        int Fen2Piece(char nArg)
+        static int Fen2Piece(char nArg)
         {
             // FEN串中棋子标识
             if (Char.IsLower(nArg))
@@ -40,7 +40,7 @@ namespace MoleXiangqi
         //该函数相当于UCCI的position指令
         public void FromFEN(string szFen)
         {
-
+            Debug.Assert(szFen != null);
             // 棋盘上增加棋子
             void AddPiece(int sq, int pc)
             {
@@ -163,8 +163,9 @@ namespace MoleXiangqi
             return new string(ret);
         }
 
-        public Tuple<int, int> ICCS2Move(string dwMoveStr)
+        public static Tuple<int, int> ICCS2Move(string dwMoveStr)
         { // 把字符串转换成着法
+            Debug.Assert(dwMoveStr != null);
             dwMoveStr = dwMoveStr.ToUpper();
             int sqSrc, sqDst;
             sqSrc = UI_XY2Coord(dwMoveStr[0] - 'A', '9' - dwMoveStr[1]);

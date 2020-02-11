@@ -69,19 +69,19 @@ namespace MoleXiangqi
         }
 
         // 走法是否符合帅(将)的步长
-        bool KING_SPAN(int sqSrc, int sqDst)
+        static bool KING_SPAN(int sqSrc, int sqDst)
         {
             return ccLegalSpan[sqDst - sqSrc + 256] == 1;
         }
 
         // 走法是否符合仕(士)的步长
-        bool ADVISOR_SPAN(int sqSrc, int sqDst)
+        static bool ADVISOR_SPAN(int sqSrc, int sqDst)
         {
             return ccLegalSpan[sqDst - sqSrc + 256] == 2;
         }
 
         // 走法是否符合相(象)的步长
-        bool BISHOP_SPAN(int sqSrc, int sqDst)
+        static bool BISHOP_SPAN(int sqSrc, int sqDst)
         {
             return ccLegalSpan[sqDst - sqSrc + 256] == 3;
         }

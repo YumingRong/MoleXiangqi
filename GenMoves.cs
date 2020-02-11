@@ -367,155 +367,155 @@ namespace MoleXiangqi
             return true;
         }
 
-        List<MOVE> GenerateCaptures()
-        {
-            int sqSrc, sqDst, pcDst;
-            int pcSelfSide, pcOppSide;
-            int nDelta;
-            List<MOVE> mvs = new List<MOVE>();
+        //List<MOVE> GenerateCaptures()
+        //{
+        //    int sqSrc, sqDst, pcDst;
+        //    int pcSelfSide, pcOppSide;
+        //    int nDelta;
+        //    List<MOVE> mvs = new List<MOVE>();
 
-            pcSelfSide = SIDE_TAG(sdPlayer);
-            pcOppSide = OPP_SIDE_TAG(sdPlayer);
+        //    pcSelfSide = SIDE_TAG(sdPlayer);
+        //    pcOppSide = OPP_SIDE_TAG(sdPlayer);
 
-            //逆排序，这样优先考虑低值的棋子吃子
-            for (int i = GUARD_FROM; i <= GUARD_TO; i++)
-            {
-                sqSrc = sqPieces[pcSelfSide + i];
-                if (sqSrc == 0)
-                    continue;
-                for (int j = 0; j < 4; j++)
-                {
-                    sqDst = sqSrc + ccGuardDelta[j];
-                    if (!IN_FORT[sqDst])
-                        continue;
-                    pcDst = pcSquares[sqDst];
-                    if ((pcDst & pcOppSide) != 0)
-                        mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
-                }
-            }
-            for (int i = BISHOP_FROM; i <= BISHOP_TO; i++)
-            {
-                sqSrc = sqPieces[pcSelfSide + i];
-                if (sqSrc == 0)
-                    continue;
-                for (int j = 0; j < 4; j++)
-                {
-                    sqDst = sqSrc + ccGuardDelta[j];
-                    if (!(HOME_HALF[sdPlayer, sqDst] && pcSquares[sqDst] == 0))
-                        continue;
-                    sqDst += ccGuardDelta[j];
-                    pcDst = pcSquares[sqDst];
-                    if ((pcDst & pcOppSide) != 0)
-                        mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
-                }
-            }
-            for (int i = PAWN_FROM; i <= PAWN_TO; i++)
-            {
-                sqSrc = sqPieces[pcSelfSide + i];
-                if (sqSrc == 0)
-                    continue;
-                sqDst = SQUARE_FORWARD(sqSrc, sdPlayer);
-                if (IN_BOARD[sqDst])
-                {
-                    pcDst = pcSquares[sqDst];
-                    if ((pcDst & pcOppSide) != 0)
-                        mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
-                }
-                if (HOME_HALF[1 - sdPlayer, sqSrc])
-                {
-                    for (nDelta = -1; nDelta <= 1; nDelta += 2)
-                    {
-                        sqDst = sqSrc + nDelta;
-                        if (IN_BOARD[sqDst])
-                        {
-                            pcDst = pcSquares[sqDst];
-                            if ((pcDst & pcOppSide) != 0)
-                                mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
-                        }
-                    }
-                }
-            }
-            for (int i = KNIGHT_FROM; i <= KNIGHT_TO; i++)
-            {
-                sqSrc = sqPieces[pcSelfSide + i];
-                if (sqSrc == 0)
-                    continue;
-                for (int j = 0; j < 4; j++)
-                {
-                    int sqPin = sqSrc + ccKingDelta[j];
-                    if (pcSquares[sqPin] == 0)
-                    {
-                        sqDst = sqSrc + ccKnightDelta[j, 0];
-                        pcDst = pcSquares[sqDst];
-                        if (IN_BOARD[sqDst] && (pcDst & pcOppSide) != 0)
-                            mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
-                        sqDst = sqSrc + ccKnightDelta[j, 1];
-                        pcDst = pcSquares[sqDst];
-                        if (IN_BOARD[sqDst] && (pcDst & pcOppSide) != 0)
-                            mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
-                    }
-                }
-            }
-            for (int i = CANNON_FROM; i <= CANNON_TO; i++)
-            {
-                sqSrc = sqPieces[pcSelfSide + i];
-                if (sqSrc == 0)
-                    continue;
-                for (int j = 0; j < 4; j++)
-                {
-                    nDelta = ccKingDelta[j];
-                    for (sqDst = sqSrc + nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
-                    {
-                        if (pcSquares[sqDst] != 0)
-                        {
-                            for (sqDst += nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
-                            {
-                                pcDst = pcSquares[sqDst];
-                                if (pcDst != 0)
-                                {
-                                    if ((pcDst & pcOppSide) != 0)
-                                        mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
-                                    goto NextFor2;
-                                }
-                            }
-                        }
-                    }
-                NextFor2:;
-                }
-            }
-            for (int i = ROOK_FROM; i <= ROOK_TO; i++)
-            {
-                sqSrc = sqPieces[pcSelfSide + i];
-                if (sqSrc == 0)
-                    continue;
-                for (int j = 0; j < 4; j++)
-                {
-                    nDelta = ccKingDelta[j];
-                    for (sqDst = sqSrc + nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
-                    {
-                        pcDst = pcSquares[sqDst];
-                        if (pcDst != 0)
-                        {
-                            if ((pcDst & pcOppSide) != 0)
-                                mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
-                            break;
-                        }
-                    }
-                }
-            }
+        //    //逆排序，这样优先考虑低值的棋子吃子
+        //    for (int i = GUARD_FROM; i <= GUARD_TO; i++)
+        //    {
+        //        sqSrc = sqPieces[pcSelfSide + i];
+        //        if (sqSrc == 0)
+        //            continue;
+        //        for (int j = 0; j < 4; j++)
+        //        {
+        //            sqDst = sqSrc + ccGuardDelta[j];
+        //            if (!IN_FORT[sqDst])
+        //                continue;
+        //            pcDst = pcSquares[sqDst];
+        //            if ((pcDst & pcOppSide) != 0)
+        //                mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
+        //        }
+        //    }
+        //    for (int i = BISHOP_FROM; i <= BISHOP_TO; i++)
+        //    {
+        //        sqSrc = sqPieces[pcSelfSide + i];
+        //        if (sqSrc == 0)
+        //            continue;
+        //        for (int j = 0; j < 4; j++)
+        //        {
+        //            sqDst = sqSrc + ccGuardDelta[j];
+        //            if (!(HOME_HALF[sdPlayer, sqDst] && pcSquares[sqDst] == 0))
+        //                continue;
+        //            sqDst += ccGuardDelta[j];
+        //            pcDst = pcSquares[sqDst];
+        //            if ((pcDst & pcOppSide) != 0)
+        //                mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
+        //        }
+        //    }
+        //    for (int i = PAWN_FROM; i <= PAWN_TO; i++)
+        //    {
+        //        sqSrc = sqPieces[pcSelfSide + i];
+        //        if (sqSrc == 0)
+        //            continue;
+        //        sqDst = SQUARE_FORWARD(sqSrc, sdPlayer);
+        //        if (IN_BOARD[sqDst])
+        //        {
+        //            pcDst = pcSquares[sqDst];
+        //            if ((pcDst & pcOppSide) != 0)
+        //                mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
+        //        }
+        //        if (HOME_HALF[1 - sdPlayer, sqSrc])
+        //        {
+        //            for (nDelta = -1; nDelta <= 1; nDelta += 2)
+        //            {
+        //                sqDst = sqSrc + nDelta;
+        //                if (IN_BOARD[sqDst])
+        //                {
+        //                    pcDst = pcSquares[sqDst];
+        //                    if ((pcDst & pcOppSide) != 0)
+        //                        mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
+        //                }
+        //            }
+        //        }
+        //    }
+        //    for (int i = KNIGHT_FROM; i <= KNIGHT_TO; i++)
+        //    {
+        //        sqSrc = sqPieces[pcSelfSide + i];
+        //        if (sqSrc == 0)
+        //            continue;
+        //        for (int j = 0; j < 4; j++)
+        //        {
+        //            int sqPin = sqSrc + ccKingDelta[j];
+        //            if (pcSquares[sqPin] == 0)
+        //            {
+        //                sqDst = sqSrc + ccKnightDelta[j, 0];
+        //                pcDst = pcSquares[sqDst];
+        //                if (IN_BOARD[sqDst] && (pcDst & pcOppSide) != 0)
+        //                    mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
+        //                sqDst = sqSrc + ccKnightDelta[j, 1];
+        //                pcDst = pcSquares[sqDst];
+        //                if (IN_BOARD[sqDst] && (pcDst & pcOppSide) != 0)
+        //                    mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
+        //            }
+        //        }
+        //    }
+        //    for (int i = CANNON_FROM; i <= CANNON_TO; i++)
+        //    {
+        //        sqSrc = sqPieces[pcSelfSide + i];
+        //        if (sqSrc == 0)
+        //            continue;
+        //        for (int j = 0; j < 4; j++)
+        //        {
+        //            nDelta = ccKingDelta[j];
+        //            for (sqDst = sqSrc + nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
+        //            {
+        //                if (pcSquares[sqDst] != 0)
+        //                {
+        //                    for (sqDst += nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
+        //                    {
+        //                        pcDst = pcSquares[sqDst];
+        //                        if (pcDst != 0)
+        //                        {
+        //                            if ((pcDst & pcOppSide) != 0)
+        //                                mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
+        //                            goto NextFor2;
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //        NextFor2:;
+        //        }
+        //    }
+        //    for (int i = ROOK_FROM; i <= ROOK_TO; i++)
+        //    {
+        //        sqSrc = sqPieces[pcSelfSide + i];
+        //        if (sqSrc == 0)
+        //            continue;
+        //        for (int j = 0; j < 4; j++)
+        //        {
+        //            nDelta = ccKingDelta[j];
+        //            for (sqDst = sqSrc + nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
+        //            {
+        //                pcDst = pcSquares[sqDst];
+        //                if (pcDst != 0)
+        //                {
+        //                    if ((pcDst & pcOppSide) != 0)
+        //                        mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
+        //                    break;
+        //                }
+        //            }
+        //        }
+        //    }
 
-            sqSrc = sqPieces[pcSelfSide + KING_FROM];
-            for (int i = 0; i < 4; i++)
-            {
-                sqDst = sqSrc + ccKingDelta[i];
-                if (!IN_FORT[sqDst])
-                    continue;
-                pcDst = pcSquares[sqDst];
-                if ((pcDst & pcOppSide) != 0)
-                    mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
-            }
-            return mvs;
-        }
+        //    sqSrc = sqPieces[pcSelfSide + KING_FROM];
+        //    for (int i = 0; i < 4; i++)
+        //    {
+        //        sqDst = sqSrc + ccKingDelta[i];
+        //        if (!IN_FORT[sqDst])
+        //            continue;
+        //        pcDst = pcSquares[sqDst];
+        //        if ((pcDst & pcOppSide) != 0)
+        //            mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
+        //    }
+        //    return mvs;
+        //}
 
     }
 }
