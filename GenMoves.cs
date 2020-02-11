@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace MoleXiangqi
@@ -6,7 +7,7 @@ namespace MoleXiangqi
     public partial class POSITION
     {
         // 帅(将)的步长
-        static readonly int[] ccKingDelta = { -0x10, +0x10, - 0x01, +0x01 };
+        static readonly int[] ccKingDelta = { -0x10, +0x10, -0x01, +0x01 };
         // 仕(士)的步长
         static readonly int[] ccGuardDelta = { -0x11, +0x11, -0x0f, +0x0f };
         // 马的步长，以帅(将)的步长作为马腿
@@ -17,7 +18,7 @@ namespace MoleXiangqi
         static readonly bool[,] ccPinDelta = { { false, false, false, false }, { false, false, true, true, }, { true, true, false, false }, { true, true, true, true } };
 
         //着法生成器
-        public List<MOVE> GenerateMoves()
+        List<MOVE> GenerateMoves()
         {
             int sqSrc, sqDst, pcDst;
             int pcSelfSide, pcOppSide;
@@ -330,7 +331,7 @@ namespace MoleXiangqi
         }
 
         //判断是否将帅对脸
-        public bool KingsFace2Face()
+        bool KingsFace2Face()
         {
             int sqSrc = sqPieces[32 + KING_FROM];
             int sqDst = sqPieces[16 + KING_FROM];
@@ -354,7 +355,7 @@ namespace MoleXiangqi
             {
                 //Debug.WriteLine(MOVE2ICCS(mv) + "," + SRC(mv) + "-" + DST(mv));
                 MovePiece(mv);
-                if (CheckedBy(1^sdPlayer) == 0)
+                if (CheckedBy(1 ^ sdPlayer) == 0)
                 {
                     UndoMovePiece(mv);
                     return false;
@@ -367,5 +368,271 @@ namespace MoleXiangqi
             return true;
         }
 
+        //重量级的着法生成和排序函数
+        public IEnumerable<MOVE> Complex_GenMoves()
+        {
+            //举例：当头炮与对方的帅之间隔了自己的马和对方的相，
+            //自己的马就放在DiscoveredAttack里，对方的相就在PinnedPieces里
+            List<int> discoveredAttack = new List<int>();
+            int[] PinnedPieces = new int[48];   //0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
+            List<int>[] BannedGrids = new List<int>[2]; //空头炮与将之间不能走子
+            int sqSrc, sqDst, pcDst, delta;
+
+            //对阻挡将军的子进行判断
+            void CheckBlocker(int side, int pcBlocker, int sqPinner, int direction)
+            {
+                int sdBlocker = SIDE(pcBlocker);
+                int pcKind = cnPieceKinds[pcBlocker];
+                //未过河兵没有牵制和闪击
+                if (pcKind == PAWN && HOME_HALF[sdBlocker, sqPieces[pcBlocker]])
+                    return;
+                if (sdBlocker == side)
+                {
+                    //闪击
+                    if (sdBlocker == sdPlayer)
+                        discoveredAttack.Add(sdBlocker);
+                }
+                else
+                {
+                    PinnedPieces[pcBlocker] |= direction;
+                    //在形如红炮-黑车-红兵-黑将的棋型中，黑车是可以吃红炮的
+                    if (IsLegalMove(sqPieces[pcBlocker], sqPinner))
+                        attackMap[sdBlocker, sqPinner] = pcBlocker;
+
+                }
+            }
+
+            attackMap = new int[2, 256];    //保存攻击该格的价值最低的棋子
+            //find absolute pin. 0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
+            for (int sd = 0; sd < 2; sd++)
+            {
+                int bas = SIDE_TAG(sd);
+                int sqOppKing = sqPieces[OPP_SIDE_TAG(sd) + KING_FROM];
+
+                for (int pc = bas + ROOK_FROM; pc <= bas + ROOK_TO; pc++)
+                {
+                    sqSrc = sqPieces[pc];
+                    if (SAME_FILE(sqSrc, sqOppKing))
+                    {
+                        delta = Math.Sign(sqOppKing - sqSrc) * 16;
+                        int pcBlocker = 0, nblock = 0;
+                        for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
+                        {
+                            if (pcSquares[sq] != 0)
+                            {
+                                pcBlocker = pcSquares[sq];
+                                nblock++;
+                            }
+                        }
+                        if (nblock == 1)
+                            CheckBlocker(sd, pcBlocker, sqSrc, 1);
+                    }
+
+                    if (SAME_RANK(sqSrc, sqOppKing))
+                    {
+                        delta = Math.Sign(sqOppKing - sqSrc);
+                        int pcBlocker = 0, nblock = 0;
+                        for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
+                        {
+                            if (pcSquares[sq] != 0)
+                            {
+                                pcBlocker = pcSquares[sq];
+                                nblock++;
+                            }
+                        }
+                        if (nblock == 1)
+                            CheckBlocker(sd, pcBlocker, sqSrc, 2);
+                    }
+                }
+
+                for (int pc = bas + CANNON_FROM; pc <= bas + CANNON_TO; pc++)
+                {
+                    sqSrc = sqPieces[pc];
+                    if (SAME_FILE(sqSrc, sqOppKing))
+                    {
+                        delta = Math.Sign(sqOppKing - sqSrc) * 16;
+                        int nblock = 0;
+                        for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
+                        {
+                            if (pcSquares[sq] != 0)
+                                nblock++;
+                        }
+                        if (nblock == 2)
+                            for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
+                                CheckBlocker(sd, pcSquares[sq], sqSrc, 1);
+                        else if (nblock == 0) //空心炮
+                        {
+                            for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
+                                BannedGrids[1 - sd].Add(sq);
+                        }
+                    }
+                    if (SAME_RANK(sqSrc, sqOppKing))
+                    {
+                        delta = Math.Sign(sqOppKing - sqSrc);
+                        int nblock = 0;
+                        for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
+                        {
+                            if (pcSquares[sq] != 0)
+                                nblock++;
+                        }
+                        if (nblock == 2)
+                            for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
+                                CheckBlocker(sd, pcSquares[sq], sqSrc, 2);
+                        else if (nblock == 0) //空心炮
+                        {
+                            for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
+                                BannedGrids[1 - sd].Add(sq);
+                        }
+                    }
+                }
+
+                // 3. 判断对方的将是否被马威胁(以仕(士)的步长当作马腿)
+                for (int i = 0; i < 4; i++)
+                {
+                    int pcBlocker = pcSquares[sqOppKing + ccGuardDelta[i]];
+                    if (pcBlocker != 0)
+                        for (int j = 0; j < 2; j++)
+                        {
+                            pcDst = pcSquares[sqOppKing + ccKnightCheckDelta[i, j]];
+                            if (cnPieceTypes[pcDst] == bas + KNIGHT)
+                                CheckBlocker(sd, pcBlocker, sqPieces[pcDst], 3);
+                        }
+                }
+            }
+
+            //Generate attack map, from most valuable piece to cheap piece
+            for (int sd = 0; sd < 2; sd++)
+            {
+                int bas = SIDE_TAG(sd);
+                int sqOppKing = sqPieces[OPP_SIDE_TAG(sd) + KING_FROM];
+                for (int pc = bas; pc < bas + 16; pc++)
+                {
+                    sqSrc = sqPieces[pc];
+                    if (sqSrc == 0)
+                        continue;
+                    int pin = PinnedPieces[pc];
+
+                    switch (cnPieceKinds[pc])
+                    {
+                        case KING:
+                            for (int i = 0; i < 4; i++)
+                            {
+                                sqDst = sqSrc + ccKingDelta[i];
+                                if (IN_FORT[sqDst])
+                                    attackMap[sd, sqDst] = pc;
+                            }
+                            break;
+                        case ROOK:
+                            for (int j = 0; j < 4; j++)
+                            {
+                                if (ccPinDelta[pin, j])
+                                    continue;
+                                delta = ccKingDelta[j];
+                                for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
+                                {
+                                    pcDst = pcSquares[sqDst];
+                                    attackMap[sd, sqDst] = pc;
+                                    if (pcDst != 0)
+                                        break;
+                                }
+                            }
+                            break;
+                        case CANNON:
+                            for (int j = 0; j < 4; j++)
+                            {
+                                if (ccPinDelta[pin, j])
+                                    continue;
+                                int nDelta = ccKingDelta[j];
+                                for (sqDst = sqSrc + nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
+                                {
+                                    if (pcSquares[sqDst] != 0) //炮架
+                                    {
+                                        for (sqDst += nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
+                                        {
+                                            attackMap[sd, sqDst] = pc;
+                                            if (pcSquares[sqDst] != 0) //直瞄点
+                                                goto NextFor;
+                                        }
+                                    }
+                                }
+                            NextFor:;
+                            }
+                            //if (SAME_FILE(sqSrc, sqOppKing) || SAME_RANK(sqSrc, sqOppKing))
+                            //    positionValue[sd] += 5;
+                            break;
+                        case KNIGHT:
+                            if (pin > 0)
+                                continue;
+                            for (int j = 0; j < 4; j++)
+                            {
+                                if (pcSquares[sqSrc + ccKingDelta[j]] == 0)
+                                {
+                                    attackMap[sd, sqSrc + ccKnightDelta[j, 0]] = pc;
+                                    attackMap[sd, sqSrc + ccKnightDelta[j, 1]] = pc;
+                                }
+                            }
+                            break;
+                        case PAWN:
+                            if ((pin & 1) == 0)
+                                attackMap[sd, SQUARE_FORWARD(sqSrc, sd)] = pc;
+                            if ((pin & 2) == 0)
+                                if (HOME_HALF[1 - sd, sqSrc])
+                                {
+                                    attackMap[sd, sqSrc + 1] = pc;
+                                    attackMap[sd, sqSrc - 1] = pc;
+                                }
+                            break;
+                        case BISHOP:
+                            if (pin > 0)
+                                continue;
+                            for (int j = 0; j < 4; j++)
+                            {
+                                sqDst = sqSrc + ccGuardDelta[j];
+                                if (HOME_HALF[sd, sqDst] && pcSquares[sqDst] == 0)
+                                    attackMap[sd, sqDst + ccGuardDelta[j]] = pc;
+                            }
+                            break;
+                        case GUARD:
+                            if (pin > 0)
+                                continue;
+                            for (int j = 0; j < 4; j++)
+                            {
+                                sqDst = sqSrc + ccGuardDelta[j];
+                                if (IN_FORT[sqDst])
+                                    attackMap[sd, sqDst] = pc;
+                            }
+                            break;
+                    }
+                }
+                //帅所在的格没有保护
+                attackMap[sd, sqPieces[bas + KING_FROM]] = 0;
+            }
+
+            captureMoves = new List<KeyValuePair<MOVE, int>>();
+            int sdtag = SIDE_TAG(1 - sdPlayer);
+            for (pcDst = sdtag; pcDst < sdtag + 16; pcDst++)
+            {
+                sqDst = sqPieces[pcDst];
+                int attack = attackMap[sdPlayer, sqDst];
+                int protect = attackMap[1 - sdPlayer, sqDst];
+                if (attack > 0)
+                {
+                    if (protect > 0)
+                    {
+                        MOVE mv = new MOVE(sqPieces[attack], sqDst, attack, pcDst);
+                        captureMoves.Add(new KeyValuePair<MOVE, int>(mv, cnPieceValue[pcDst] - cnPieceValue[attack]));
+                    }
+                    else
+                    {
+                        MOVE mv = new MOVE(sqPieces[attack], sqDst, attack, pcDst);
+                        captureMoves.Add(new KeyValuePair<MOVE, int>(mv, cnPieceValue[pcDst]));
+                    }
+                }
+            }
+            captureMoves.Sort(SortLarge2Small);
+            foreach (KeyValuePair<MOVE, int> mv_vl in captureMoves)
+                yield return mv_vl.Key;
+
+        }
     }
 }
