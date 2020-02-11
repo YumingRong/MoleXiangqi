@@ -96,6 +96,7 @@ namespace MoleXiangqi
                 Console.WriteLine("Resign");
             else if (vl > G.WIN)
                 Console.WriteLine("Mate in {0} steps", G.MATE - vl);
+            MakeMove(PVLine[0]);
             return PVLine[0];
         }
 
