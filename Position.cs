@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace MoleXiangqi
 {
@@ -12,6 +14,7 @@ namespace MoleXiangqi
             stepList = new List<STEP>();
             InitPGN();
             InitEval();
+            InitSearch();
         }
 
         // 基本成员

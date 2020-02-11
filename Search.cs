@@ -38,9 +38,8 @@ namespace MoleXiangqi
         }
     }
 
-    partial class SEARCH
+    partial class POSITION
     {
-        public POSITION board;
         public STATISTIC stat;
         public List<MOVE> PVLine;
         public List<KeyValuePair<MOVE, int>> rootMoves;
@@ -48,9 +47,8 @@ namespace MoleXiangqi
         Stopwatch stopwatch;
         int depth = 0;
 
-        public SEARCH(POSITION pos)
+        public void InitSearch()
         {
-            board = pos;
             stopwatch = new Stopwatch();
             rootMoves = new List<KeyValuePair<MOVE, int>>();
         }
@@ -63,7 +61,7 @@ namespace MoleXiangqi
             history = new int[256, 256];
             rootMoves.Clear();
 
-            List<MOVE> moves = board.GenerateMoves();
+            List<MOVE> moves = GenerateMoves();
             foreach (MOVE mv in moves)
             {
                 rootMoves.Add(new KeyValuePair<MOVE, int>(mv, 0));
@@ -114,11 +112,11 @@ namespace MoleXiangqi
                 MOVE mv = rootMoves[i].Key;
                 Debug.Write(new string('\t', depth));
                 Debug.WriteLine("{0} {1} {2}", mv, alpha, beta);
-                board.MakeMove(mv);
+                MakeMove(mv);
                 depth++;
                 int vl = -SearchPV(-beta, -alpha, depthleft - 1, out List<MOVE> subpv);
                 depth--;
-                board.UnmakeMove();
+                UnmakeMove();
 
                 rootMoves[i] = new KeyValuePair<MOVE, int>(mv, vl);
 
@@ -147,14 +145,14 @@ namespace MoleXiangqi
             stat.PVNodes++;
             pvs = new List<MOVE>();
 
-            RepititionResult rep = board.Repitition();
+            RepititionResult rep = Repitition();
             if (rep != RepititionResult.NONE)
                 return (int)rep;
             if (depthleft <= 0)
                 //静态搜索深度不超过普通搜索的2倍
                 return SearchQuiesce(alpha, beta, depth);
 
-            List<MOVE> moves = board.GenerateMoves();
+            List<MOVE> moves = GenerateMoves();
             MOVE mvBest = new MOVE();
             int best = -G.MATE;
             int vl;
@@ -163,11 +161,11 @@ namespace MoleXiangqi
             {
                 Debug.Write(new string('\t', depth));
                 Debug.WriteLine("{0} {1} {2} {3}", mv, alpha, beta, best);
-                board.MakeMove(mv);
+                MakeMove(mv);
                 depth++;
                 vl = -SearchPV(-beta, -alpha, depthleft - 1, out List<MOVE> subpv);
                 depth--;
-                board.UnmakeMove();
+                UnmakeMove();
                 if (vl > best)
                 {
                     best = vl;
@@ -188,72 +186,72 @@ namespace MoleXiangqi
             }
 
             if (mvBest.sqSrc != 0)
-                SetBestMove(mvBest, depth);
+                SetBestMove(mvBest);
             return best;
         }
 
         public int SearchQuiesce(int alpha, int beta, int depthleft)
         {
-            if (board.stepList[board.stepList.Count - 1].halfMoveClock >= 120)
+            if (stepList[stepList.Count - 1].halfMoveClock >= 120)
                 return 0;
-            RepititionResult rep = board.Repitition();
+            RepititionResult rep = Repitition();
             if (rep != RepititionResult.NONE)
                 return (int)rep;
             stat.QuiesceNodes++;
 
             int best;
             List<MOVE> selectiveMoves = new List<MOVE>();
-            int sqCheck = board.stepList[board.stepList.Count - 1].checking;
+            int sqCheck = stepList[stepList.Count - 1].checking;
             if (sqCheck > 0)
             {
                 best = depth - G.MATE;
                 // 6. 对于被将军的局面，生成全部着法；
-                List<MOVE> moves = board.GenerateMoves();
+                List<MOVE> moves = GenerateMoves();
                 foreach (MOVE mv in moves)
                 {
-                    board.MovePiece(mv);
-                    int kingpos = board.sqPieces[POSITION.SIDE_TAG(1 - board.sdPlayer)];
-                    if (!board.IsLegalMove(sqCheck, kingpos))
-                        if (board.CheckedBy(1 - board.sdPlayer) == 0)
+                    MovePiece(mv);
+                    int kingpos = sqPieces[POSITION.SIDE_TAG(1 - sdPlayer)];
+                    if (!IsLegalMove(sqCheck, kingpos))
+                        if (CheckedBy(1 - sdPlayer) == 0)
                             selectiveMoves.Add(mv);
-                    board.UndoMovePiece(mv);
+                    UndoMovePiece(mv);
                 }
             }
             else
             {
                 //对于未被将军的局面，在生成着法前首先对局面作评价；
-                int vl = board.Complex_Evaluate();
+                int vl = Complex_Evaluate();
                 if (vl > beta)
                     return vl;
                 best = vl;
                 alpha = Math.Max(alpha, vl);
-                stat.CaptureExtensions += board.captureMoves.Count;
+                stat.CaptureExtensions += captureMoves.Count;
                 //如果是将军导致的延伸搜索，则继续寻找连将的着法
                 //因为搜索将军着法是一件费时的事情，所以在非连将的情况下，只搜索吃子着法
-                if (depthleft > 0 && board.stepList.Count >= 2 && board.stepList[board.stepList.Count - 2].checking > 0)
+                if (depthleft > 0 && stepList.Count >= 2 && stepList[stepList.Count - 2].checking > 0)
                 {
-                    List<MOVE> moves = board.GenerateMoves();
+                    List<MOVE> moves = GenerateMoves();
                     foreach (MOVE mv in moves)
                     {
-                        board.MovePiece(mv);
+                        MovePiece(mv);
                         //选择不重复，未对将并将军对方的着法
-                        if (mv.pcDst == 0 && !board.KingsFace2Face() && board.CheckedBy(board.sdPlayer) > 0)
+                        if (mv.pcDst == 0 && !KingsFace2Face() && CheckedBy(sdPlayer) > 0)
                         {
                             //给送吃的着法打稍低分
-                            int score = board.attackMap[1 - board.sdPlayer, mv.sqDst] == 0 ? 30 : 10;
+                            int score = attackMap[1 - sdPlayer, mv.sqDst] == 0 ? 30 : 10;
                             //能够几个子轮流照将就不要老拿一个子照将
-                            if (mv.pcSrc != board.stepList[board.stepList.Count - 2].move.pcSrc)
+                            if (mv.pcSrc != stepList[stepList.Count - 2].move.pcSrc)
                                 score += 10;
-                            board.captureMoves.Add(new KeyValuePair<MOVE, int>(mv, score));
+                            captureMoves.Add(new KeyValuePair<MOVE, int>(mv, score));
                             stat.CheckExtesions++;
                         }
-                        board.UndoMovePiece(mv);
+                        UndoMovePiece(mv);
                     }
                 }
-                if (board.captureMoves.Count > 0)
+                if (captureMoves.Count > 0)
                 {
-                    board.captureMoves.Sort(SortLarge2Small);
-                    foreach (KeyValuePair<MOVE, int> mv_vl in board.captureMoves)
+                    captureMoves.Sort(SortLarge2Small);
+                    foreach (KeyValuePair<MOVE, int> mv_vl in captureMoves)
                         selectiveMoves.Add(mv_vl.Key);
                 }
                 else
@@ -263,17 +261,17 @@ namespace MoleXiangqi
             {
                 Debug.Write(new string('\t', depth));
                 Debug.WriteLine("{0} {1} {2} {3}", mv, alpha, beta, best);
-                board.MakeMove(mv);
+                MakeMove(mv);
                 //// 如果移动后被将军了，那么着法是非法的，撤消该着法
-                //if (board.CheckedBy(1 - board.sdPlayer) > 0)
+                //if (CheckedBy(1 - sdPlayer) > 0)
                 //{
-                //    board.UnmakeMove();
+                //    UnmakeMove();
                 //    continue;
                 //}
                 depth++;
                 int vl = -SearchQuiesce(-beta, -alpha, depthleft - 1);
                 depth--;
-                board.UnmakeMove();
+                UnmakeMove();
                 //Debug.Write(new string('\t', depth));
                 //Debug.WriteLine("{0} {1}", mv, best);
                 if (vl > best)

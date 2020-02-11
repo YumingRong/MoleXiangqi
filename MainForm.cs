@@ -23,7 +23,7 @@ namespace MoleXiangqi
         List<MOVE> MoveList;
         List<string> CommentList;
         POSITION pos;
-        SEARCH engine;
+        POSITION engine;
         const int gridSize = 57;
         SoundPlayer soundPlayer;
         readonly static int[] cnPieceImages = {
@@ -43,14 +43,17 @@ namespace MoleXiangqi
             path = Path.GetDirectoryName(path);
             path = Path.GetDirectoryName(path);
             App_szPath = Path.Combine(path, "Resources");
+            engine = new POSITION();
         }
 
         private void NewGameMenu_Click(object sender, EventArgs e)
         {
             pos.FromFEN(POSITION.cszStartFen);
+            engine.FromFEN(POSITION.cszStartFen);
             NewGameAsync();
         }
 
+        //相当于给引擎发出option newgame 指令
         private async void NewGameAsync()
         {
             //swap side
@@ -76,9 +79,6 @@ namespace MoleXiangqi
             PanelBoard.Refresh();
             App_inGame = true;
 
-            //相当于给引擎发出option newgame 指令
-            engine = new SEARCH(pos);
-
             await GoAsync();
         }
 
@@ -98,6 +98,7 @@ namespace MoleXiangqi
         {
             //position startpos指令
             pos.FromFEN(@"4kab2/4a4/4b4/9/9/5R3/9/4B1r2/4A4/1R1A1KBrc w - - 0 1");
+            engine.FromFEN(@"4kab2/4a4/4b4/9/9/5R3/9/4B1r2/4A4/1R1A1KBrc w - - 0 1");
             //pos.FromFEN(POSITION.cszStartFen);
             NewGameAsync();
         }
@@ -275,6 +276,7 @@ namespace MoleXiangqi
             try
             {
                 pos.FromFEN(Clipboard.GetText());
+                engine.FromFEN(Clipboard.GetText());
             }
             catch (Exception)
             {
@@ -292,6 +294,7 @@ namespace MoleXiangqi
                 {
                     string fen = reader.ReadToEnd();
                     pos.FromFEN(fen);
+                    engine.FromFEN(fen);
                     NewGameAsync();
                 }
             }
@@ -392,8 +395,8 @@ namespace MoleXiangqi
         {
             App_inGame = false;
             pos.FromFEN(@"c2a1k1n1/2c1a2R1/b6P1/8p/9/9/9/9/4K4/9 w - - 0 1");
+            engine.FromFEN(@"c2a1k1n1/2c1a2R1/b6P1/8p/9/9/9/9/4K4/9 w - - 0 1");
             NewGameAsync();
-            engine = new SEARCH(pos);
             int score = engine.SearchQuiesce(-5000, 4998, 10);
             MessageBox.Show("静态搜索分数" + score + ",搜索节点" + engine.stat.QuiesceNodes);
             //WriteMap2Csv(pos.attackMap, @"G:\xqtest\attack.csv");
@@ -407,12 +410,13 @@ namespace MoleXiangqi
             PgnFileStruct pgn = pos.ReadPgnFile(fileName);
 
             pos.FromFEN(pgn.StartFEN);
-            engine = new SEARCH(pos);
+            engine = new POSITION();
+            engine.FromFEN(pgn.StartFEN);
             engine.SearchQuiesce(-5000, 5000, 10);
             for (int i = 1; i < pgn.MoveList.Count; i++)
             {
                 MOVE step = pgn.MoveList[i];
-                engine.board.MakeMove(step);
+                engine.MakeMove(step);
                 int score = -engine.SearchQuiesce(-5000, 5000, 10);
                 if (i % 2 == 1)
                     Console.Write("{0}. {1}  ", (i + 1) / 2, score);
