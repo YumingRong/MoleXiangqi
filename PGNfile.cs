@@ -20,8 +20,8 @@ namespace MoleXiangqi
 
     partial class POSITION
     {
-        private Dictionary<char, int> PieceDict;
-        private Dictionary<char, int> NumberDict;
+        internal Dictionary<char, int> PieceDict;
+        internal Dictionary<char, int> NumberDict;
 
         public void InitPGN()
         {

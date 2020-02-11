@@ -22,9 +22,7 @@ namespace MoleXiangqi
             MAT_KING, MAT_ROOK, MAT_ROOK, MAT_CANNON, MAT_CANNON, MAT_KNIGHT, MAT_KNIGHT, MAT_PAWN, MAT_PAWN, MAT_PAWN, MAT_PAWN, MAT_PAWN, MAT_BISHOP, MAT_BISHOP, MAT_ADVISOR, MAT_ADVISOR,
             MAT_KING, MAT_ROOK, MAT_ROOK, MAT_CANNON, MAT_CANNON, MAT_KNIGHT, MAT_KNIGHT, MAT_PAWN, MAT_PAWN, MAT_PAWN, MAT_PAWN, MAT_PAWN, MAT_BISHOP, MAT_BISHOP, MAT_ADVISOR, MAT_ADVISOR};
 
-        int[] cKingPawnValue, cRookValue;
-        int[] cKnightValue;
-        int[] cBishopGuardValue;
+        internal int[] cKingPawnValue, cRookValue, cKnightValue, cBishopGuardValue;
 
         void InitEval()
         {

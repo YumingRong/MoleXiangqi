@@ -44,8 +44,8 @@ namespace MoleXiangqi
         public List<MOVE> PVLine;
         public List<KeyValuePair<MOVE, int>> rootMoves;
 
-        Stopwatch stopwatch;
-        int depth = 0;
+        internal Stopwatch stopwatch;
+        internal int depth = 0;
 
         public void InitSearch()
         {
@@ -102,7 +102,6 @@ namespace MoleXiangqi
 
         public int SearchRoot(int depthleft)
         {
-
             int alpha = -G.MATE;
             int beta = G.WIN;
             MOVE mvBest = new MOVE();
