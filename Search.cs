@@ -32,11 +32,10 @@ namespace MoleXiangqi
         {
             int totalNodes = QuiesceNodes + PVNodes + CutNodes;
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine(String.Format("Nodes: total {0}， PV {1}, Cut {2}, Quiesce {3}", totalNodes, QuiesceNodes, PVNodes, CutNodes));
+            sb.AppendLine(String.Format("Nodes: total {0}， PV {1}, Cut {2}, Quiesce {3}", totalNodes, PVNodes, CutNodes, QuiesceNodes));
             sb.AppendLine(String.Format("Elapsed time: {0} millisecondN. Nodes per second: {1}", ElapsedTime, totalNodes * 1000 / ElapsedTime));
             sb.AppendLine(String.Format("Cutoffs: {0}", Cutoffs));
             sb.AppendLine(String.Format("Extesions: Check {0}, Capture {1}", CheckExtesions, CaptureExtensions));
-            sb.Append("PV line: ");
             return sb.ToString();
         }
     }
@@ -132,7 +131,7 @@ namespace MoleXiangqi
                     PVLine.Clear();
                     PVLine.Add(mvBest);
                     PVLine.AddRange(subpv);
-                    Console.WriteLine(PopPVLine());
+                    Console.WriteLine("PV:" + PopPVLine());
                     if (vl > beta)
                     {
                         stat.Cutoffs++;
@@ -155,7 +154,7 @@ namespace MoleXiangqi
                 return (int)rep;
             if (depthleft <= 0)
                 //静态搜索深度不超过普通搜索的2倍
-                return SearchQuiesce(alpha, beta, depth * 2);
+                return SearchQuiesce(alpha, beta, depth);
 
             List<MOVE> moves = board.GenerateMoves();
             MOVE mvBest = new MOVE();
