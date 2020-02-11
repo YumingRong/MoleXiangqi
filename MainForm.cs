@@ -502,6 +502,7 @@ namespace MoleXiangqi
                 step.pcDst = pcCaptured;
                 MoveList.Add(step);
                 pos.MakeMove(step);
+                engine.MakeMove(step);
                 CommentList.Add(textBoxComment.Text);
 
                 FENStep++;
