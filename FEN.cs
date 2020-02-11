@@ -40,7 +40,7 @@ namespace MoleXiangqi
         //该函数相当于UCCI的position指令
         public void FromFEN(string szFen)
         {
-            Debug.Assert(szFen != null);
+            Debug.Assert(!String.IsNullOrEmpty(szFen));
             // 棋盘上增加棋子
             void AddPiece(int sq, int pc)
             {

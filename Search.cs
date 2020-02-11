@@ -21,21 +21,19 @@ namespace MoleXiangqi
                 Console.WriteLine("Operations timed using the DateTime class.");
 
             long frequency = Stopwatch.Frequency;
-            Console.WriteLine("  Timer frequency in ticks per second = {0}",
-                frequency);
+            Console.WriteLine($"  Timer frequency in ticks per second = {frequency}");
             long nanosecPerTick = (1000L * 1000L * 1000L) / frequency;
-            Console.WriteLine("  Timer is accurate within {0} nanoseconds",
-                nanosecPerTick);
+            Console.WriteLine($"  Timer is accurate within {nanosecPerTick} nanoseconds");
         }
 
         public override string ToString()
         {
             int totalNodes = QuiesceNodes + PVNodes + CutNodes;
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine(String.Format("Nodes: total {0}， PV {1}, Cut {2}, Quiesce {3}", totalNodes, PVNodes, CutNodes, QuiesceNodes));
-            sb.AppendLine(String.Format("Elapsed time: {0} millisecondN. Nodes per second: {1}", ElapsedTime, totalNodes * 1000 / ElapsedTime));
-            sb.AppendLine(String.Format("Cutoffs: {0}", Cutoffs));
-            sb.AppendLine(String.Format("Extesions: Check {0}, Capture {1}", CheckExtesions, CaptureExtensions));
+            sb.AppendLine($"Nodes: total {totalNodes}， PV {PVNodes}, Cut {CutNodes}, Quiesce {QuiesceNodes}");
+            sb.AppendLine($"Elapsed time: {ElapsedTime} millisecondN. Nodes per second: {totalNodes * 1000 / ElapsedTime}");
+            sb.AppendLine($"Cutoffs: {Cutoffs}");
+            sb.AppendLine($"Extesions: Check {CheckExtesions}, Capture {CaptureExtensions}");
             return sb.ToString();
         }
     }
@@ -140,7 +138,7 @@ namespace MoleXiangqi
                 }
             }
             rootMoves.RemoveAll(x => x.Value < -G.WIN);
-            Console.WriteLine("Best move {mvBest}, score {alpha}");
+            Console.WriteLine($"Best move {mvBest}, score {alpha}");
             return alpha;
         }
 
