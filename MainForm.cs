@@ -393,7 +393,7 @@ namespace MoleXiangqi
             pos.FromFEN(@"c2a1k1n1/2c1a2R1/b6P1/8p/9/9/9/9/4K4/9 w - - 0 1");
             NewGameAsync();
             engine = new SEARCH(pos);
-            int score = engine.SearchQuiesce(-5000, 4998);
+            int score = engine.SearchQuiesce(-5000, 4998, 10);
             MessageBox.Show("静态搜索分数" + score + ",搜索节点" + engine.stat.QuiesceNodes);
             //WriteMap2Csv(pos.attackMap, @"G:\xqtest\attack.csv");
             //WriteMap2Csv(pos.connectivityMap, @"G:\xqtest\connectivity.csv");
@@ -407,12 +407,12 @@ namespace MoleXiangqi
 
             pos.FromFEN(pgn.StartFEN);
             engine = new SEARCH(pos);
-            engine.SearchQuiesce(-5000, 5000);
+            engine.SearchQuiesce(-5000, 5000, 10);
             for (int i = 1; i < pgn.MoveList.Count; i++)
             {
                 MOVE step = pgn.MoveList[i];
                 engine.board.MakeMove(step);
-                int score = -engine.SearchQuiesce(-5000, 5000);
+                int score = -engine.SearchQuiesce(-5000, 5000, 10);
                 if (i % 2 == 1)
                     Console.Write("{0}. {1}  ", (i + 1) / 2, score);
                 else

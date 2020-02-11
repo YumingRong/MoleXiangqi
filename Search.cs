@@ -30,7 +30,7 @@ namespace MoleXiangqi
 
         public override string ToString()
         {
-            int totalNodes = QuiesceNodes + PVNodes + CutNodes; 
+            int totalNodes = QuiesceNodes + PVNodes + CutNodes;
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(String.Format("Nodes: total {0}， PV {1}, Cut {2}, Quiesce {3}", totalNodes, QuiesceNodes, PVNodes, CutNodes));
             sb.AppendLine(String.Format("Elapsed time: {0} millisecondN. Nodes per second: {1}", ElapsedTime, totalNodes * 1000 / ElapsedTime));
@@ -45,70 +45,94 @@ namespace MoleXiangqi
     {
         public POSITION board;
         public STATISTICS stat;
-
+        public List<MOVE> PVLine;
+        public List<KeyValuePair<MOVE, int>> rootMoves;
 
         Stopwatch stopwatch;
-        public List<MOVE> PVLine;
         int depth = 0;
 
         public SEARCH(POSITION pos)
         {
             board = pos;
             stopwatch = new Stopwatch();
+            rootMoves = new List<KeyValuePair<MOVE, int>>();
         }
 
         public MOVE SearchMain(int depthleft)
         {
+            stat = new STATISTICS();
+            PVLine = new List<MOVE>();
+            killers = new MOVE[G.MAX_PLY, 2];
+            history = new int[256, 256];
+            rootMoves.Clear();
+
+            List<MOVE> moves = board.GenerateMoves();
+            foreach (MOVE mv in moves)
+            {
+                rootMoves.Add(new KeyValuePair<MOVE, int>(mv, 0));
+            }
+            int vl = 0;
+
             // 6. 做迭代加深搜索
             for (int i = 1; i <= depthleft; i++)
             {
-                int vl = SearchRoot(i);
+                Console.WriteLine("---------------------------");
+                Console.WriteLine("Search depth {0}", i);
+                stopwatch.Start();
 
-                StringBuilder sb = new StringBuilder();
-                foreach (MOVE mv in PVLine)
+                vl = SearchRoot(i);
+
+                PopPVLine();
+
+                if (rootMoves.Count == 1)
                 {
-                    sb.Append(mv);
-                    sb.Append(" -- ");
+                    Console.WriteLine("Single feasible move");
+                    break;
                 }
-                sb.AppendLine();
+                // 10. 搜索到杀棋则终止搜索
+                if (vl < -G.WIN || vl > G.WIN)
+                    break;
 
+                stopwatch.Stop();
+                stat.ElapsedTime += stopwatch.ElapsedMilliseconds;
+                Console.WriteLine(stat);
             }
+            if (vl < -G.WIN)
+                Console.WriteLine("Resign");
+            else if (vl > G.WIN)
+                Console.WriteLine("Mate in {0} steps", G.MATE - vl);
             return PVLine[0];
         }
 
 
         public int SearchRoot(int depthleft)
         {
-            stopwatch.Start();
-            stat = new STATISTICS();
-            PVLine = new List<MOVE>();
-            killers = new MOVE[G.MAX_PLY,2];
-            history = new int[256, 256];
 
             int alpha = -G.MATE;
-            int beta = G.MATE - 100;
+            int beta = G.WIN;
             MOVE mvBest = new MOVE();
-            List<MOVE> moves = board.GenerateMoves();
-            List<MOVE> subpv;
-
-            foreach (MOVE mv in moves)
+            rootMoves.Sort(SortLarge2Small);
+            for (int i = 0; i < rootMoves.Count; i++)
             {
+                MOVE mv = rootMoves[i].Key;
                 Debug.Write(new string('\t', depth));
                 Debug.WriteLine("{0} {1} {2}", mv, alpha, beta);
                 board.MakeMove(mv);
                 depth++;
-                int vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
+                int vl = -SearchPV(-beta, -alpha, depthleft - 1, out List<MOVE> subpv);
                 depth--;
                 board.UnmakeMove();
-                
+
+                rootMoves[i] = new KeyValuePair<MOVE, int>(mv, vl);
+
                 if (vl > alpha)
                 {
                     alpha = vl;
                     mvBest = mv;
                     PVLine.Clear();
                     PVLine.Add(mvBest);
-                    if (subpv != null)
-                        PVLine.AddRange(subpv);
+                    PVLine.AddRange(subpv);
+                    Console.WriteLine(PopPVLine());
                     if (vl > beta)
                     {
                         stat.Cutoffs++;
@@ -116,24 +140,27 @@ namespace MoleXiangqi
                     }
                 }
             }
-            stopwatch.Stop();
-            stat.ElapsedTime += stopwatch.ElapsedMilliseconds;
-            Console.WriteLine(stat);
+            rootMoves.RemoveAll(x => x.Value < -G.WIN);
             Console.WriteLine("Best move {0}, score {1}", mvBest, alpha);
             return alpha;
         }
 
         public int SearchPV(int alpha, int beta, int depthleft, out List<MOVE> pvs)
         {
+            stat.PVNodes++;
+            pvs = new List<MOVE>();
+
+            RepititionResult rep = board.Repitition();
+            if (rep != RepititionResult.NONE)
+                return (int)rep;
+            if (depthleft <= 0)
+                //静态搜索深度不超过普通搜索的2倍
+                return SearchQuiesce(alpha, beta, depth * 2);
+
+            List<MOVE> moves = board.GenerateMoves();
+            MOVE mvBest = new MOVE();
             int best = -G.MATE;
             int vl;
-            stat.PVNodes++;
-            pvs = null;
-            if (depthleft <= 0)
-                return SearchQuiesce(alpha, beta);
-            List<MOVE> subpv;
-            List<MOVE> moves = board.GenerateMoves();
-            MOVE mvBest = new MOVE(); 
 
             foreach (MOVE mv in moves)
             {
@@ -141,7 +168,7 @@ namespace MoleXiangqi
                 Debug.WriteLine("{0} {1} {2} {3}", mv, alpha, beta, best);
                 board.MakeMove(mv);
                 depth++;
-                vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
+                vl = -SearchPV(-beta, -alpha, depthleft - 1, out List<MOVE> subpv);
                 depth--;
                 board.UnmakeMove();
                 if (vl > best)
@@ -157,9 +184,8 @@ namespace MoleXiangqi
                     {
                         alpha = vl;
                         mvBest = mv;
-                        subpv.Insert(0, mv);
-                        pvs = subpv;
-
+                        pvs.Add(mv);
+                        pvs.AddRange(subpv);
                     }
                 }
             }
@@ -169,14 +195,8 @@ namespace MoleXiangqi
             return best;
         }
 
-        public int SearchQuiesce(int alpha, int beta)
+        public int SearchQuiesce(int alpha, int beta, int depthleft)
         {
-            // 1. 杀棋步数裁剪；
-            int vl = depth - G.MATE;
-            if (vl >= beta)
-            {
-                return vl;
-            }
             if (board.stepList[board.stepList.Count - 1].halfMoveClock >= 120)
                 return 0;
             RepititionResult rep = board.Repitition();
@@ -205,7 +225,7 @@ namespace MoleXiangqi
             else
             {
                 //对于未被将军的局面，在生成着法前首先对局面作评价；
-                vl = board.Complex_Evaluate();
+                int vl = board.Complex_Evaluate();
                 if (vl > beta)
                     return vl;
                 best = vl;
@@ -213,7 +233,7 @@ namespace MoleXiangqi
                 stat.CaptureExtensions += board.captureMoves.Count;
                 //如果是将军导致的延伸搜索，则继续寻找连将的着法
                 //因为搜索将军着法是一件费时的事情，所以在非连将的情况下，只搜索吃子着法
-                if (board.stepList.Count >= 2 && board.stepList[board.stepList.Count - 2].checking > 0)
+                if (depthleft > 0 && board.stepList.Count >= 2 && board.stepList[board.stepList.Count - 2].checking > 0)
                 {
                     List<MOVE> moves = board.GenerateMoves();
                     foreach (MOVE mv in moves)
@@ -235,12 +255,12 @@ namespace MoleXiangqi
                 }
                 if (board.captureMoves.Count > 0)
                 {
-                    board.captureMoves.Sort(delegate (KeyValuePair<MOVE, int> a, KeyValuePair<MOVE, int> b)
-                    { return b.Value.CompareTo(a.Value); });
+                    board.captureMoves.Sort(SortLarge2Small);
                     foreach (KeyValuePair<MOVE, int> mv_vl in board.captureMoves)
                         selectiveMoves.Add(mv_vl.Key);
                 }
-
+                else
+                    return vl;
             }
             foreach (MOVE mv in selectiveMoves)
             {
@@ -254,7 +274,7 @@ namespace MoleXiangqi
                 //    continue;
                 //}
                 depth++;
-                vl = -SearchQuiesce(-beta, -alpha);
+                int vl = -SearchQuiesce(-beta, -alpha, depthleft - 1);
                 depth--;
                 board.UnmakeMove();
                 //Debug.Write(new string('\t', depth));
@@ -272,6 +292,23 @@ namespace MoleXiangqi
 
             }
             return best;
+        }
+
+        string PopPVLine()
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (MOVE mv in PVLine)
+            {
+                sb.Append(mv);
+                sb.Append(" -- ");
+            }
+            sb.AppendLine();
+            return sb.ToString();
+        }
+
+        int SortLarge2Small(KeyValuePair<MOVE, int> a, KeyValuePair<MOVE, int> b)
+        {
+            return b.Value.CompareTo(a.Value);
         }
     }
 }
