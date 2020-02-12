@@ -397,7 +397,8 @@ namespace MoleXiangqi
             string fen = @"4kab2/4a4/4b4/9/9/5R3/9/4B1r2/4A4/1R1A1KBrc w - - 0 1";
             pos.FromFEN(fen);
             PanelBoard.Refresh();
-            engine.GenMoveTest(fen);
+            engine.FromFEN(fen);
+            //engine.GenMoveTest();
             //NewGameAsync();
             //int score = engine.SearchQuiesce(-5000, 4998, 10);
             //MessageBox.Show("静态搜索分数" + score + ",搜索节点" + engine.stat.QuiesceNodes);

@@ -61,7 +61,6 @@ namespace MoleXiangqi
             history = new int[256, 256];
             rootMoves.Clear();
 
-            //List<MOVE> moves = GenerateMoves();
             foreach (MOVE mv in GenerateMoves())
             {
                 rootMoves.Add(new KeyValuePair<MOVE, int>(mv, 0));
@@ -151,12 +150,11 @@ namespace MoleXiangqi
                 //静态搜索深度不超过普通搜索的2倍
                 return SearchQuiesce(alpha, beta, depth);
 
-            //List<MOVE> moves = GenerateMoves();
             MOVE mvBest = new MOVE();
             int best = -G.MATE;
             int vl;
 
-            foreach (MOVE mv in GenerateMoves())
+            foreach (MOVE mv in GetNextMove())
             {
                 Debug.Write(new string('\t', depth));
                 Debug.WriteLine("{0} {1} {2} {3}", mv, alpha, beta, best);
@@ -205,16 +203,6 @@ namespace MoleXiangqi
             {
                 best = depth - G.MATE;
                 // 6. 对于被将军的局面，生成全部着法；
-                //List<MOVE> moves = GenerateMoves();
-                foreach (MOVE mv in GenerateMoves())
-                {
-                    MovePiece(mv);
-                    int kingpos = sqPieces[POSITION.SIDE_TAG(1 - sdPlayer)];
-                    if (!IsLegalMove(sqCheck, kingpos))
-                        if (CheckedBy(1 - sdPlayer) == 0)
-                            selectiveMoves.Add(mv);
-                    UndoMovePiece(mv);
-                }
             }
             else
             {
@@ -224,49 +212,41 @@ namespace MoleXiangqi
                     return vl;
                 best = vl;
                 alpha = Math.Max(alpha, vl);
-                stat.CaptureExtensions += captureMoves.Count;
-                //如果是将军导致的延伸搜索，则继续寻找连将的着法
-                //因为搜索将军着法是一件费时的事情，所以在非连将的情况下，只搜索吃子着法
-                if (depthleft > 0 && stepList.Count >= 2 && stepList[stepList.Count - 2].checking > 0)
-                {
-                    //List<MOVE> moves = GenerateMoves();
-                    foreach (MOVE mv in GenerateMoves())
-                    {
-                        MovePiece(mv);
-                        //选择不重复，未对将并将军对方的着法
-                        if (mv.pcDst == 0 && !KingsFace2Face() && CheckedBy(sdPlayer) > 0)
-                        {
-                            //给送吃的着法打稍低分
-                            int score = attackMap[1 - sdPlayer, mv.sqDst] == 0 ? 30 : 10;
-                            //能够几个子轮流照将就不要老拿一个子照将
-                            if (mv.pcSrc != stepList[stepList.Count - 2].move.pcSrc)
-                                score += 10;
-                            captureMoves.Add(new KeyValuePair<MOVE, int>(mv, score));
-                            stat.CheckExtesions++;
-                        }
-                        UndoMovePiece(mv);
-                    }
-                }
-                if (captureMoves.Count > 0)
-                {
-                    captureMoves.Sort(SortLarge2Small);
-                    foreach (KeyValuePair<MOVE, int> mv_vl in captureMoves)
-                        selectiveMoves.Add(mv_vl.Key);
-                }
-                else
-                    return vl;
             }
-            foreach (MOVE mv in selectiveMoves)
+            foreach (MOVE mv in GetNextMove())
             {
                 Debug.Write(new string('\t', depth));
                 Debug.WriteLine("{0} {1} {2} {3}", mv, alpha, beta, best);
                 MakeMove(mv);
-                //// 如果移动后被将军了，那么着法是非法的，撤消该着法
-                //if (CheckedBy(1 - sdPlayer) > 0)
-                //{
-                //    UnmakeMove();
-                //    continue;
-                //}
+                if (sqCheck > 0)
+                {
+                    if (IsLegalMove(sqCheck, sqPieces[OPP_SIDE_TAG(sdPlayer) + KING_FROM]))
+                    {
+                        UnmakeMove();
+                        continue;
+                    }
+
+                    // 如果移动后被将军了，那么着法是非法的，撤消该着法
+                    if (CheckedBy(1 - sdPlayer) > 0)
+                    {
+                        UnmakeMove();
+                        continue;
+                    }
+                }
+                else
+                {
+                    // 如果移动后被将军了，那么着法是非法的，撤消该着法
+                    if (CheckedBy(1 - sdPlayer) > 0)
+                    {
+                        UnmakeMove();
+                        continue;
+                    }
+                    if (CheckedBy(sdPlayer) == 0 || mv.pcDst == 0)
+                    {
+                        UnmakeMove();
+                        continue;
+                    }
+                }
                 depth++;
                 int vl = -SearchQuiesce(-beta, -alpha, depthleft - 1);
                 depth--;
@@ -278,6 +258,7 @@ namespace MoleXiangqi
                     if (vl > beta)
                     {
                         stat.Cutoffs++;
+                        SetBestMove(mv);
                         return vl;
                     }
                     best = vl;

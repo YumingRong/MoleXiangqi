@@ -33,9 +33,8 @@ namespace MoleXiangqi
             GenerateMoves();
         }
 
-        public void GenMoveTest(string fen)
+        public void GenMoveTest()
         {
-            FromFEN(fen);
             foreach (MOVE mv in GenerateMoves())
                 Console.WriteLine(mv);
             Console.WriteLine("End of moves");
