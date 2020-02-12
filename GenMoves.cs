@@ -22,7 +22,7 @@ namespace MoleXiangqi
         {
             int sqSrc, sqDst, pcDst;
             int pcSelfSide, pcOppSide;
-            int nDelta;
+            int delta;
             List<MOVE> mvs = new List<MOVE>();
 
             pcSelfSide = SIDE_TAG(sdPlayer);
@@ -35,8 +35,8 @@ namespace MoleXiangqi
                     continue;
                 for (int j = 0; j < 4; j++)
                 {
-                    nDelta = ccKingDelta[j];
-                    for (sqDst = sqSrc + nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
+                    delta = ccKingDelta[j];
+                    for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
                     {
                         pcDst = pcSquares[sqDst];
                         if (pcDst == 0)
@@ -57,15 +57,15 @@ namespace MoleXiangqi
                     continue;
                 for (int j = 0; j < 4; j++)
                 {
-                    nDelta = ccKingDelta[j];
-                    for (sqDst = sqSrc + nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
+                    delta = ccKingDelta[j];
+                    for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
                     {
                         pcDst = pcSquares[sqDst];
                         if (pcDst == 0)
                             mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, 0));
                         else
                         {
-                            for (sqDst += nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
+                            for (sqDst += delta; IN_BOARD[sqDst]; sqDst += delta)
                             {
                                 pcDst = pcSquares[sqDst];
                                 if (pcDst != 0)
@@ -118,9 +118,9 @@ namespace MoleXiangqi
                 }
                 if (HOME_HALF[1 - sdPlayer, sqSrc])
                 {
-                    for (nDelta = -1; nDelta <= 1; nDelta += 2)
+                    for (delta = -1; delta <= 1; delta += 2)
                     {
-                        sqDst = sqSrc + nDelta;
+                        sqDst = sqSrc + delta;
                         if (IN_BOARD[sqDst])
                         {
                             pcDst = pcSquares[sqDst];
@@ -183,7 +183,7 @@ namespace MoleXiangqi
         public bool IsLegalMove(int sqSrc, int sqDst)
         {
             int sqPin, pcMoved, pcCaptured, selfSide;
-            int nDelta;
+            int delta;
             // 着法合理性检测包括以下几个步骤：
 
             // 1. 检查要走的子是否存在
@@ -218,17 +218,17 @@ namespace MoleXiangqi
                 case ROOK:
                     if (SAME_RANK(sqSrc, sqDst))
                     {
-                        nDelta = (sqDst < sqSrc ? -1 : 1);
+                        delta = (sqDst < sqSrc ? -1 : 1);
                     }
                     else if (SAME_FILE(sqSrc, sqDst))
                     {
-                        nDelta = (sqDst < sqSrc ? -16 : 16);
+                        delta = (sqDst < sqSrc ? -16 : 16);
                     }
                     else
                     {
                         return false;
                     }
-                    for (sqPin = sqSrc + nDelta; sqPin != sqDst; sqPin += nDelta)
+                    for (sqPin = sqSrc + delta; sqPin != sqDst; sqPin += delta)
                     {
                         if (pcSquares[sqPin] > 0)
                             return false;
@@ -238,13 +238,13 @@ namespace MoleXiangqi
                 // 7. 如果是炮，判断起来和车一样
                 case CANNON:
                     if (SAME_RANK(sqSrc, sqDst))
-                        nDelta = (sqDst < sqSrc ? -1 : 1);
+                        delta = (sqDst < sqSrc ? -1 : 1);
                     else if (SAME_FILE(sqSrc, sqDst))
-                        nDelta = (sqDst < sqSrc ? -16 : 16);
+                        delta = (sqDst < sqSrc ? -16 : 16);
                     else
                         return false;
                     int nPin = 0;
-                    for (sqPin = sqSrc + nDelta; sqPin != sqDst; sqPin += nDelta)
+                    for (sqPin = sqSrc + delta; sqPin != sqDst; sqPin += delta)
                     {
                         if (pcSquares[sqPin] > 0)
                             nPin++;
@@ -266,7 +266,7 @@ namespace MoleXiangqi
         public int CheckedBy(int side)
         {
             int i, j, sqSrc, sqDst;
-            int pcSelfSide, pcOppSide, pcDst, nDelta;
+            int pcSelfSide, pcOppSide, pcDst, delta;
             pcSelfSide = SIDE_TAG(side);
             pcOppSide = OPP_SIDE_TAG(side);
             // 找到棋盘上的帅(将)，再做以下判断：
@@ -298,8 +298,8 @@ namespace MoleXiangqi
             // 3. 判断是否被对方的车或炮将军
             for (i = 0; i < 4; i++)
             {
-                nDelta = ccKingDelta[i];
-                for (sqDst = sqSrc + nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
+                delta = ccKingDelta[i];
+                for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
                 {
                     pcDst = pcSquares[sqDst];
                     if (pcDst != 0)
@@ -308,7 +308,7 @@ namespace MoleXiangqi
                         if (pcDst == pcOppSide + ROOK)
                             return sqDst;
                         else
-                            for (sqDst += nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
+                            for (sqDst += delta; IN_BOARD[sqDst]; sqDst += delta)
                             {
                                 pcDst = pcSquares[sqDst];
                                 if (pcDst != 0)
@@ -375,8 +375,8 @@ namespace MoleXiangqi
             //自己的马就放在DiscoveredAttack里，对方的相就在PinnedPieces里
             List<int> discoveredAttack = new List<int>();
             int[] PinnedPieces = new int[48];   //0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
-            List<int>[] BannedGrids = new List<int>[2]; //空头炮与将之间不能走子
             int sqSrc, sqDst, pcDst, delta;
+            int[] oppAttackMap = new int[256];    //非行棋方保存攻击该格的价值最低的棋子
 
             //对阻挡将军的子进行判断
             void CheckBlocker(int side, int pcBlocker, int sqPinner, int direction)
@@ -397,17 +397,22 @@ namespace MoleXiangqi
                     PinnedPieces[pcBlocker] |= direction;
                     //在形如红炮-黑车-红兵-黑将的棋型中，黑车是可以吃红炮的
                     if (IsLegalMove(sqPieces[pcBlocker], sqPinner))
-                        attackMap[sdBlocker, sqPinner] = pcBlocker;
+                    {
+                        if (sdBlocker == sdPlayer)
+                            captureMoves.Add(new KeyValuePair<MOVE, int>(new MOVE(sqPieces[pcBlocker], sqPinner, pcBlocker, pcSquares[sqPinner]), 100));
+                        else
+                            oppAttackMap[sqPinner] = pcBlocker;
+                    }
 
                 }
             }
 
-            attackMap = new int[2, 256];    //保存攻击该格的价值最低的棋子
+            int sd, bas, sqOppKing;
             //find absolute pin. 0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
-            for (int sd = 0; sd < 2; sd++)
+            for (sd = 0; sd < 2; sd++)
             {
-                int bas = SIDE_TAG(sd);
-                int sqOppKing = sqPieces[OPP_SIDE_TAG(sd) + KING_FROM];
+                bas = SIDE_TAG(sd);
+                sqOppKing = sqPieces[OPP_SIDE_TAG(sd) + KING_FROM];
 
                 for (int pc = bas + ROOK_FROM; pc <= bas + ROOK_TO; pc++)
                 {
@@ -460,11 +465,6 @@ namespace MoleXiangqi
                         if (nblock == 2)
                             for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
                                 CheckBlocker(sd, pcSquares[sq], sqSrc, 1);
-                        else if (nblock == 0) //空心炮
-                        {
-                            for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
-                                BannedGrids[1 - sd].Add(sq);
-                        }
                     }
                     if (SAME_RANK(sqSrc, sqOppKing))
                     {
@@ -478,11 +478,6 @@ namespace MoleXiangqi
                         if (nblock == 2)
                             for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
                                 CheckBlocker(sd, pcSquares[sq], sqSrc, 2);
-                        else if (nblock == 0) //空心炮
-                        {
-                            for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
-                                BannedGrids[1 - sd].Add(sq);
-                        }
                     }
                 }
 
@@ -500,139 +495,261 @@ namespace MoleXiangqi
                 }
             }
 
-            //Generate attack map, from most valuable piece to cheap piece
-            for (int sd = 0; sd < 2; sd++)
+            //Generate enemy attack map, from most valuable piece to cheap piece
+            sd = 1 - sdPlayer;
+            bas = SIDE_TAG(sd);
+            for (int pc = bas; pc < bas + 16; pc++)
             {
-                int bas = SIDE_TAG(sd);
-                int sqOppKing = sqPieces[OPP_SIDE_TAG(sd) + KING_FROM];
-                for (int pc = bas; pc < bas + 16; pc++)
-                {
-                    sqSrc = sqPieces[pc];
-                    if (sqSrc == 0)
-                        continue;
-                    int pin = PinnedPieces[pc];
+                sqSrc = sqPieces[pc];
+                if (sqSrc == 0)
+                    continue;
+                int pin = PinnedPieces[pc];
 
-                    switch (cnPieceKinds[pc])
-                    {
-                        case KING:
-                            for (int i = 0; i < 4; i++)
+                switch (cnPieceKinds[pc])
+                {
+                    case KING:
+                        for (int i = 0; i < 4; i++)
+                        {
+                            sqDst = sqSrc + ccKingDelta[i];
+                            if (IN_FORT[sqDst])
+                                oppAttackMap[sqDst] = pc;
+                        }
+                        break;
+                    case ROOK:
+                        for (int j = 0; j < 4; j++)
+                        {
+                            if (ccPinDelta[pin, j])
+                                continue;
+                            delta = ccKingDelta[j];
+                            for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
                             {
-                                sqDst = sqSrc + ccKingDelta[i];
-                                if (IN_FORT[sqDst])
-                                    attackMap[sd, sqDst] = pc;
+                                pcDst = pcSquares[sqDst];
+                                oppAttackMap[sqDst] = pc;
+                                if (pcDst != 0)
+                                    break;
                             }
-                            break;
-                        case ROOK:
-                            for (int j = 0; j < 4; j++)
+                        }
+                        break;
+                    case CANNON:
+                        for (int j = 0; j < 4; j++)
+                        {
+                            if (ccPinDelta[pin, j])
+                                continue;
+                            delta = ccKingDelta[j];
+                            for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
                             {
-                                if (ccPinDelta[pin, j])
-                                    continue;
-                                delta = ccKingDelta[j];
-                                for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
+                                if (pcSquares[sqDst] != 0) //炮架
                                 {
-                                    pcDst = pcSquares[sqDst];
-                                    attackMap[sd, sqDst] = pc;
-                                    if (pcDst != 0)
-                                        break;
-                                }
-                            }
-                            break;
-                        case CANNON:
-                            for (int j = 0; j < 4; j++)
-                            {
-                                if (ccPinDelta[pin, j])
-                                    continue;
-                                int nDelta = ccKingDelta[j];
-                                for (sqDst = sqSrc + nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
-                                {
-                                    if (pcSquares[sqDst] != 0) //炮架
+                                    for (sqDst += delta; IN_BOARD[sqDst]; sqDst += delta)
                                     {
-                                        for (sqDst += nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
-                                        {
-                                            attackMap[sd, sqDst] = pc;
-                                            if (pcSquares[sqDst] != 0) //直瞄点
-                                                goto NextFor;
-                                        }
+                                        oppAttackMap[sqDst] = pc;
+                                        if (pcSquares[sqDst] != 0) //直瞄点
+                                            goto NextFor;
                                     }
                                 }
-                            NextFor:;
                             }
-                            //if (SAME_FILE(sqSrc, sqOppKing) || SAME_RANK(sqSrc, sqOppKing))
-                            //    positionValue[sd] += 5;
-                            break;
-                        case KNIGHT:
-                            if (pin > 0)
-                                continue;
-                            for (int j = 0; j < 4; j++)
+                        NextFor:;
+                        }
+                        //if (SAME_FILE(sqSrc, sqOppKing) || SAME_RANK(sqSrc, sqOppKing))
+                        //    positionValue[sd] += 5;
+                        break;
+                    case KNIGHT:
+                        if (pin > 0)
+                            continue;
+                        for (int j = 0; j < 4; j++)
+                        {
+                            if (pcSquares[sqSrc + ccKingDelta[j]] == 0)
                             {
-                                if (pcSquares[sqSrc + ccKingDelta[j]] == 0)
-                                {
-                                    attackMap[sd, sqSrc + ccKnightDelta[j, 0]] = pc;
-                                    attackMap[sd, sqSrc + ccKnightDelta[j, 1]] = pc;
-                                }
+                                oppAttackMap[sqSrc + ccKnightDelta[j, 0]] = pc;
+                                oppAttackMap[sqSrc + ccKnightDelta[j, 1]] = pc;
                             }
-                            break;
-                        case PAWN:
-                            if ((pin & 1) == 0)
-                                attackMap[sd, SQUARE_FORWARD(sqSrc, sd)] = pc;
-                            if ((pin & 2) == 0)
-                                if (HOME_HALF[1 - sd, sqSrc])
-                                {
-                                    attackMap[sd, sqSrc + 1] = pc;
-                                    attackMap[sd, sqSrc - 1] = pc;
-                                }
-                            break;
-                        case BISHOP:
-                            if (pin > 0)
-                                continue;
-                            for (int j = 0; j < 4; j++)
+                        }
+                        break;
+                    case PAWN:
+                        if ((pin & 1) == 0)
+                            oppAttackMap[SQUARE_FORWARD(sqSrc, sd)] = pc;
+                        if ((pin & 2) == 0)
+                            if (HOME_HALF[1 - sd, sqSrc])
                             {
-                                sqDst = sqSrc + ccGuardDelta[j];
-                                if (HOME_HALF[sd, sqDst] && pcSquares[sqDst] == 0)
-                                    attackMap[sd, sqDst + ccGuardDelta[j]] = pc;
+                                oppAttackMap[sqSrc + 1] = pc;
+                                oppAttackMap[sqSrc - 1] = pc;
                             }
-                            break;
-                        case GUARD:
-                            if (pin > 0)
-                                continue;
-                            for (int j = 0; j < 4; j++)
-                            {
-                                sqDst = sqSrc + ccGuardDelta[j];
-                                if (IN_FORT[sqDst])
-                                    attackMap[sd, sqDst] = pc;
-                            }
-                            break;
-                    }
+                        break;
+                    case BISHOP:
+                        if (pin > 0)
+                            continue;
+                        for (int j = 0; j < 4; j++)
+                        {
+                            sqDst = sqSrc + ccGuardDelta[j];
+                            if (HOME_HALF[sd, sqDst] && pcSquares[sqDst] == 0)
+                                oppAttackMap[sqDst + ccGuardDelta[j]] = pc;
+                        }
+                        break;
+                    case GUARD:
+                        if (pin > 0)
+                            continue;
+                        for (int j = 0; j < 4; j++)
+                        {
+                            sqDst = sqSrc + ccGuardDelta[j];
+                            if (IN_FORT[sqDst])
+                                oppAttackMap[sqDst] = pc;
+                        }
+                        break;
                 }
-                //帅所在的格没有保护
-                attackMap[sd, sqPieces[bas + KING_FROM]] = 0;
             }
 
-            captureMoves = new List<KeyValuePair<MOVE, int>>();
-            int sdtag = SIDE_TAG(1 - sdPlayer);
-            for (pcDst = sdtag; pcDst < sdtag + 16; pcDst++)
+            List<KeyValuePair<MOVE, int>> nonCapMoves = new List<KeyValuePair<MOVE, int>>();
+            void AddMove(int sqFrom, int sqTo)
             {
-                sqDst = sqPieces[pcDst];
-                int attack = attackMap[sdPlayer, sqDst];
-                int protect = attackMap[1 - sdPlayer, sqDst];
-                if (attack > 0)
+                int pcFrom = pcSquares[sqFrom];
+                int pcTo = pcSquares[sqTo];
+                if (SIDE(pcTo) == 1 - sdPlayer)
                 {
-                    if (protect > 0)
-                    {
-                        MOVE mv = new MOVE(sqPieces[attack], sqDst, attack, pcDst);
-                        captureMoves.Add(new KeyValuePair<MOVE, int>(mv, cnPieceValue[pcDst] - cnPieceValue[attack]));
-                    }
-                    else
-                    {
-                        MOVE mv = new MOVE(sqPieces[attack], sqDst, attack, pcDst);
-                        captureMoves.Add(new KeyValuePair<MOVE, int>(mv, cnPieceValue[pcDst]));
-                    }
+                    MOVE mv = new MOVE(sqFrom, sqTo, pcSquares[sqFrom], pcTo);
+                    int score = cnPieceValue[pcTo];
+                    if (oppAttackMap[sqTo] > 0)
+                        score -= cnPieceValue[pcFrom];
+                    captureMoves.Add(new KeyValuePair<MOVE, int>(mv, score));
+                }
+                else if (pcTo == 0)
+                {
+                    MOVE mv = new MOVE(sqFrom, sqTo, pcSquares[sqFrom], pcTo);
+                    int score = history[sqFrom, sqTo];
+                    nonCapMoves.Add(new KeyValuePair<MOVE, int>(mv, score));
                 }
             }
+
+            bas = SIDE_TAG(sdPlayer);
+            //generate move list and assign score
+            for (int pc = bas; pc < bas + 16; pc++)
+            {
+                sqSrc = sqPieces[pc];
+                if (sqSrc == 0)
+                    continue;
+                int pin = PinnedPieces[pc];
+
+                switch (cnPieceKinds[pc])
+                {
+                    case KING:
+                        for (int i = 0; i < 4; i++)
+                        {
+                            sqDst = sqSrc + ccKingDelta[i];
+                            if (IN_FORT[sqDst])
+                                AddMove(sqSrc, sqDst);
+                        }
+                        break;
+                    case ROOK:
+                        for (int j = 0; j < 4; j++)
+                        {
+                            if (ccPinDelta[pin, j])
+                                continue;
+                            delta = ccKingDelta[j];
+                            for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
+                            {
+                                pcDst = pcSquares[sqDst];
+                                AddMove(sqSrc, sqDst);
+                                if (pcDst != 0)
+                                    break;
+                            }
+                        }
+                        break;
+                    case CANNON:
+                        for (int j = 0; j < 4; j++)
+                        {
+                            if (ccPinDelta[pin, j])
+                                continue;
+                            delta = ccKingDelta[j];
+                            for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
+                            {
+                                pcDst = pcSquares[sqDst];
+                                if (pcDst == 0)
+                                {
+                                    int score = history[sqSrc, sqDst];
+                                    sqOppKing = sqPieces[OPP_SIDE_TAG(sdPlayer) + KING_FROM];
+                                    if (SAME_FILE(sqDst, sqOppKing) || SAME_RANK(sqDst, sqOppKing))
+                                        score += 5;
+                                    nonCapMoves.Add(new KeyValuePair<MOVE, int>(new MOVE(sqSrc, sqDst, pc, 0), history[sqSrc, sqDst]));
+                                }
+                                else
+                                {
+                                    for (sqDst += delta; IN_BOARD[sqDst]; sqDst += delta)
+                                    {
+                                        pcDst = pcSquares[sqDst];
+                                        if (pcDst != 0)
+                                        {
+                                            if ((pcDst & bas) == 0)
+                                            {
+                                                int score = cnPieceValue[pcDst];
+                                                if (oppAttackMap[sqDst] > 0)
+                                                    score -= cnPieceValue[pc];
+                                                captureMoves.Add(new KeyValuePair<MOVE, int>(new MOVE(sqSrc, sqDst, pc, pcDst), score));
+                                            }
+                                            goto NextFor1;
+                                        }
+                                    }
+
+                                }
+                            }
+                        NextFor1:;
+                        }
+                        break;
+                    case KNIGHT:
+                        if (pin > 0)
+                            continue;
+                        for (int j = 0; j < 4; j++)
+                        {
+                            if (pcSquares[sqSrc + ccKingDelta[j]] == 0)
+                            {
+                                for (int k = 0; k < 2; k++)
+                                {
+                                    sqDst = sqSrc + ccKnightDelta[j, k];
+                                    if (IN_BOARD[sqDst])
+                                        AddMove(sqSrc, sqDst);
+                                }
+                            }
+                        }
+                        break;
+                    case PAWN:
+                        if ((pin & 1) == 0)
+                            AddMove(sqSrc, SQUARE_FORWARD(sqSrc, sd));
+                        if ((pin & 2) == 0)
+                            if (HOME_HALF[1 - sd, sqSrc])
+                            {
+                                if (IN_BOARD[sqSrc + 1])
+                                    AddMove(sqSrc, sqSrc + 1);
+                                if (IN_BOARD[sqSrc - 1])
+                                    AddMove(sqSrc, sqSrc - 1);
+                            }
+                        break;
+                    case BISHOP:
+                        if (pin > 0)
+                            continue;
+                        for (int j = 0; j < 4; j++)
+                        {
+                            sqDst = sqSrc + ccGuardDelta[j];
+                            if (HOME_HALF[sd, sqDst] && pcSquares[sqDst] == 0)
+                                AddMove(sqSrc, sqDst + ccGuardDelta[j]);
+                        }
+                        break;
+                    case GUARD:
+                        if (pin > 0)
+                            continue;
+                        for (int j = 0; j < 4; j++)
+                        {
+                            sqDst = sqSrc + ccGuardDelta[j];
+                            if (IN_FORT[sqDst])
+                                AddMove(sqSrc, sqDst);
+                        }
+                        break;
+                }
+            }
+
             captureMoves.Sort(SortLarge2Small);
             foreach (KeyValuePair<MOVE, int> mv_vl in captureMoves)
                 yield return mv_vl.Key;
-
+            nonCapMoves.Sort(SortLarge2Small);
+            foreach (KeyValuePair<MOVE, int> mv_vl in nonCapMoves)
+                yield return mv_vl.Key;
         }
     }
 }
