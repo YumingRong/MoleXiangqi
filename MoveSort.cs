@@ -30,13 +30,14 @@ namespace MoleXiangqi
             mv = killers[depth, 1];
             if (IsLegalMove(mv.sqSrc, mv.sqDst))
                 yield return mv;
-            Complex_Evaluate();
-            captureMoves.Sort(SortLarge2Small);
-            foreach (KeyValuePair<MOVE, int> mv_vl in captureMoves)
-                yield return mv_vl.Key;
-
         }
 
-
+        public void GenMoveTest(string fen)
+        {
+            FromFEN(fen);
+            foreach (MOVE mv in Complex_GenMoves())
+                Console.WriteLine(mv);
+            Console.WriteLine("End of moves");
+        }
     }
 }

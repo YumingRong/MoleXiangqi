@@ -97,9 +97,7 @@ namespace MoleXiangqi
         private void MainForm_Load(object sender, EventArgs e)
         {
             //position startpos指令
-            pos.FromFEN(@"4kab2/4a4/4b4/9/9/5R3/9/4B1r2/4A4/1R1A1KBrc w - - 0 1");
-            engine.FromFEN(@"4kab2/4a4/4b4/9/9/5R3/9/4B1r2/4A4/1R1A1KBrc w - - 0 1");
-            //pos.FromFEN(POSITION.cszStartFen);
+            pos.FromFEN(POSITION.cszStartFen);
             NewGameAsync();
         }
 
@@ -394,11 +392,14 @@ namespace MoleXiangqi
         private void MenuEvaluate_Click(object sender, EventArgs e)
         {
             App_inGame = false;
-            pos.FromFEN(@"c2a1k1n1/2c1a2R1/b6P1/8p/9/9/9/9/4K4/9 w - - 0 1");
-            engine.FromFEN(@"c2a1k1n1/2c1a2R1/b6P1/8p/9/9/9/9/4K4/9 w - - 0 1");
-            NewGameAsync();
-            int score = engine.SearchQuiesce(-5000, 4998, 10);
-            MessageBox.Show("静态搜索分数" + score + ",搜索节点" + engine.stat.QuiesceNodes);
+            string fen = @"4kab2/4a4/4b4/9/9/5R3/9/4B1r2/4A4/1R1A1KBrc w - - 0 1";
+            pos.FromFEN(fen);
+            PanelBoard.Refresh();
+            engine.GenMoveTest(fen);
+
+            //NewGameAsync();
+            //int score = engine.SearchQuiesce(-5000, 4998, 10);
+            //MessageBox.Show("静态搜索分数" + score + ",搜索节点" + engine.stat.QuiesceNodes);
             //WriteMap2Csv(pos.attackMap, @"G:\xqtest\attack.csv");
             //WriteMap2Csv(pos.connectivityMap, @"G:\xqtest\connectivity.csv");
         }

@@ -377,6 +377,8 @@ namespace MoleXiangqi
             int[] PinnedPieces = new int[48];   //0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
             int sqSrc, sqDst, pcDst, delta;
             int[] oppAttackMap = new int[256];    //非行棋方保存攻击该格的价值最低的棋子
+            captureMoves = new List<KeyValuePair<MOVE, int>>();
+            List<KeyValuePair<MOVE, int>> nonCapMoves = new List<KeyValuePair<MOVE, int>>();
 
             //对阻挡将军的子进行判断
             void CheckBlocker(int side, int pcBlocker, int sqPinner, int direction)
@@ -598,7 +600,6 @@ namespace MoleXiangqi
                 }
             }
 
-            List<KeyValuePair<MOVE, int>> nonCapMoves = new List<KeyValuePair<MOVE, int>>();
             void AddMove(int sqFrom, int sqTo)
             {
                 int pcFrom = pcSquares[sqFrom];
@@ -614,7 +615,7 @@ namespace MoleXiangqi
                 else if (pcTo == 0)
                 {
                     MOVE mv = new MOVE(sqFrom, sqTo, pcSquares[sqFrom], pcTo);
-                    int score = history[sqFrom, sqTo];
+                    int score = oppAttackMap[sqTo] > 0 ? -cnPieceValue[pcFrom] : 0;
                     nonCapMoves.Add(new KeyValuePair<MOVE, int>(mv, score));
                 }
             }
@@ -664,7 +665,7 @@ namespace MoleXiangqi
                                 pcDst = pcSquares[sqDst];
                                 if (pcDst == 0)
                                 {
-                                    int score = history[sqSrc, sqDst];
+                                    int score = oppAttackMap[sqDst] > 0 ? 0 : -cnPieceValue[pcDst];
                                     sqOppKing = sqPieces[OPP_SIDE_TAG(sdPlayer) + KING_FROM];
                                     if (SAME_FILE(sqDst, sqOppKing) || SAME_RANK(sqDst, sqOppKing))
                                         score += 5;
