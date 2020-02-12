@@ -61,8 +61,8 @@ namespace MoleXiangqi
             history = new int[256, 256];
             rootMoves.Clear();
 
-            List<MOVE> moves = GenerateMoves();
-            foreach (MOVE mv in moves)
+            //List<MOVE> moves = GenerateMoves();
+            foreach (MOVE mv in GenerateMoves())
             {
                 rootMoves.Add(new KeyValuePair<MOVE, int>(mv, 0));
             }
@@ -151,12 +151,12 @@ namespace MoleXiangqi
                 //静态搜索深度不超过普通搜索的2倍
                 return SearchQuiesce(alpha, beta, depth);
 
-            List<MOVE> moves = GenerateMoves();
+            //List<MOVE> moves = GenerateMoves();
             MOVE mvBest = new MOVE();
             int best = -G.MATE;
             int vl;
 
-            foreach (MOVE mv in moves)
+            foreach (MOVE mv in GenerateMoves())
             {
                 Debug.Write(new string('\t', depth));
                 Debug.WriteLine("{0} {1} {2} {3}", mv, alpha, beta, best);
@@ -205,8 +205,8 @@ namespace MoleXiangqi
             {
                 best = depth - G.MATE;
                 // 6. 对于被将军的局面，生成全部着法；
-                List<MOVE> moves = GenerateMoves();
-                foreach (MOVE mv in moves)
+                //List<MOVE> moves = GenerateMoves();
+                foreach (MOVE mv in GenerateMoves())
                 {
                     MovePiece(mv);
                     int kingpos = sqPieces[POSITION.SIDE_TAG(1 - sdPlayer)];
@@ -229,8 +229,8 @@ namespace MoleXiangqi
                 //因为搜索将军着法是一件费时的事情，所以在非连将的情况下，只搜索吃子着法
                 if (depthleft > 0 && stepList.Count >= 2 && stepList[stepList.Count - 2].checking > 0)
                 {
-                    List<MOVE> moves = GenerateMoves();
-                    foreach (MOVE mv in moves)
+                    //List<MOVE> moves = GenerateMoves();
+                    foreach (MOVE mv in GenerateMoves())
                     {
                         MovePiece(mv);
                         //选择不重复，未对将并将军对方的着法

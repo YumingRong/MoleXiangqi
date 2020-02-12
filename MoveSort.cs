@@ -30,12 +30,13 @@ namespace MoleXiangqi
             mv = killers[depth, 1];
             if (IsLegalMove(mv.sqSrc, mv.sqDst))
                 yield return mv;
+            GenerateMoves();
         }
 
         public void GenMoveTest(string fen)
         {
             FromFEN(fen);
-            foreach (MOVE mv in Complex_GenMoves())
+            foreach (MOVE mv in GenerateMoves())
                 Console.WriteLine(mv);
             Console.WriteLine("End of moves");
         }

@@ -98,6 +98,7 @@ namespace MoleXiangqi
         {
             //position startpos指令
             pos.FromFEN(POSITION.cszStartFen);
+            engine.FromFEN(POSITION.cszStartFen);
             NewGameAsync();
         }
 
@@ -250,6 +251,7 @@ namespace MoleXiangqi
                 ListboxMove.Items.Add(label);
             }
             pos.FromFEN(PGN.StartFEN);
+            engine.FromFEN(PGN.StartFEN);
             FENStep = 0;
             ListboxMove.SelectedIndex = 0;
             PanelBoard.Refresh();
@@ -372,16 +374,16 @@ namespace MoleXiangqi
             foreach (string fileName in pgnFiles)
             {
                 Console.WriteLine(fileName.Substring(sourceDirectory.Length + 1));
-                PgnFileStruct pgn = pos.ReadPgnFile(fileName);
+                PgnFileStruct pgn = engine.ReadPgnFile(fileName);
                 nFile++;
-                pos.FromFEN(pgn.StartFEN);
+                engine.FromFEN(pgn.StartFEN);
                 int side = 0;
                 for (int i = 1; i < pgn.MoveList.Count; i++)
                 {
                     MOVE step = pgn.MoveList[i];
                     if (pos.pcSquares[step.sqDst] > 0)
                         activeGrid[side, step.sqDst]++;
-                    pos.MakeMove(step);
+                    engine.MakeMove(step);
                     side = 1 ^ side;
                 }
             }
@@ -391,12 +393,11 @@ namespace MoleXiangqi
 
         private void MenuEvaluate_Click(object sender, EventArgs e)
         {
-            App_inGame = false;
+            //App_inGame = false;
             string fen = @"4kab2/4a4/4b4/9/9/5R3/9/4B1r2/4A4/1R1A1KBrc w - - 0 1";
             pos.FromFEN(fen);
             PanelBoard.Refresh();
             engine.GenMoveTest(fen);
-
             //NewGameAsync();
             //int score = engine.SearchQuiesce(-5000, 4998, 10);
             //MessageBox.Show("静态搜索分数" + score + ",搜索节点" + engine.stat.QuiesceNodes);
@@ -411,7 +412,6 @@ namespace MoleXiangqi
             PgnFileStruct pgn = pos.ReadPgnFile(fileName);
 
             pos.FromFEN(pgn.StartFEN);
-            engine = new POSITION();
             engine.FromFEN(pgn.StartFEN);
             engine.SearchQuiesce(-5000, 5000, 10);
             for (int i = 1; i < pgn.MoveList.Count; i++)

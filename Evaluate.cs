@@ -192,8 +192,11 @@ namespace MoleXiangqi
                                 nblock++;
                         }
                         if (nblock == 2)
+                        {
                             for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
-                                CheckBlocker(sd, pcSquares[sq], sqSrc, 1);
+                                if (pcSquares[sq] > 0)
+                                    CheckBlocker(sd, pcSquares[sq], sqSrc, 1);
+                        }
                         else if (nblock == 0) //空心炮
                         {
                             for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
@@ -210,8 +213,11 @@ namespace MoleXiangqi
                                 nblock++;
                         }
                         if (nblock == 2)
+                        {
                             for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
-                                CheckBlocker(sd, pcSquares[sq], sqSrc, 2);
+                                if (pcSquares[sq] > 0)
+                                    CheckBlocker(sd, pcSquares[sq], sqSrc, 2);
+                        }
                         else if (nblock == 0) //空心炮
                         {
                             for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
@@ -500,10 +506,10 @@ namespace MoleXiangqi
                     if (pcSquares[step.sqDst] == 0)
                     {
                         mv_vals.Clear();
-                        List<MOVE> moves = GenerateMoves();
+                        //List<MOVE> moves = GenerateMoves();
                         int bookmovevalue = 0;
                         string bookmovekey = step.ToString();
-                        foreach (MOVE move in moves)
+                        foreach (MOVE move in GenerateMoves())
                         {
                             if (move.pcDst == 0)
                             {
@@ -524,12 +530,12 @@ namespace MoleXiangqi
                             { return b.Value.CompareTo(a.Value); });
                         int index = mv_vals.IndexOf(new KeyValuePair<string, int>(bookmovekey, bookmovevalue));
                         seq.Add(index);
-                        totalMoves += moves.Count;
+                        //totalMoves += moves.Count;
                         Console.WriteLine("{0}. Book move: {1} {2}", i, bookmovekey, index);
                         int j = 0;
                         foreach (var m in mv_vals)
                         {
-                            Console.WriteLine("{0}. {1} {2} / {3}", j++, m.Key, m.Value, moves.Count);
+                            //Console.WriteLine("{0}. {1} {2} / {3}", j++, m.Key, m.Value, moves.Count);
 
                         }
                     }

@@ -17,169 +17,6 @@ namespace MoleXiangqi
         //[pin, direction]，用来判断棋子运动方向受不受牵制
         static readonly bool[,] ccPinDelta = { { false, false, false, false }, { false, false, true, true, }, { true, true, false, false }, { true, true, true, true } };
 
-        //着法生成器
-        List<MOVE> GenerateMoves()
-        {
-            int sqSrc, sqDst, pcDst;
-            int pcSelfSide, pcOppSide;
-            int delta;
-            List<MOVE> mvs = new List<MOVE>();
-
-            pcSelfSide = SIDE_TAG(sdPlayer);
-            pcOppSide = OPP_SIDE_TAG(sdPlayer);
-
-            for (int i = ROOK_FROM; i <= ROOK_TO; i++)
-            {
-                sqSrc = sqPieces[pcSelfSide + i];
-                if (sqSrc == 0)
-                    continue;
-                for (int j = 0; j < 4; j++)
-                {
-                    delta = ccKingDelta[j];
-                    for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
-                    {
-                        pcDst = pcSquares[sqDst];
-                        if (pcDst == 0)
-                            mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, 0));
-                        else
-                        {
-                            if ((pcDst & pcOppSide) != 0)
-                                mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
-                            break;
-                        }
-                    }
-                }
-            }
-            for (int i = CANNON_FROM; i <= CANNON_TO; i++)
-            {
-                sqSrc = sqPieces[pcSelfSide + i];
-                if (sqSrc == 0)
-                    continue;
-                for (int j = 0; j < 4; j++)
-                {
-                    delta = ccKingDelta[j];
-                    for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
-                    {
-                        pcDst = pcSquares[sqDst];
-                        if (pcDst == 0)
-                            mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, 0));
-                        else
-                        {
-                            for (sqDst += delta; IN_BOARD[sqDst]; sqDst += delta)
-                            {
-                                pcDst = pcSquares[sqDst];
-                                if (pcDst != 0)
-                                {
-                                    if ((pcDst & pcOppSide) != 0)
-                                        mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
-                                    goto NextFor1;
-                                }
-                            }
-
-                        }
-                    }
-                NextFor1:;
-                }
-            }
-
-            for (int i = KNIGHT_FROM; i <= KNIGHT_TO; i++)
-            {
-                sqSrc = sqPieces[pcSelfSide + i];
-                if (sqSrc == 0)
-                    continue;
-                for (int j = 0; j < 4; j++)
-                {
-                    int sqPin = sqSrc + ccKingDelta[j];
-                    if (pcSquares[sqPin] == 0)
-                    {
-                        sqDst = sqSrc + ccKnightDelta[j, 0];
-                        pcDst = pcSquares[sqDst];
-                        if (IN_BOARD[sqDst] && (pcDst & pcSelfSide) == 0)
-                            mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
-                        sqDst = sqSrc + ccKnightDelta[j, 1];
-                        pcDst = pcSquares[sqDst];
-                        if (IN_BOARD[sqDst] && (pcDst & pcSelfSide) == 0)
-                            mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
-                    }
-                }
-            }
-
-            for (int i = PAWN_FROM; i <= PAWN_TO; i++)
-            {
-                sqSrc = sqPieces[pcSelfSide + i];
-                if (sqSrc == 0)
-                    continue;
-                sqDst = SQUARE_FORWARD(sqSrc, sdPlayer);
-                if (IN_BOARD[sqDst])
-                {
-                    pcDst = pcSquares[sqDst];
-                    if ((pcDst & pcSelfSide) == 0)
-                        mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
-                }
-                if (HOME_HALF[1 - sdPlayer, sqSrc])
-                {
-                    for (delta = -1; delta <= 1; delta += 2)
-                    {
-                        sqDst = sqSrc + delta;
-                        if (IN_BOARD[sqDst])
-                        {
-                            pcDst = pcSquares[sqDst];
-                            if ((pcDst & pcSelfSide) == 0)
-                                mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
-                        }
-                    }
-                }
-            }
-
-            for (int i = BISHOP_FROM; i <= BISHOP_TO; i++)
-            {
-                sqSrc = sqPieces[pcSelfSide + i];
-                if (sqSrc == 0)
-                    continue;
-                for (int j = 0; j < 4; j++)
-                {
-                    sqDst = sqSrc + ccGuardDelta[j];
-                    if (!(HOME_HALF[sdPlayer, sqDst] && pcSquares[sqDst] == 0))
-                        continue;
-                    sqDst += ccGuardDelta[j];
-                    pcDst = pcSquares[sqDst];
-                    if ((pcDst & pcSelfSide) == 0)
-                        mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
-                }
-            }
-
-            for (int i = GUARD_FROM; i <= GUARD_TO; i++)
-            {
-                sqSrc = sqPieces[pcSelfSide + i];
-                if (sqSrc == 0)
-                    continue;
-                for (int j = 0; j < 4; j++)
-                {
-                    sqDst = sqSrc + ccGuardDelta[j];
-                    if (!IN_FORT[sqDst])
-                    {
-                        continue;
-                    }
-                    pcDst = pcSquares[sqDst];
-                    if ((pcDst & pcSelfSide) == 0)
-                        mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
-                }
-            }
-
-            sqSrc = sqPieces[pcSelfSide + KING_FROM];
-            for (int i = 0; i < 4; i++)
-            {
-                sqDst = sqSrc + ccKingDelta[i];
-                if (!IN_FORT[sqDst])
-                    continue;
-                pcDst = pcSquares[sqDst];
-                if ((pcDst & pcSelfSide) == 0)
-                    mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + KING_FROM, pcDst));
-            }
-            return mvs;
-        }
-
-        // 着法合理性检测，仅用在“杀手着法”的检测中
         public bool IsLegalMove(int sqSrc, int sqDst)
         {
             int sqPin, pcMoved, pcCaptured, selfSide;
@@ -348,10 +185,10 @@ namespace MoleXiangqi
         // 判断是否被杀
         public bool IsMate()
         {
-            List<MOVE> mvs;
+            //List<MOVE> mvs;
 
-            mvs = GenerateMoves();
-            foreach (MOVE mv in mvs)
+            //mvs = GenerateMoves();
+            foreach (MOVE mv in GenerateMoves())
             {
                 //Debug.WriteLine(MOVE2ICCS(mv) + "," + SRC(mv) + "-" + DST(mv));
                 MovePiece(mv);
@@ -366,6 +203,166 @@ namespace MoleXiangqi
                 }
             }
             return true;
+        }
+
+        //着法生成器
+        IEnumerable<MOVE> GenerateMoves()
+        {
+            //着法生成器
+            int sqSrc, sqDst, pcDst, delta;
+            int pcSelfSide, pcOppSide;
+
+            pcSelfSide = SIDE_TAG(sdPlayer);
+            pcOppSide = OPP_SIDE_TAG(sdPlayer);
+
+            for (int i = ROOK_FROM; i <= ROOK_TO; i++)
+            {
+                sqSrc = sqPieces[pcSelfSide + i];
+                if (sqSrc == 0)
+                    continue;
+                for (int j = 0; j < 4; j++)
+                {
+                    delta = ccKingDelta[j];
+                    for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
+                    {
+                        pcDst = pcSquares[sqDst];
+                        if (pcDst == 0)
+                            yield return new MOVE(sqSrc, sqDst, pcSelfSide + i, 0);
+                        else
+                        {
+                            if ((pcDst & pcOppSide) != 0)
+                                yield return new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst);
+                            break;
+                        }
+                    }
+                }
+            }
+            for (int i = CANNON_FROM; i <= CANNON_TO; i++)
+            {
+                sqSrc = sqPieces[pcSelfSide + i];
+                if (sqSrc == 0)
+                    continue;
+                for (int j = 0; j < 4; j++)
+                {
+                    delta = ccKingDelta[j];
+                    for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
+                    {
+                        pcDst = pcSquares[sqDst];
+                        if (pcDst == 0)
+                             yield return new MOVE(sqSrc, sqDst, pcSelfSide + i, 0);
+                        else
+                        {
+                            for (sqDst += delta; IN_BOARD[sqDst]; sqDst += delta)
+                            {
+                                pcDst = pcSquares[sqDst];
+                                if (pcDst != 0)
+                                {
+                                    if ((pcDst & pcOppSide) != 0)
+                                        yield return new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst);
+                                    goto NextFor1;
+                                }
+                            }
+
+                        }
+                    }
+                NextFor1:;
+                }
+            }
+
+            for (int i = KNIGHT_FROM; i <= KNIGHT_TO; i++)
+            {
+                sqSrc = sqPieces[pcSelfSide + i];
+                if (sqSrc == 0)
+                    continue;
+                for (int j = 0; j < 4; j++)
+                {
+                    int sqPin = sqSrc + ccKingDelta[j];
+                    if (pcSquares[sqPin] == 0)
+                    {
+                        sqDst = sqSrc + ccKnightDelta[j, 0];
+                        pcDst = pcSquares[sqDst];
+                        if (IN_BOARD[sqDst] && (pcDst & pcSelfSide) == 0)
+                            yield return new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst);
+                        sqDst = sqSrc + ccKnightDelta[j, 1];
+                        pcDst = pcSquares[sqDst];
+                        if (IN_BOARD[sqDst] && (pcDst & pcSelfSide) == 0)
+                            yield return new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst);
+                    }
+                }
+            }
+
+            for (int i = PAWN_FROM; i <= PAWN_TO; i++)
+            {
+                sqSrc = sqPieces[pcSelfSide + i];
+                if (sqSrc == 0)
+                    continue;
+                sqDst = SQUARE_FORWARD(sqSrc, sdPlayer);
+                if (IN_BOARD[sqDst])
+                {
+                    pcDst = pcSquares[sqDst];
+                    if ((pcDst & pcSelfSide) == 0)
+                        yield return new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst);
+                }
+                if (HOME_HALF[1 - sdPlayer, sqSrc])
+                {
+                    for (delta = -1; delta <= 1; delta += 2)
+                    {
+                        sqDst = sqSrc + delta;
+                        if (IN_BOARD[sqDst])
+                        {
+                            pcDst = pcSquares[sqDst];
+                            if ((pcDst & pcSelfSide) == 0)
+                                yield return new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst);
+                        }
+                    }
+                }
+            }
+
+            for (int i = BISHOP_FROM; i <= BISHOP_TO; i++)
+            {
+                sqSrc = sqPieces[pcSelfSide + i];
+                if (sqSrc == 0)
+                    continue;
+                for (int j = 0; j < 4; j++)
+                {
+                    sqDst = sqSrc + ccGuardDelta[j];
+                    if (!(HOME_HALF[sdPlayer, sqDst] && pcSquares[sqDst] == 0))
+                        continue;
+                    sqDst += ccGuardDelta[j];
+                    pcDst = pcSquares[sqDst];
+                    if ((pcDst & pcSelfSide) == 0)
+                        yield return new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst);
+                }
+            }
+
+            for (int i = GUARD_FROM; i <= GUARD_TO; i++)
+            {
+                sqSrc = sqPieces[pcSelfSide + i];
+                if (sqSrc == 0)
+                    continue;
+                for (int j = 0; j < 4; j++)
+                {
+                    sqDst = sqSrc + ccGuardDelta[j];
+                    if (!IN_FORT[sqDst])
+                    {
+                        continue;
+                    }
+                    pcDst = pcSquares[sqDst];
+                    if ((pcDst & pcSelfSide) == 0)
+                        yield return new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst);
+                }
+            }
+
+            sqSrc = sqPieces[pcSelfSide + KING_FROM];
+            for (int i = 0; i < 4; i++)
+            {
+                sqDst = sqSrc + ccKingDelta[i];
+                if (!IN_FORT[sqDst])
+                    continue;
+                pcDst = pcSquares[sqDst];
+                if ((pcDst & pcSelfSide) == 0)
+                    yield return new MOVE(sqSrc, sqDst, pcSelfSide + KING_FROM, pcDst);
+            }
         }
 
         //重量级的着法生成和排序函数
