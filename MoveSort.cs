@@ -30,7 +30,9 @@ namespace MoleXiangqi
             mv = killers[depth, 1];
             if (IsLegalMove(mv.sqSrc, mv.sqDst))
                 yield return mv;
-            GenerateMoves();
+
+            foreach (MOVE mv0 in GenerateMoves())
+                yield return mv0;
         }
 
         public void GenMoveTest()

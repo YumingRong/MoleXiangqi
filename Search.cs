@@ -147,7 +147,7 @@ namespace MoleXiangqi
             if (rep != RepititionResult.NONE)
                 return (int)rep;
             if (depthleft <= 0)
-                //静态搜索深度不超过普通搜索的2倍
+                //静态搜索深度不超过普通搜索的1倍
                 return SearchQuiesce(alpha, beta, depth);
 
             MOVE mvBest = new MOVE();
@@ -248,6 +248,8 @@ namespace MoleXiangqi
                     }
                 }
                 depth++;
+                Debug.Write(new string('\t', depth));
+                Debug.WriteLine("{0} {1} {2} {3}", mv, alpha, beta, best);
                 int vl = -SearchQuiesce(-beta, -alpha, depthleft - 1);
                 depth--;
                 UnmakeMove();
