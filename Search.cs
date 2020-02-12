@@ -101,10 +101,9 @@ namespace MoleXiangqi
 
         public int SearchRoot(int depthleft)
         {
-            int alpha = -G.MATE;
+            int alpha = -G.WIN;
             int beta = G.WIN;
             MOVE mvBest = new MOVE();
-            rootMoves.Sort(SortLarge2Small);
             for (int i = 0; i < rootMoves.Count; i++)
             {
                 MOVE mv = rootMoves[i].Key;
@@ -134,6 +133,12 @@ namespace MoleXiangqi
                 }
             }
             rootMoves.RemoveAll(x => x.Value < -G.WIN);
+            rootMoves.Sort(SortLarge2Small);
+            Console.WriteLine("Root move\tScore");
+            foreach(KeyValuePair<MOVE, int> mv_vl in rootMoves)
+            {
+                Console.Write($"{mv_vl.Key}\t{mv_vl.Value}");
+            }
             Console.WriteLine($"Best move {mvBest}, score {alpha}");
             return alpha;
         }
@@ -197,17 +202,15 @@ namespace MoleXiangqi
             stat.QuiesceNodes++;
 
             int best;
-            List<MOVE> selectiveMoves = new List<MOVE>();
             int sqCheck = stepList[stepList.Count - 1].checking;
             if (sqCheck > 0)
             {
                 best = depth - G.MATE;
-                // 6. 对于被将军的局面，生成全部着法；
             }
             else
             {
                 //对于未被将军的局面，在生成着法前首先对局面作评价；
-                int vl = Complex_Evaluate();
+                int vl = Simple_Evaluate();
                 if (vl > beta)
                     return vl;
                 best = vl;
@@ -215,32 +218,16 @@ namespace MoleXiangqi
             }
             foreach (MOVE mv in GetNextMove())
             {
-                Debug.Write(new string('\t', depth));
-                Debug.WriteLine("{0} {1} {2} {3}", mv, alpha, beta, best);
                 MakeMove(mv);
-                if (sqCheck > 0)
+                // 如果移动后被将军了，那么着法是非法的，撤消该着法
+                if (CheckedBy(1 - sdPlayer) > 0)
                 {
-                    if (IsLegalMove(sqCheck, sqPieces[OPP_SIDE_TAG(sdPlayer) + KING_FROM]))
-                    {
-                        UnmakeMove();
-                        continue;
-                    }
-
-                    // 如果移动后被将军了，那么着法是非法的，撤消该着法
-                    if (CheckedBy(1 - sdPlayer) > 0)
-                    {
-                        UnmakeMove();
-                        continue;
-                    }
+                    UnmakeMove();
+                    continue;
                 }
-                else
+                if (sqCheck == 0)
                 {
-                    // 如果移动后被将军了，那么着法是非法的，撤消该着法
-                    if (CheckedBy(1 - sdPlayer) > 0)
-                    {
-                        UnmakeMove();
-                        continue;
-                    }
+                    //只延伸照将和吃子的局面
                     if (CheckedBy(sdPlayer) == 0 || mv.pcDst == 0)
                     {
                         UnmakeMove();

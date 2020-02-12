@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace MoleXiangqi
 {
-    public enum RepititionResult { WIN = G.WIN, DRAW = 0, LOSE = -G.WIN, NONE };
+    public enum RepititionResult { WIN = G.WIN + 10, DRAW = 0, LOSE = -G.WIN - 10, NONE };
 
     partial class POSITION
     {

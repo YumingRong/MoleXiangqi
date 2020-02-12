@@ -110,6 +110,10 @@ namespace MoleXiangqi
             sqSrc = sqPieces[pcSelfSide + KING_FROM];
             Debug.Assert(IN_BOARD[sqSrc]);
 
+            //4. 判断是否将帅对脸
+            if (KingsFace2Face())
+                return sqPieces[pcOppSide + KING_FROM];
+
             // 1. 判断是否被对方的兵(卒)将军
             if (cnPieceTypes[pcSquares[SQUARE_FORWARD(sqSrc, side)]] == pcOppSide + PAWN)
                 return SQUARE_FORWARD(sqSrc, side);
@@ -159,12 +163,7 @@ namespace MoleXiangqi
                 }
             NextFor3:;
             }
-
-            //4. 判断是否将帅对脸
-            if (KingsFace2Face())
-                return sqPieces[pcOppSide + KING_FROM];
-            else
-                return 0;
+            return 0;
         }
 
         //判断是否将帅对脸
