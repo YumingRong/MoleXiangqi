@@ -135,10 +135,8 @@ namespace MoleXiangqi
             rootMoves.RemoveAll(x => x.Value < -G.WIN);
             rootMoves.Sort(SortLarge2Small);
             Console.WriteLine("Root move\tScore");
-            foreach(KeyValuePair<MOVE, int> mv_vl in rootMoves)
-            {
-                Console.Write($"{mv_vl.Key}\t{mv_vl.Value}");
-            }
+            foreach (KeyValuePair<MOVE, int> mv_vl in rootMoves)
+                Console.WriteLine($"{mv_vl.Key}\t{mv_vl.Value}");
             Console.WriteLine($"Best move {mvBest}, score {alpha}");
             return alpha;
         }
@@ -148,6 +146,8 @@ namespace MoleXiangqi
             stat.PVNodes++;
             pvs = new List<MOVE>();
 
+            if (stepList[stepList.Count - 1].halfMoveClock >= 120)
+                return 0;
             RepititionResult rep = Repitition();
             if (rep != RepititionResult.NONE)
                 return (int)rep;
@@ -159,7 +159,8 @@ namespace MoleXiangqi
             int best = -G.MATE;
             int vl;
 
-            foreach (MOVE mv in GetNextMove())
+            IEnumerable<MOVE> moves = GetNextMove();
+            foreach (MOVE mv in moves)
             {
                 Debug.Write(new string('\t', depth));
                 Debug.WriteLine("{0} {1} {2} {3}", mv, alpha, beta, best);
@@ -194,41 +195,53 @@ namespace MoleXiangqi
 
         public int SearchQuiesce(int alpha, int beta, int depthleft)
         {
-            if (stepList[stepList.Count - 1].halfMoveClock >= 120)
-                return 0;
-            RepititionResult rep = Repitition();
-            if (rep != RepititionResult.NONE)
-                return (int)rep;
             stat.QuiesceNodes++;
-
             int best;
             int sqCheck = stepList[stepList.Count - 1].checking;
             if (sqCheck > 0)
             {
+                RepititionResult rep = Repitition();
+                if (rep != RepititionResult.NONE)
+                    return (int)rep;
                 best = depth - G.MATE;
             }
             else
             {
                 //对于未被将军的局面，在生成着法前首先对局面作评价；
                 int vl = Simple_Evaluate();
-                if (vl > beta)
+                //fail high裁剪。如果超过极限深度，不延伸搜索照将局面，只搜索吃子
+                if (vl > beta || depthleft <= 0 && stepList[stepList.Count - 1].move.pcDst == 0)
                     return vl;
                 best = vl;
                 alpha = Math.Max(alpha, vl);
             }
-            foreach (MOVE mv in GetNextMove())
+            foreach (MOVE mv in GenerateMoves())
             {
+                //到了限制层数，只延伸吃子
+                if (depthleft <= 0 && mv.pcDst == 0)
+                {
+                    continue;
+                }
                 MakeMove(mv);
+                if (sqCheck > 0)
+                {
+                    //如果被照将，先试试走棋后，照将着法是否仍然成立
+                    if (IsLegalMove(sqCheck, sqPieces[SIDE_TAG(sdPlayer) + KING_FROM]))
+                    {
+                        UndoMovePiece(mv);
+                        continue;
+                    }
+                }
                 // 如果移动后被将军了，那么着法是非法的，撤消该着法
                 if (CheckedBy(1 - sdPlayer) > 0)
                 {
                     UnmakeMove();
                     continue;
                 }
-                if (sqCheck == 0)
+                if (depthleft > 0)
                 {
-                    //只延伸照将和吃子的局面
-                    if (CheckedBy(sdPlayer) == 0 || mv.pcDst == 0)
+                    //未被将军时只延伸照将和吃子的局面
+                    if (sqCheck == 0 && mv.pcDst == 0 && CheckedBy(sdPlayer) == 0)
                     {
                         UnmakeMove();
                         continue;

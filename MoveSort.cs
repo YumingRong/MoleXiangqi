@@ -31,7 +31,8 @@ namespace MoleXiangqi
             if (IsLegalMove(mv.sqSrc, mv.sqDst))
                 yield return mv;
 
-            foreach (MOVE mv0 in GenerateMoves())
+            IEnumerable<MOVE> moves = EnumGenerateMoves();
+            foreach (MOVE mv0 in moves)
                 yield return mv0;
         }
 
@@ -41,5 +42,6 @@ namespace MoleXiangqi
                 Console.WriteLine(mv);
             Console.WriteLine("End of moves");
         }
+
     }
 }

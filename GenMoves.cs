@@ -205,9 +205,170 @@ namespace MoleXiangqi
         }
 
         //着法生成器
-        IEnumerable<MOVE> GenerateMoves()
+        List<MOVE> GenerateMoves()
         {
-            //着法生成器
+            int sqSrc, sqDst, pcDst;
+            int pcSelfSide, pcOppSide;
+            int delta;
+            List<MOVE> mvs = new List<MOVE>();
+
+            pcSelfSide = SIDE_TAG(sdPlayer);
+            pcOppSide = OPP_SIDE_TAG(sdPlayer);
+
+            for (int i = ROOK_FROM; i <= ROOK_TO; i++)
+            {
+                sqSrc = sqPieces[pcSelfSide + i];
+                if (sqSrc == 0)
+                    continue;
+                for (int j = 0; j < 4; j++)
+                {
+                    delta = ccKingDelta[j];
+                    for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
+                    {
+                        pcDst = pcSquares[sqDst];
+                        if (pcDst == 0)
+                            mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, 0));
+                        else
+                        {
+                            if ((pcDst & pcOppSide) != 0)
+                                mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
+                            break;
+                        }
+                    }
+                }
+            }
+            for (int i = CANNON_FROM; i <= CANNON_TO; i++)
+            {
+                sqSrc = sqPieces[pcSelfSide + i];
+                if (sqSrc == 0)
+                    continue;
+                for (int j = 0; j < 4; j++)
+                {
+                    delta = ccKingDelta[j];
+                    for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
+                    {
+                        pcDst = pcSquares[sqDst];
+                        if (pcDst == 0)
+                            mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, 0));
+                        else
+                        {
+                            for (sqDst += delta; IN_BOARD[sqDst]; sqDst += delta)
+                            {
+                                pcDst = pcSquares[sqDst];
+                                if (pcDst != 0)
+                                {
+                                    if ((pcDst & pcOppSide) != 0)
+                                        mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
+                                    goto NextFor1;
+                                }
+                            }
+
+                        }
+                    }
+                NextFor1:;
+                }
+            }
+
+            for (int i = KNIGHT_FROM; i <= KNIGHT_TO; i++)
+            {
+                sqSrc = sqPieces[pcSelfSide + i];
+                if (sqSrc == 0)
+                    continue;
+                for (int j = 0; j < 4; j++)
+                {
+                    int sqPin = sqSrc + ccKingDelta[j];
+                    if (pcSquares[sqPin] == 0)
+                    {
+                        sqDst = sqSrc + ccKnightDelta[j, 0];
+                        pcDst = pcSquares[sqDst];
+                        if (IN_BOARD[sqDst] && (pcDst & pcSelfSide) == 0)
+                            mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
+                        sqDst = sqSrc + ccKnightDelta[j, 1];
+                        pcDst = pcSquares[sqDst];
+                        if (IN_BOARD[sqDst] && (pcDst & pcSelfSide) == 0)
+                            mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
+                    }
+                }
+            }
+
+            for (int i = PAWN_FROM; i <= PAWN_TO; i++)
+            {
+                sqSrc = sqPieces[pcSelfSide + i];
+                if (sqSrc == 0)
+                    continue;
+                sqDst = SQUARE_FORWARD(sqSrc, sdPlayer);
+                if (IN_BOARD[sqDst])
+                {
+                    pcDst = pcSquares[sqDst];
+                    if ((pcDst & pcSelfSide) == 0)
+                        mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
+                }
+                if (HOME_HALF[1 - sdPlayer, sqSrc])
+                {
+                    for (delta = -1; delta <= 1; delta += 2)
+                    {
+                        sqDst = sqSrc + delta;
+                        if (IN_BOARD[sqDst])
+                        {
+                            pcDst = pcSquares[sqDst];
+                            if ((pcDst & pcSelfSide) == 0)
+                                mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
+                        }
+                    }
+                }
+            }
+
+            for (int i = BISHOP_FROM; i <= BISHOP_TO; i++)
+            {
+                sqSrc = sqPieces[pcSelfSide + i];
+                if (sqSrc == 0)
+                    continue;
+                for (int j = 0; j < 4; j++)
+                {
+                    sqDst = sqSrc + ccGuardDelta[j];
+                    if (!(HOME_HALF[sdPlayer, sqDst] && pcSquares[sqDst] == 0))
+                        continue;
+                    sqDst += ccGuardDelta[j];
+                    pcDst = pcSquares[sqDst];
+                    if ((pcDst & pcSelfSide) == 0)
+                        mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
+                }
+            }
+
+            for (int i = GUARD_FROM; i <= GUARD_TO; i++)
+            {
+                sqSrc = sqPieces[pcSelfSide + i];
+                if (sqSrc == 0)
+                    continue;
+                for (int j = 0; j < 4; j++)
+                {
+                    sqDst = sqSrc + ccGuardDelta[j];
+                    if (!IN_FORT[sqDst])
+                    {
+                        continue;
+                    }
+                    pcDst = pcSquares[sqDst];
+                    if ((pcDst & pcSelfSide) == 0)
+                        mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
+                }
+            }
+
+            sqSrc = sqPieces[pcSelfSide + KING_FROM];
+            for (int i = 0; i < 4; i++)
+            {
+                sqDst = sqSrc + ccKingDelta[i];
+                if (!IN_FORT[sqDst])
+                    continue;
+                pcDst = pcSquares[sqDst];
+                if ((pcDst & pcSelfSide) == 0)
+                    mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + KING_FROM, pcDst));
+            }
+            return mvs;
+        }
+
+        //着法生成器
+        IEnumerable<MOVE> EnumGenerateMoves()
+        {
             int sqSrc, sqDst, pcDst, delta;
             int pcSelfSide, pcOppSide;
 
@@ -248,7 +409,7 @@ namespace MoleXiangqi
                     {
                         pcDst = pcSquares[sqDst];
                         if (pcDst == 0)
-                             yield return new MOVE(sqSrc, sqDst, pcSelfSide + i, 0);
+                            yield return new MOVE(sqSrc, sqDst, pcSelfSide + i, 0);
                         else
                         {
                             for (sqDst += delta; IN_BOARD[sqDst]; sqDst += delta)
@@ -365,388 +526,388 @@ namespace MoleXiangqi
         }
 
         //重量级的着法生成和排序函数
-        public IEnumerable<MOVE> Complex_GenMoves()
-        {
-            //举例：当头炮与对方的帅之间隔了自己的马和对方的相，
-            //自己的马就放在DiscoveredAttack里，对方的相就在PinnedPieces里
-            List<int> discoveredAttack = new List<int>();
-            int[] PinnedPieces = new int[48];   //0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
-            int sqSrc, sqDst, pcDst, delta;
-            int[] oppAttackMap = new int[256];    //非行棋方保存攻击该格的价值最低的棋子
-            captureMoves = new List<KeyValuePair<MOVE, int>>();
-            List<KeyValuePair<MOVE, int>> nonCapMoves = new List<KeyValuePair<MOVE, int>>();
+        //public IEnumerable<MOVE> Complex_GenMoves()
+        //{
+        //    //举例：当头炮与对方的帅之间隔了自己的马和对方的相，
+        //    //自己的马就放在DiscoveredAttack里，对方的相就在PinnedPieces里
+        //    List<int> discoveredAttack = new List<int>();
+        //    int[] PinnedPieces = new int[48];   //0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
+        //    int sqSrc, sqDst, pcDst, delta;
+        //    int[] oppAttackMap = new int[256];    //非行棋方保存攻击该格的价值最低的棋子
+        //    captureMoves = new List<KeyValuePair<MOVE, int>>();
+        //    List<KeyValuePair<MOVE, int>> nonCapMoves = new List<KeyValuePair<MOVE, int>>();
 
-            //对阻挡将军的子进行判断
-            void CheckBlocker(int side, int pcBlocker, int sqPinner, int direction)
-            {
-                int sdBlocker = SIDE(pcBlocker);
-                int pcKind = cnPieceKinds[pcBlocker];
-                //未过河兵没有牵制和闪击
-                if (pcKind == PAWN && HOME_HALF[sdBlocker, sqPieces[pcBlocker]])
-                    return;
-                if (sdBlocker == side)
-                {
-                    //闪击
-                    if (sdBlocker == sdPlayer)
-                        discoveredAttack.Add(sdBlocker);
-                }
-                else
-                {
-                    PinnedPieces[pcBlocker] |= direction;
-                    //在形如红炮-黑车-红兵-黑将的棋型中，黑车是可以吃红炮的
-                    if (IsLegalMove(sqPieces[pcBlocker], sqPinner))
-                    {
-                        if (sdBlocker == sdPlayer)
-                            captureMoves.Add(new KeyValuePair<MOVE, int>(new MOVE(sqPieces[pcBlocker], sqPinner, pcBlocker, pcSquares[sqPinner]), 100));
-                        else
-                            oppAttackMap[sqPinner] = pcBlocker;
-                    }
+        //    //对阻挡将军的子进行判断
+        //    void CheckBlocker(int side, int pcBlocker, int sqPinner, int direction)
+        //    {
+        //        int sdBlocker = SIDE(pcBlocker);
+        //        int pcKind = cnPieceKinds[pcBlocker];
+        //        //未过河兵没有牵制和闪击
+        //        if (pcKind == PAWN && HOME_HALF[sdBlocker, sqPieces[pcBlocker]])
+        //            return;
+        //        if (sdBlocker == side)
+        //        {
+        //            //闪击
+        //            if (sdBlocker == sdPlayer)
+        //                discoveredAttack.Add(sdBlocker);
+        //        }
+        //        else
+        //        {
+        //            PinnedPieces[pcBlocker] |= direction;
+        //            //在形如红炮-黑车-红兵-黑将的棋型中，黑车是可以吃红炮的
+        //            if (IsLegalMove(sqPieces[pcBlocker], sqPinner))
+        //            {
+        //                if (sdBlocker == sdPlayer)
+        //                    captureMoves.Add(new KeyValuePair<MOVE, int>(new MOVE(sqPieces[pcBlocker], sqPinner, pcBlocker, pcSquares[sqPinner]), 100));
+        //                else
+        //                    oppAttackMap[sqPinner] = pcBlocker;
+        //            }
 
-                }
-            }
+        //        }
+        //    }
 
-            int sd, bas, sqOppKing;
-            //find absolute pin. 0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
-            for (sd = 0; sd < 2; sd++)
-            {
-                bas = SIDE_TAG(sd);
-                sqOppKing = sqPieces[OPP_SIDE_TAG(sd) + KING_FROM];
+        //    int sd, bas, sqOppKing;
+        //    //find absolute pin. 0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
+        //    for (sd = 0; sd < 2; sd++)
+        //    {
+        //        bas = SIDE_TAG(sd);
+        //        sqOppKing = sqPieces[OPP_SIDE_TAG(sd) + KING_FROM];
 
-                for (int pc = bas + ROOK_FROM; pc <= bas + ROOK_TO; pc++)
-                {
-                    sqSrc = sqPieces[pc];
-                    if (SAME_FILE(sqSrc, sqOppKing))
-                    {
-                        delta = Math.Sign(sqOppKing - sqSrc) * 16;
-                        int pcBlocker = 0, nblock = 0;
-                        for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
-                        {
-                            if (pcSquares[sq] != 0)
-                            {
-                                pcBlocker = pcSquares[sq];
-                                nblock++;
-                            }
-                        }
-                        if (nblock == 1)
-                            CheckBlocker(sd, pcBlocker, sqSrc, 1);
-                    }
+        //        for (int pc = bas + ROOK_FROM; pc <= bas + ROOK_TO; pc++)
+        //        {
+        //            sqSrc = sqPieces[pc];
+        //            if (SAME_FILE(sqSrc, sqOppKing))
+        //            {
+        //                delta = Math.Sign(sqOppKing - sqSrc) * 16;
+        //                int pcBlocker = 0, nblock = 0;
+        //                for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
+        //                {
+        //                    if (pcSquares[sq] != 0)
+        //                    {
+        //                        pcBlocker = pcSquares[sq];
+        //                        nblock++;
+        //                    }
+        //                }
+        //                if (nblock == 1)
+        //                    CheckBlocker(sd, pcBlocker, sqSrc, 1);
+        //            }
 
-                    if (SAME_RANK(sqSrc, sqOppKing))
-                    {
-                        delta = Math.Sign(sqOppKing - sqSrc);
-                        int pcBlocker = 0, nblock = 0;
-                        for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
-                        {
-                            if (pcSquares[sq] != 0)
-                            {
-                                pcBlocker = pcSquares[sq];
-                                nblock++;
-                            }
-                        }
-                        if (nblock == 1)
-                            CheckBlocker(sd, pcBlocker, sqSrc, 2);
-                    }
-                }
+        //            if (SAME_RANK(sqSrc, sqOppKing))
+        //            {
+        //                delta = Math.Sign(sqOppKing - sqSrc);
+        //                int pcBlocker = 0, nblock = 0;
+        //                for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
+        //                {
+        //                    if (pcSquares[sq] != 0)
+        //                    {
+        //                        pcBlocker = pcSquares[sq];
+        //                        nblock++;
+        //                    }
+        //                }
+        //                if (nblock == 1)
+        //                    CheckBlocker(sd, pcBlocker, sqSrc, 2);
+        //            }
+        //        }
 
-                for (int pc = bas + CANNON_FROM; pc <= bas + CANNON_TO; pc++)
-                {
-                    sqSrc = sqPieces[pc];
-                    if (SAME_FILE(sqSrc, sqOppKing))
-                    {
-                        delta = Math.Sign(sqOppKing - sqSrc) * 16;
-                        int nblock = 0;
-                        for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
-                        {
-                            if (pcSquares[sq] != 0)
-                                nblock++;
-                        }
-                        if (nblock == 2)
-                            for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
-                                CheckBlocker(sd, pcSquares[sq], sqSrc, 1);
-                    }
-                    if (SAME_RANK(sqSrc, sqOppKing))
-                    {
-                        delta = Math.Sign(sqOppKing - sqSrc);
-                        int nblock = 0;
-                        for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
-                        {
-                            if (pcSquares[sq] != 0)
-                                nblock++;
-                        }
-                        if (nblock == 2)
-                            for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
-                                CheckBlocker(sd, pcSquares[sq], sqSrc, 2);
-                    }
-                }
+        //        for (int pc = bas + CANNON_FROM; pc <= bas + CANNON_TO; pc++)
+        //        {
+        //            sqSrc = sqPieces[pc];
+        //            if (SAME_FILE(sqSrc, sqOppKing))
+        //            {
+        //                delta = Math.Sign(sqOppKing - sqSrc) * 16;
+        //                int nblock = 0;
+        //                for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
+        //                {
+        //                    if (pcSquares[sq] != 0)
+        //                        nblock++;
+        //                }
+        //                if (nblock == 2)
+        //                    for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
+        //                        CheckBlocker(sd, pcSquares[sq], sqSrc, 1);
+        //            }
+        //            if (SAME_RANK(sqSrc, sqOppKing))
+        //            {
+        //                delta = Math.Sign(sqOppKing - sqSrc);
+        //                int nblock = 0;
+        //                for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
+        //                {
+        //                    if (pcSquares[sq] != 0)
+        //                        nblock++;
+        //                }
+        //                if (nblock == 2)
+        //                    for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
+        //                        CheckBlocker(sd, pcSquares[sq], sqSrc, 2);
+        //            }
+        //        }
 
-                // 3. 判断对方的将是否被马威胁(以仕(士)的步长当作马腿)
-                for (int i = 0; i < 4; i++)
-                {
-                    int pcBlocker = pcSquares[sqOppKing + ccGuardDelta[i]];
-                    if (pcBlocker != 0)
-                        for (int j = 0; j < 2; j++)
-                        {
-                            pcDst = pcSquares[sqOppKing + ccKnightCheckDelta[i, j]];
-                            if (cnPieceTypes[pcDst] == bas + KNIGHT)
-                                CheckBlocker(sd, pcBlocker, sqPieces[pcDst], 3);
-                        }
-                }
-            }
+        //        // 3. 判断对方的将是否被马威胁(以仕(士)的步长当作马腿)
+        //        for (int i = 0; i < 4; i++)
+        //        {
+        //            int pcBlocker = pcSquares[sqOppKing + ccGuardDelta[i]];
+        //            if (pcBlocker != 0)
+        //                for (int j = 0; j < 2; j++)
+        //                {
+        //                    pcDst = pcSquares[sqOppKing + ccKnightCheckDelta[i, j]];
+        //                    if (cnPieceTypes[pcDst] == bas + KNIGHT)
+        //                        CheckBlocker(sd, pcBlocker, sqPieces[pcDst], 3);
+        //                }
+        //        }
+        //    }
 
-            //Generate enemy attack map, from most valuable piece to cheap piece
-            sd = 1 - sdPlayer;
-            bas = SIDE_TAG(sd);
-            for (int pc = bas; pc < bas + 16; pc++)
-            {
-                sqSrc = sqPieces[pc];
-                if (sqSrc == 0)
-                    continue;
-                int pin = PinnedPieces[pc];
+        //    //Generate enemy attack map, from most valuable piece to cheap piece
+        //    sd = 1 - sdPlayer;
+        //    bas = SIDE_TAG(sd);
+        //    for (int pc = bas; pc < bas + 16; pc++)
+        //    {
+        //        sqSrc = sqPieces[pc];
+        //        if (sqSrc == 0)
+        //            continue;
+        //        int pin = PinnedPieces[pc];
 
-                switch (cnPieceKinds[pc])
-                {
-                    case KING:
-                        for (int i = 0; i < 4; i++)
-                        {
-                            sqDst = sqSrc + ccKingDelta[i];
-                            if (IN_FORT[sqDst])
-                                oppAttackMap[sqDst] = pc;
-                        }
-                        break;
-                    case ROOK:
-                        for (int j = 0; j < 4; j++)
-                        {
-                            if (ccPinDelta[pin, j])
-                                continue;
-                            delta = ccKingDelta[j];
-                            for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
-                            {
-                                pcDst = pcSquares[sqDst];
-                                oppAttackMap[sqDst] = pc;
-                                if (pcDst != 0)
-                                    break;
-                            }
-                        }
-                        break;
-                    case CANNON:
-                        for (int j = 0; j < 4; j++)
-                        {
-                            if (ccPinDelta[pin, j])
-                                continue;
-                            delta = ccKingDelta[j];
-                            for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
-                            {
-                                if (pcSquares[sqDst] != 0) //炮架
-                                {
-                                    for (sqDst += delta; IN_BOARD[sqDst]; sqDst += delta)
-                                    {
-                                        oppAttackMap[sqDst] = pc;
-                                        if (pcSquares[sqDst] != 0) //直瞄点
-                                            goto NextFor;
-                                    }
-                                }
-                            }
-                        NextFor:;
-                        }
-                        //if (SAME_FILE(sqSrc, sqOppKing) || SAME_RANK(sqSrc, sqOppKing))
-                        //    positionValue[sd] += 5;
-                        break;
-                    case KNIGHT:
-                        if (pin > 0)
-                            continue;
-                        for (int j = 0; j < 4; j++)
-                        {
-                            if (pcSquares[sqSrc + ccKingDelta[j]] == 0)
-                            {
-                                oppAttackMap[sqSrc + ccKnightDelta[j, 0]] = pc;
-                                oppAttackMap[sqSrc + ccKnightDelta[j, 1]] = pc;
-                            }
-                        }
-                        break;
-                    case PAWN:
-                        if ((pin & 1) == 0)
-                            oppAttackMap[SQUARE_FORWARD(sqSrc, sd)] = pc;
-                        if ((pin & 2) == 0)
-                            if (HOME_HALF[1 - sd, sqSrc])
-                            {
-                                oppAttackMap[sqSrc + 1] = pc;
-                                oppAttackMap[sqSrc - 1] = pc;
-                            }
-                        break;
-                    case BISHOP:
-                        if (pin > 0)
-                            continue;
-                        for (int j = 0; j < 4; j++)
-                        {
-                            sqDst = sqSrc + ccGuardDelta[j];
-                            if (HOME_HALF[sd, sqDst] && pcSquares[sqDst] == 0)
-                                oppAttackMap[sqDst + ccGuardDelta[j]] = pc;
-                        }
-                        break;
-                    case GUARD:
-                        if (pin > 0)
-                            continue;
-                        for (int j = 0; j < 4; j++)
-                        {
-                            sqDst = sqSrc + ccGuardDelta[j];
-                            if (IN_FORT[sqDst])
-                                oppAttackMap[sqDst] = pc;
-                        }
-                        break;
-                }
-            }
+        //        switch (cnPieceKinds[pc])
+        //        {
+        //            case KING:
+        //                for (int i = 0; i < 4; i++)
+        //                {
+        //                    sqDst = sqSrc + ccKingDelta[i];
+        //                    if (IN_FORT[sqDst])
+        //                        oppAttackMap[sqDst] = pc;
+        //                }
+        //                break;
+        //            case ROOK:
+        //                for (int j = 0; j < 4; j++)
+        //                {
+        //                    if (ccPinDelta[pin, j])
+        //                        continue;
+        //                    delta = ccKingDelta[j];
+        //                    for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
+        //                    {
+        //                        pcDst = pcSquares[sqDst];
+        //                        oppAttackMap[sqDst] = pc;
+        //                        if (pcDst != 0)
+        //                            break;
+        //                    }
+        //                }
+        //                break;
+        //            case CANNON:
+        //                for (int j = 0; j < 4; j++)
+        //                {
+        //                    if (ccPinDelta[pin, j])
+        //                        continue;
+        //                    delta = ccKingDelta[j];
+        //                    for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
+        //                    {
+        //                        if (pcSquares[sqDst] != 0) //炮架
+        //                        {
+        //                            for (sqDst += delta; IN_BOARD[sqDst]; sqDst += delta)
+        //                            {
+        //                                oppAttackMap[sqDst] = pc;
+        //                                if (pcSquares[sqDst] != 0) //直瞄点
+        //                                    goto NextFor;
+        //                            }
+        //                        }
+        //                    }
+        //                NextFor:;
+        //                }
+        //                //if (SAME_FILE(sqSrc, sqOppKing) || SAME_RANK(sqSrc, sqOppKing))
+        //                //    positionValue[sd] += 5;
+        //                break;
+        //            case KNIGHT:
+        //                if (pin > 0)
+        //                    continue;
+        //                for (int j = 0; j < 4; j++)
+        //                {
+        //                    if (pcSquares[sqSrc + ccKingDelta[j]] == 0)
+        //                    {
+        //                        oppAttackMap[sqSrc + ccKnightDelta[j, 0]] = pc;
+        //                        oppAttackMap[sqSrc + ccKnightDelta[j, 1]] = pc;
+        //                    }
+        //                }
+        //                break;
+        //            case PAWN:
+        //                if ((pin & 1) == 0)
+        //                    oppAttackMap[SQUARE_FORWARD(sqSrc, sd)] = pc;
+        //                if ((pin & 2) == 0)
+        //                    if (HOME_HALF[1 - sd, sqSrc])
+        //                    {
+        //                        oppAttackMap[sqSrc + 1] = pc;
+        //                        oppAttackMap[sqSrc - 1] = pc;
+        //                    }
+        //                break;
+        //            case BISHOP:
+        //                if (pin > 0)
+        //                    continue;
+        //                for (int j = 0; j < 4; j++)
+        //                {
+        //                    sqDst = sqSrc + ccGuardDelta[j];
+        //                    if (HOME_HALF[sd, sqDst] && pcSquares[sqDst] == 0)
+        //                        oppAttackMap[sqDst + ccGuardDelta[j]] = pc;
+        //                }
+        //                break;
+        //            case GUARD:
+        //                if (pin > 0)
+        //                    continue;
+        //                for (int j = 0; j < 4; j++)
+        //                {
+        //                    sqDst = sqSrc + ccGuardDelta[j];
+        //                    if (IN_FORT[sqDst])
+        //                        oppAttackMap[sqDst] = pc;
+        //                }
+        //                break;
+        //        }
+        //    }
 
-            void AddMove(int sqFrom, int sqTo)
-            {
-                int pcFrom = pcSquares[sqFrom];
-                int pcTo = pcSquares[sqTo];
-                if (SIDE(pcTo) == 1 - sdPlayer)
-                {
-                    MOVE mv = new MOVE(sqFrom, sqTo, pcSquares[sqFrom], pcTo);
-                    int score = cnPieceValue[pcTo];
-                    if (oppAttackMap[sqTo] > 0)
-                        score -= cnPieceValue[pcFrom];
-                    captureMoves.Add(new KeyValuePair<MOVE, int>(mv, score));
-                }
-                else if (pcTo == 0)
-                {
-                    MOVE mv = new MOVE(sqFrom, sqTo, pcSquares[sqFrom], pcTo);
-                    int score = oppAttackMap[sqTo] > 0 ? -cnPieceValue[pcFrom] : 0;
-                    nonCapMoves.Add(new KeyValuePair<MOVE, int>(mv, score));
-                }
-            }
+        //    void AddMove(int sqFrom, int sqTo)
+        //    {
+        //        int pcFrom = pcSquares[sqFrom];
+        //        int pcTo = pcSquares[sqTo];
+        //        if (SIDE(pcTo) == 1 - sdPlayer)
+        //        {
+        //            MOVE mv = new MOVE(sqFrom, sqTo, pcSquares[sqFrom], pcTo);
+        //            int score = cnPieceValue[pcTo];
+        //            if (oppAttackMap[sqTo] > 0)
+        //                score -= cnPieceValue[pcFrom];
+        //            captureMoves.Add(new KeyValuePair<MOVE, int>(mv, score));
+        //        }
+        //        else if (pcTo == 0)
+        //        {
+        //            MOVE mv = new MOVE(sqFrom, sqTo, pcSquares[sqFrom], pcTo);
+        //            int score = oppAttackMap[sqTo] > 0 ? -cnPieceValue[pcFrom] : 0;
+        //            nonCapMoves.Add(new KeyValuePair<MOVE, int>(mv, score));
+        //        }
+        //    }
 
-            bas = SIDE_TAG(sdPlayer);
-            //generate move list and assign score
-            for (int pc = bas; pc < bas + 16; pc++)
-            {
-                sqSrc = sqPieces[pc];
-                if (sqSrc == 0)
-                    continue;
-                int pin = PinnedPieces[pc];
+        //    bas = SIDE_TAG(sdPlayer);
+        //    //generate move list and assign score
+        //    for (int pc = bas; pc < bas + 16; pc++)
+        //    {
+        //        sqSrc = sqPieces[pc];
+        //        if (sqSrc == 0)
+        //            continue;
+        //        int pin = PinnedPieces[pc];
 
-                switch (cnPieceKinds[pc])
-                {
-                    case KING:
-                        for (int i = 0; i < 4; i++)
-                        {
-                            sqDst = sqSrc + ccKingDelta[i];
-                            if (IN_FORT[sqDst])
-                                AddMove(sqSrc, sqDst);
-                        }
-                        break;
-                    case ROOK:
-                        for (int j = 0; j < 4; j++)
-                        {
-                            if (ccPinDelta[pin, j])
-                                continue;
-                            delta = ccKingDelta[j];
-                            for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
-                            {
-                                pcDst = pcSquares[sqDst];
-                                AddMove(sqSrc, sqDst);
-                                if (pcDst != 0)
-                                    break;
-                            }
-                        }
-                        break;
-                    case CANNON:
-                        for (int j = 0; j < 4; j++)
-                        {
-                            if (ccPinDelta[pin, j])
-                                continue;
-                            delta = ccKingDelta[j];
-                            for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
-                            {
-                                pcDst = pcSquares[sqDst];
-                                if (pcDst == 0)
-                                {
-                                    int score = oppAttackMap[sqDst] > 0 ? 0 : -cnPieceValue[pcDst];
-                                    sqOppKing = sqPieces[OPP_SIDE_TAG(sdPlayer) + KING_FROM];
-                                    if (SAME_FILE(sqDst, sqOppKing) || SAME_RANK(sqDst, sqOppKing))
-                                        score += 5;
-                                    nonCapMoves.Add(new KeyValuePair<MOVE, int>(new MOVE(sqSrc, sqDst, pc, 0), history[sqSrc, sqDst]));
-                                }
-                                else
-                                {
-                                    for (sqDst += delta; IN_BOARD[sqDst]; sqDst += delta)
-                                    {
-                                        pcDst = pcSquares[sqDst];
-                                        if (pcDst != 0)
-                                        {
-                                            if ((pcDst & bas) == 0)
-                                            {
-                                                int score = cnPieceValue[pcDst];
-                                                if (oppAttackMap[sqDst] > 0)
-                                                    score -= cnPieceValue[pc];
-                                                captureMoves.Add(new KeyValuePair<MOVE, int>(new MOVE(sqSrc, sqDst, pc, pcDst), score));
-                                            }
-                                            goto NextFor1;
-                                        }
-                                    }
+        //        switch (cnPieceKinds[pc])
+        //        {
+        //            case KING:
+        //                for (int i = 0; i < 4; i++)
+        //                {
+        //                    sqDst = sqSrc + ccKingDelta[i];
+        //                    if (IN_FORT[sqDst])
+        //                        AddMove(sqSrc, sqDst);
+        //                }
+        //                break;
+        //            case ROOK:
+        //                for (int j = 0; j < 4; j++)
+        //                {
+        //                    if (ccPinDelta[pin, j])
+        //                        continue;
+        //                    delta = ccKingDelta[j];
+        //                    for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
+        //                    {
+        //                        pcDst = pcSquares[sqDst];
+        //                        AddMove(sqSrc, sqDst);
+        //                        if (pcDst != 0)
+        //                            break;
+        //                    }
+        //                }
+        //                break;
+        //            case CANNON:
+        //                for (int j = 0; j < 4; j++)
+        //                {
+        //                    if (ccPinDelta[pin, j])
+        //                        continue;
+        //                    delta = ccKingDelta[j];
+        //                    for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
+        //                    {
+        //                        pcDst = pcSquares[sqDst];
+        //                        if (pcDst == 0)
+        //                        {
+        //                            int score = oppAttackMap[sqDst] > 0 ? 0 : -cnPieceValue[pcDst];
+        //                            sqOppKing = sqPieces[OPP_SIDE_TAG(sdPlayer) + KING_FROM];
+        //                            if (SAME_FILE(sqDst, sqOppKing) || SAME_RANK(sqDst, sqOppKing))
+        //                                score += 5;
+        //                            nonCapMoves.Add(new KeyValuePair<MOVE, int>(new MOVE(sqSrc, sqDst, pc, 0), history[sqSrc, sqDst]));
+        //                        }
+        //                        else
+        //                        {
+        //                            for (sqDst += delta; IN_BOARD[sqDst]; sqDst += delta)
+        //                            {
+        //                                pcDst = pcSquares[sqDst];
+        //                                if (pcDst != 0)
+        //                                {
+        //                                    if ((pcDst & bas) == 0)
+        //                                    {
+        //                                        int score = cnPieceValue[pcDst];
+        //                                        if (oppAttackMap[sqDst] > 0)
+        //                                            score -= cnPieceValue[pc];
+        //                                        captureMoves.Add(new KeyValuePair<MOVE, int>(new MOVE(sqSrc, sqDst, pc, pcDst), score));
+        //                                    }
+        //                                    goto NextFor1;
+        //                                }
+        //                            }
 
-                                }
-                            }
-                        NextFor1:;
-                        }
-                        break;
-                    case KNIGHT:
-                        if (pin > 0)
-                            continue;
-                        for (int j = 0; j < 4; j++)
-                        {
-                            if (pcSquares[sqSrc + ccKingDelta[j]] == 0)
-                            {
-                                for (int k = 0; k < 2; k++)
-                                {
-                                    sqDst = sqSrc + ccKnightDelta[j, k];
-                                    if (IN_BOARD[sqDst])
-                                        AddMove(sqSrc, sqDst);
-                                }
-                            }
-                        }
-                        break;
-                    case PAWN:
-                        if ((pin & 1) == 0)
-                            AddMove(sqSrc, SQUARE_FORWARD(sqSrc, sd));
-                        if ((pin & 2) == 0)
-                            if (HOME_HALF[1 - sd, sqSrc])
-                            {
-                                if (IN_BOARD[sqSrc + 1])
-                                    AddMove(sqSrc, sqSrc + 1);
-                                if (IN_BOARD[sqSrc - 1])
-                                    AddMove(sqSrc, sqSrc - 1);
-                            }
-                        break;
-                    case BISHOP:
-                        if (pin > 0)
-                            continue;
-                        for (int j = 0; j < 4; j++)
-                        {
-                            sqDst = sqSrc + ccGuardDelta[j];
-                            if (HOME_HALF[sd, sqDst] && pcSquares[sqDst] == 0)
-                                AddMove(sqSrc, sqDst + ccGuardDelta[j]);
-                        }
-                        break;
-                    case GUARD:
-                        if (pin > 0)
-                            continue;
-                        for (int j = 0; j < 4; j++)
-                        {
-                            sqDst = sqSrc + ccGuardDelta[j];
-                            if (IN_FORT[sqDst])
-                                AddMove(sqSrc, sqDst);
-                        }
-                        break;
-                }
-            }
+        //                        }
+        //                    }
+        //                NextFor1:;
+        //                }
+        //                break;
+        //            case KNIGHT:
+        //                if (pin > 0)
+        //                    continue;
+        //                for (int j = 0; j < 4; j++)
+        //                {
+        //                    if (pcSquares[sqSrc + ccKingDelta[j]] == 0)
+        //                    {
+        //                        for (int k = 0; k < 2; k++)
+        //                        {
+        //                            sqDst = sqSrc + ccKnightDelta[j, k];
+        //                            if (IN_BOARD[sqDst])
+        //                                AddMove(sqSrc, sqDst);
+        //                        }
+        //                    }
+        //                }
+        //                break;
+        //            case PAWN:
+        //                if ((pin & 1) == 0)
+        //                    AddMove(sqSrc, SQUARE_FORWARD(sqSrc, sd));
+        //                if ((pin & 2) == 0)
+        //                    if (HOME_HALF[1 - sd, sqSrc])
+        //                    {
+        //                        if (IN_BOARD[sqSrc + 1])
+        //                            AddMove(sqSrc, sqSrc + 1);
+        //                        if (IN_BOARD[sqSrc - 1])
+        //                            AddMove(sqSrc, sqSrc - 1);
+        //                    }
+        //                break;
+        //            case BISHOP:
+        //                if (pin > 0)
+        //                    continue;
+        //                for (int j = 0; j < 4; j++)
+        //                {
+        //                    sqDst = sqSrc + ccGuardDelta[j];
+        //                    if (HOME_HALF[sd, sqDst] && pcSquares[sqDst] == 0)
+        //                        AddMove(sqSrc, sqDst + ccGuardDelta[j]);
+        //                }
+        //                break;
+        //            case GUARD:
+        //                if (pin > 0)
+        //                    continue;
+        //                for (int j = 0; j < 4; j++)
+        //                {
+        //                    sqDst = sqSrc + ccGuardDelta[j];
+        //                    if (IN_FORT[sqDst])
+        //                        AddMove(sqSrc, sqDst);
+        //                }
+        //                break;
+        //        }
+        //    }
 
-            captureMoves.Sort(SortLarge2Small);
-            foreach (KeyValuePair<MOVE, int> mv_vl in captureMoves)
-                yield return mv_vl.Key;
-            nonCapMoves.Sort(SortLarge2Small);
-            foreach (KeyValuePair<MOVE, int> mv_vl in nonCapMoves)
-                yield return mv_vl.Key;
-        }
+        //    captureMoves.Sort(SortLarge2Small);
+        //    foreach (KeyValuePair<MOVE, int> mv_vl in captureMoves)
+        //        yield return mv_vl.Key;
+        //    nonCapMoves.Sort(SortLarge2Small);
+        //    foreach (KeyValuePair<MOVE, int> mv_vl in nonCapMoves)
+        //        yield return mv_vl.Key;
+        //}
     }
 }

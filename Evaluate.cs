@@ -473,100 +473,6 @@ namespace MoleXiangqi
             return sdPlayer == 0 ? total : -total;
         }
 
-        public void TestEval()
-        {
-            //int Compare(KeyValuePair<string, int> a, KeyValuePair<string, int> b)
-            //{
-            //    return a.Value.CompareTo(b.Value);
-            //}
-            string sourceDirectory = @"G:\象棋\全局\1-23届五羊杯";
-            IEnumerable<string> pgnFiles = Directory.EnumerateFiles(sourceDirectory, "*.pgn", SearchOption.AllDirectories);
-            int nFile = 0;
-            int totalMoves = 0;
-            int totalSteps = 0;
-            List<double> redDelta = new List<double>();
-            List<double> blackDelta = new List<double>();
-            List<double> seq = new List<double>();
-            foreach (string fileName in pgnFiles)
-            {
-                Console.WriteLine(fileName.Substring(sourceDirectory.Length + 1));
-                List<MOVE> iMoveList = ReadPgnFile(fileName).MoveList;
-                nFile++;
-                int nSteps = iMoveList.Count;
-                totalSteps += nSteps;
-                bool[] captures = new bool[nSteps];
-                FromFEN(PGN.StartFEN);
-                ivpc = new int[nSteps, 48];
-                Complex_Evaluate();
-                List<KeyValuePair<string, int>> mv_vals = new List<KeyValuePair<string, int>>();
-                for (int i = 1; i < nSteps; i++)
-                {
-                    MOVE step = iMoveList[i];
-                    captures[i] = pcSquares[step.sqDst] > 0;
-                    if (pcSquares[step.sqDst] == 0)
-                    {
-                        mv_vals.Clear();
-                        //List<MOVE> moves = GenerateMoves();
-                        int bookmovevalue = 0;
-                        string bookmovekey = step.ToString();
-                        foreach (MOVE move in GenerateMoves())
-                        {
-                            if (move.pcDst == 0)
-                            {
-                                MovePiece(move);
-                                string key = move.ToString();
-                                int val = Complex_Evaluate();
-                                mv_vals.Add(new KeyValuePair<string, int>(key, val));
-                                UndoMovePiece(move);
-                                if (key == bookmovekey)
-                                    bookmovevalue = val;
-                            }
-                        }
-                        if (i % 2 == 0) //从小到大排序
-                            mv_vals.Sort(delegate (KeyValuePair<string, int> a, KeyValuePair<string, int> b)
-                            { return a.Value.CompareTo(b.Value); });
-                        else  //从大到小排序
-                            mv_vals.Sort(delegate (KeyValuePair<string, int> a, KeyValuePair<string, int> b)
-                            { return b.Value.CompareTo(a.Value); });
-                        int index = mv_vals.IndexOf(new KeyValuePair<string, int>(bookmovekey, bookmovevalue));
-                        seq.Add(index);
-                        //totalMoves += moves.Count;
-                        Console.WriteLine("{0}. Book move: {1} {2}", i, bookmovekey, index);
-                        int j = 0;
-                        foreach (var m in mv_vals)
-                        {
-                            //Console.WriteLine("{0}. {1} {2} / {3}", j++, m.Key, m.Value, moves.Count);
-
-                        }
-                    }
-
-                    MakeMove(step);
-                    Console.WriteLine("-------------------");
-                }
-                for (int i = 1; i < nSteps; i += 2)
-                {
-                    if (!captures[i])
-                        redDelta.Add(ivpc[i, 1] - ivpc[i - 1, 1]);
-                }
-
-                for (int i = 2; i < nSteps; i += 2)
-                {
-                    if (!captures[i])
-                        blackDelta.Add(ivpc[i, 1] - ivpc[i - 1, 1]);
-                }
-                break;
-            }
-            double redMean = Statistics.Mean(redDelta);
-            double redVar = Statistics.Variance(redDelta);
-            Console.WriteLine("Red mean:{0}, var:{1}", redMean, redVar);
-            double blackMean = Statistics.Mean(blackDelta);
-            double blackVar = Statistics.Variance(blackDelta);
-            Console.WriteLine("Black mean:{0}, var:{1}", blackMean, blackVar);
-            Console.WriteLine("Score: red{0}, black{1}, average{2}", redVar / redMean, blackVar / blackMean, (redVar + blackVar) / (redMean - blackMean));
-            Console.WriteLine("Move average sequence: {0} of {1}", Statistics.Mean(seq), totalMoves / totalSteps);
-
-        }
-
         public int Simple_Evaluate()
         {
             int totalPieces = 0;
@@ -662,6 +568,99 @@ namespace MoleXiangqi
             //ivpc[nStep, 11] = pair[1];
 
             return total;
+        }
+
+        public void TestEval()
+        {
+            //int Compare(KeyValuePair<string, int> a, KeyValuePair<string, int> b)
+            //{
+            //    return a.Value.CompareTo(b.Value);
+            //}
+            string sourceDirectory = @"G:\象棋\全局\1-23届五羊杯";
+            IEnumerable<string> pgnFiles = Directory.EnumerateFiles(sourceDirectory, "*.pgn", SearchOption.AllDirectories);
+            int nFile = 0;
+            int totalMoves = 0;
+            int totalSteps = 0;
+            List<double> redDelta = new List<double>();
+            List<double> blackDelta = new List<double>();
+            List<double> seq = new List<double>();
+            foreach (string fileName in pgnFiles)
+            {
+                Console.WriteLine(fileName.Substring(sourceDirectory.Length + 1));
+                List<MOVE> iMoveList = ReadPgnFile(fileName).MoveList;
+                nFile++;
+                int nSteps = iMoveList.Count;
+                totalSteps += nSteps;
+                bool[] captures = new bool[nSteps];
+                FromFEN(PGN.StartFEN);
+                ivpc = new int[nSteps, 48];
+                Complex_Evaluate();
+                List<KeyValuePair<string, int>> mv_vals = new List<KeyValuePair<string, int>>();
+                for (int i = 1; i < nSteps; i++)
+                {
+                    MOVE step = iMoveList[i];
+                    captures[i] = pcSquares[step.sqDst] > 0;
+                    if (pcSquares[step.sqDst] == 0)
+                    {
+                        mv_vals.Clear();
+                        //List<MOVE> moves = GenerateMoves();
+                        int bookmovevalue = 0;
+                        string bookmovekey = step.ToString();
+                        foreach (MOVE move in GenerateMoves())
+                        {
+                            if (move.pcDst == 0)
+                            {
+                                MovePiece(move);
+                                string key = move.ToString();
+                                int val = Complex_Evaluate();
+                                mv_vals.Add(new KeyValuePair<string, int>(key, val));
+                                UndoMovePiece(move);
+                                if (key == bookmovekey)
+                                    bookmovevalue = val;
+                            }
+                        }
+                        if (i % 2 == 0) //从小到大排序
+                            mv_vals.Sort(delegate (KeyValuePair<string, int> a, KeyValuePair<string, int> b)
+                            { return a.Value.CompareTo(b.Value); });
+                        else  //从大到小排序
+                            mv_vals.Sort(delegate (KeyValuePair<string, int> a, KeyValuePair<string, int> b)
+                            { return b.Value.CompareTo(a.Value); });
+                        int index = mv_vals.IndexOf(new KeyValuePair<string, int>(bookmovekey, bookmovevalue));
+                        seq.Add(index);
+                        //totalMoves += moves.Count;
+                        Console.WriteLine("{0}. Book move: {1} {2}", i, bookmovekey, index);
+                        foreach (var m in mv_vals)
+                        {
+                            //Console.WriteLine("{0}. {1} {2} / {3}", j++, m.Key, m.Value, moves.Count);
+
+                        }
+                    }
+
+                    MakeMove(step);
+                    Console.WriteLine("-------------------");
+                }
+                for (int i = 1; i < nSteps; i += 2)
+                {
+                    if (!captures[i])
+                        redDelta.Add(ivpc[i, 1] - ivpc[i - 1, 1]);
+                }
+
+                for (int i = 2; i < nSteps; i += 2)
+                {
+                    if (!captures[i])
+                        blackDelta.Add(ivpc[i, 1] - ivpc[i - 1, 1]);
+                }
+                break;
+            }
+            double redMean = Statistics.Mean(redDelta);
+            double redVar = Statistics.Variance(redDelta);
+            Console.WriteLine("Red mean:{0}, var:{1}", redMean, redVar);
+            double blackMean = Statistics.Mean(blackDelta);
+            double blackVar = Statistics.Variance(blackDelta);
+            Console.WriteLine("Black mean:{0}, var:{1}", blackMean, blackVar);
+            Console.WriteLine("Score: red{0}, black{1}, average{2}", redVar / redMean, blackVar / blackMean, (redVar + blackVar) / (redMean - blackMean));
+            Console.WriteLine("Move average sequence: {0} of {1}", Statistics.Mean(seq), totalMoves / totalSteps);
+
         }
     }
 }
