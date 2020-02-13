@@ -158,7 +158,7 @@ namespace MoleXiangqi
             MOVE mvBest = new MOVE();
             int best = -G.MATE;
             int vl;
-
+            List<MOVE> subpv = null;
             IEnumerable<MOVE> moves = GetNextMove();
             foreach (MOVE mv in moves)
             {
@@ -166,7 +166,14 @@ namespace MoleXiangqi
                 Debug.WriteLine("{0} {1} {2} {3}", mv, alpha, beta, best);
                 MakeMove(mv);
                 depth++;
-                vl = -SearchPV(-beta, -alpha, depthleft - 1, out List<MOVE> subpv);
+                if (best == -G.MATE)
+                    vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
+                else
+                {
+                    vl = -SearchCut(-alpha, depthleft - 1);
+                    if (vl > alpha && vl < beta)
+                        vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
+                }
                 depth--;
                 UnmakeMove();
                 if (vl > best)
