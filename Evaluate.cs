@@ -567,7 +567,7 @@ namespace MoleXiangqi
             //ivpc[nStep, 10] = pair[0];
             //ivpc[nStep, 11] = pair[1];
 
-            return total;
+            return sdPlayer == 0 ? total : -total;
         }
 
         public void TestEval()

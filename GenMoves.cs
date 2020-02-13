@@ -27,6 +27,8 @@ namespace MoleXiangqi
             if (!IN_BOARD[sqSrc] || !IN_BOARD[sqDst])
                 return false;
             pcMoved = pcSquares[sqSrc];
+            if (pcMoved == 0)
+                return false;
             selfSide = SIDE(pcMoved);
 
             // 2. 检查吃到的子是否为对方棋子(如果有吃子的话)

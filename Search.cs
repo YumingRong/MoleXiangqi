@@ -215,10 +215,11 @@ namespace MoleXiangqi
                 best = vl;
                 alpha = Math.Max(alpha, vl);
             }
-            foreach (MOVE mv in GenerateMoves())
+            IEnumerable<MOVE> moves = GetNextMove();
+            foreach (MOVE mv in moves)
             {
                 //到了限制层数，只延伸吃子
-                if (depthleft <= 0 && mv.pcDst == 0)
+                if (depthleft <= 0 && mv.pcDst == 0 && sqCheck == 0)
                 {
                     continue;
                 }
@@ -226,9 +227,9 @@ namespace MoleXiangqi
                 if (sqCheck > 0)
                 {
                     //如果被照将，先试试走棋后，照将着法是否仍然成立
-                    if (IsLegalMove(sqCheck, sqPieces[SIDE_TAG(sdPlayer) + KING_FROM]))
+                    if (IsLegalMove(sqCheck, sqPieces[OPP_SIDE_TAG(sdPlayer) + KING_FROM]))
                     {
-                        UndoMovePiece(mv);
+                        UnmakeMove();
                         continue;
                     }
                 }
@@ -241,7 +242,7 @@ namespace MoleXiangqi
                 if (depthleft > 0)
                 {
                     //未被将军时只延伸照将和吃子的局面
-                    if (sqCheck == 0 && mv.pcDst == 0 && CheckedBy(sdPlayer) == 0)
+                    if (sqCheck == 0 && mv.pcDst == 0 && stepList[stepList.Count - 1].checking == 0)
                     {
                         UnmakeMove();
                         continue;
@@ -260,7 +261,9 @@ namespace MoleXiangqi
                     if (vl > beta)
                     {
                         stat.Cutoffs++;
-                        SetBestMove(mv);
+                        //吃送吃的子不记录为推荐着法
+                        if (mv.pcDst != stepList[stepList.Count - 1].move.pcSrc)
+                            SetBestMove(mv);
                         return vl;
                     }
                     best = vl;

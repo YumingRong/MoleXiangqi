@@ -25,10 +25,10 @@ namespace MoleXiangqi
         {
             MOVE mv;
             mv = killers[depth, 0];
-            if (IsLegalMove(mv.sqSrc, mv.sqDst))
+            if (mv.pcSrc==pcSquares[mv.sqSrc] && mv.pcDst == pcSquares[mv.sqDst] && IsLegalMove(mv.sqSrc, mv.sqDst))
                 yield return mv;
             mv = killers[depth, 1];
-            if (IsLegalMove(mv.sqSrc, mv.sqDst))
+            if (mv.pcSrc == pcSquares[mv.sqSrc] && mv.pcDst == pcSquares[mv.sqDst] && IsLegalMove(mv.sqSrc, mv.sqDst))
                 yield return mv;
 
             IEnumerable<MOVE> moves = EnumGenerateMoves();
