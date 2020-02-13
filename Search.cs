@@ -61,7 +61,7 @@ namespace MoleXiangqi
             history = new int[256, 256];
             rootMoves.Clear();
 
-            foreach (MOVE mv in GenerateMoves())
+            foreach (MOVE mv in GetNextMove())
             {
                 rootMoves.Add(new KeyValuePair<MOVE, int>(mv, 0));
             }
@@ -224,21 +224,6 @@ namespace MoleXiangqi
                     continue;
                 }
                 MakeMove(mv);
-                if (sqCheck > 0)
-                {
-                    //如果被照将，先试试走棋后，照将着法是否仍然成立
-                    if (IsLegalMove(sqCheck, sqPieces[OPP_SIDE_TAG(sdPlayer) + KING_FROM]))
-                    {
-                        UnmakeMove();
-                        continue;
-                    }
-                }
-                // 如果移动后被将军了，那么着法是非法的，撤消该着法
-                if (CheckedBy(1 - sdPlayer) > 0)
-                {
-                    UnmakeMove();
-                    continue;
-                }
                 if (depthleft > 0)
                 {
                     //未被将军时只延伸照将和吃子的局面

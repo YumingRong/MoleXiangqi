@@ -55,7 +55,6 @@ namespace MoleXiangqi
     {
         public long zobrist;
         public int checking;
-        public bool capture;
         public MOVE move;
         public int halfMoveClock;  //120步不吃子作和的自然限招
     }
@@ -146,13 +145,11 @@ namespace MoleXiangqi
             STEP step;
             step.move = mv;
             step.zobrist = stepList[stepList.Count - 1].zobrist ^ Zobrist.Get(mv.pcSrc, mv.sqSrc) ^ Zobrist.Get(mv.pcSrc, mv.sqDst);
-            step.capture = false;
             step.checking = CheckedBy(sdPlayer);
             step.halfMoveClock = stepList[stepList.Count - 1].halfMoveClock + 1;
             if (mv.pcDst > 0)
             {
                 step.zobrist ^= Zobrist.Get(mv.pcDst, mv.sqDst);
-                step.capture = true;
                 step.halfMoveClock = 0;
             }
             stepList.Add(step);
