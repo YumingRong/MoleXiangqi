@@ -143,17 +143,17 @@ namespace MoleXiangqi
 
         public int SearchPV(int alpha, int beta, int depthleft, out List<MOVE> pvs)
         {
-            stat.PVNodes++;
             pvs = new List<MOVE>();
+            if (depthleft <= 0)
+                //静态搜索深度不超过普通搜索的1倍
+                return SearchQuiesce(alpha, beta, depth);
 
+            stat.PVNodes++;
             if (stepList[stepList.Count - 1].halfMoveClock >= 120)
                 return 0;
             RepititionResult rep = Repitition();
             if (rep != RepititionResult.NONE)
                 return (int)rep;
-            if (depthleft <= 0)
-                //静态搜索深度不超过普通搜索的1倍
-                return SearchQuiesce(alpha, beta, depth);
 
             MOVE mvBest = new MOVE();
             int best = -G.MATE;
@@ -190,6 +190,45 @@ namespace MoleXiangqi
 
             if (mvBest.sqSrc != 0)
                 SetBestMove(mvBest);
+            return best;
+        }
+
+        int SearchCut(int beta, int depthleft)
+        {
+            if (depthleft <= 0)
+                //静态搜索深度不超过普通搜索的1倍
+                return SearchQuiesce(beta - 1, beta, depth);
+
+            stat.CutNodes++;
+            if (stepList[stepList.Count - 1].halfMoveClock >= 120)
+                return 0;
+            RepititionResult rep = Repitition();
+            if (rep != RepititionResult.NONE)
+                return (int)rep;
+
+            int best = -G.MATE;
+            IEnumerable<MOVE> moves = GetNextMove();
+            foreach (MOVE mv in moves)
+            {
+                MakeMove(mv);
+                depth++;
+                int vl = -SearchCut(1 - beta, depth - 1);
+                depth--;
+                UnmakeMove();
+
+                if (vl > best)
+                {
+                    best = vl;
+                    if (vl > beta)
+                    {
+                        stat.Cutoffs++;
+                        //吃送吃的子不记录为推荐着法
+                        if (mv.pcDst != stepList[stepList.Count - 1].move.pcSrc)
+                            SetBestMove(mv);
+                        return vl;
+                    }
+                }
+            }
             return best;
         }
 
