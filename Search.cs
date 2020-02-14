@@ -170,7 +170,7 @@ namespace MoleXiangqi
             int vl;
             bool bResearch = false;
             List<MOVE> subpv = null;
-            IEnumerable<MOVE> moves = GetNextMove();
+            IEnumerable<MOVE> moves = GetNextMove(0);
             foreach (MOVE mv in moves)
             {
                 Debug.Write(new string('\t', depth));
@@ -184,6 +184,7 @@ namespace MoleXiangqi
                     vl = -SearchCut(-alpha, depthleft - 1);
                     if (vl > alpha && vl < beta)
                     {
+                        Debug.WriteLine("Re-search");
                         vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
                         stat.PVChanged++;
                         bResearch = true;
@@ -221,7 +222,7 @@ namespace MoleXiangqi
         {
             if (depthleft <= 0)
                 //静态搜索深度不超过普通搜索的1倍
-                return SearchQuiesce(beta - 1, beta, depth);
+                return SearchQuiesce(beta - 1, beta, 0);
 
             stat.CutNodes++;
             if (stepList[stepList.Count - 1].halfMoveClock >= 120)
@@ -231,7 +232,7 @@ namespace MoleXiangqi
                 return (int)rep;
 
             int best = -G.MATE;
-            IEnumerable<MOVE> moves = GetNextMove();
+            IEnumerable<MOVE> moves = GetNextMove(0);
             foreach (MOVE mv in moves)
             {
                 Debug.Write(new string('\t', depth));
@@ -258,68 +259,62 @@ namespace MoleXiangqi
             return best;
         }
 
-        public int SearchQuiesce(int alpha, int beta, int depthleft)
+        public int SearchQuiesce(int alpha, int beta, int qdepth)
         {
             stat.QuiesceNodes++;
-            int best = depth - G.MATE;
             int sqCheck = stepList[stepList.Count - 1].checking;
-            if (sqCheck > 0)
+            int best;
+            IEnumerable<MOVE> moves;
+            //偶数层是主动方，奇数层是被动方
+            if (qdepth % 2 == 0)
             {
-                RepititionResult rep = Repitition();
-                if (rep != RepititionResult.NONE)
-                    return (int)rep;
+                best = Simple_Evaluate();
+                if (best > beta)
+                    return best;
+                //only extend check and capture
+                moves = GetNextMove(3);
             }
-            //为防止过早截断，有Matekiller时做延伸搜索
-            else if (!IsLegalMove(MateKiller.sqSrc, MateKiller.sqDst))
+            else
             {
-                //对于未被将军的局面，在生成着法前首先对局面作评价；
-                int vl = Simple_Evaluate();
-                //fail high裁剪。如果超过极限深度，不延伸搜索照将局面，只搜索吃子
-                if (vl > beta || depthleft <= 0 && stepList[stepList.Count - 1].move.pcDst == 0)
-                    return vl;
-                best = vl;
-                alpha = Math.Max(alpha, vl);
+                if (sqCheck > 0)
+                {
+                    RepititionResult rep = Repitition();
+                    if (rep != RepititionResult.NONE)
+                        return (int)rep;
+                }
+                best = depth - G.MATE;
+                //only extend evade and re-capture
+                if (sqCheck > 0)
+                    moves = GetNextMove(0);
+                else
+                    moves = GetNextMove(2);
             }
-            IEnumerable<MOVE> moves = GetNextMove();
             foreach (MOVE mv in moves)
             {
-                //到了限制层数，只延伸吃子
-                if (depthleft <= 0 && mv.pcDst == 0 && sqCheck == 0)
-                {
-                    continue;
-                }
                 MakeMove(mv);
-                if (depthleft > 0)
+                Debug.Write(new string('\t', depth));
+                Debug.WriteLine("{0} {1} {2} {3}", mv, alpha, beta, best);
+                if (qdepth % 2 == 0)
                 {
-                    //未被将军时只延伸照将和吃子的局面
-                    if (sqCheck == 0 && mv.pcDst == 0 && stepList[stepList.Count - 1].checking == 0)
-                    {
-                        UnmakeMove();
-                        continue;
-                    }
                     if (mv.pcDst > 0)
                         stat.CaptureExtensions++;
                     else
                         stat.CheckExtesions++;
                 }
-                Debug.Write(new string('\t', depth));
-                Debug.WriteLine("{0} {1} {2} {3}", mv, alpha, beta, best);
                 depth++;
-                int vl = -SearchQuiesce(-beta, -alpha, depthleft - 1);
+                int vl = SearchQuiesce(-beta, -alpha, qdepth + 1);
                 depth--;
                 UnmakeMove();
-                //Debug.Write(new string('\t', depth));
-                //Debug.WriteLine("{0} {1}", mv, best);
+                if (vl > beta)
+                {
+                    stat.Cutoffs++;
+                    //吃送吃的子不记录为推荐着法
+                    if (mv.pcDst != stepList[stepList.Count - 1].move.pcSrc)
+                        SetBestMove(mv, best);
+                    return vl;
+                }
                 if (vl > best)
                 {
-                    if (vl > beta)
-                    {
-                        stat.Cutoffs++;
-                        //吃送吃的子不记录为推荐着法
-                        if (mv.pcDst != stepList[stepList.Count - 1].move.pcSrc)
-                            SetBestMove(mv, best);
-                        return vl;
-                    }
                     best = vl;
                     alpha = Math.Max(alpha, vl);
                 }

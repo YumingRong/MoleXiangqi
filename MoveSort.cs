@@ -26,44 +26,62 @@ namespace MoleXiangqi
 
         /*该函数首先返回matekiller，然后返回killer move
          * 对于其它着法，按照将、吃子、移动的优先级返回
+         * 参数onlyCheckCapture: 
+         * 0 - 生成所有合法着法
+         * 1 - 生成所有照将
+         * 2 - 生成所有吃子
+         * 3 - 生成所有照将和吃子
          */
-        IEnumerable<MOVE> GetNextMove()
+        IEnumerable<MOVE> GetNextMove(int onlyCheckCapture)
         {
-            MOVE mv;
-            mv = MateKiller;
-            if (mv.pcSrc == pcSquares[mv.sqSrc] && mv.pcDst == pcSquares[mv.sqDst] && IsLegalMove(mv.sqSrc, mv.sqDst))
-                if (!CheckedChecking(mv).Item1)
-                    yield return mv;
+            bool wantCheck = (onlyCheckCapture & 0x01) > 0;
+            bool wantCapture = (onlyCheckCapture & 0x02) > 0;
+            bool wantAll = onlyCheckCapture == 0;
 
-            mv = killers[depth, 0];
-            if (mv.pcSrc == pcSquares[mv.sqSrc] && mv.pcDst == pcSquares[mv.sqDst] && IsLegalMove(mv.sqSrc, mv.sqDst))
-                if (!CheckedChecking(mv).Item1)
-                    yield return mv;
-            mv = killers[depth, 1];
-            if (mv.pcSrc == pcSquares[mv.sqSrc] && mv.pcDst == pcSquares[mv.sqDst] && IsLegalMove(mv.sqSrc, mv.sqDst))
-                if (!CheckedChecking(mv).Item1)
-                    yield return mv;
+            List<MOVE> allkillers = new List<MOVE>();
+            if (MateKiller.sqSrc > 0)
+                allkillers.Add(MateKiller);
+            if (killers[depth, 0].sqSrc > 0)
+            {
+                allkillers.Add(killers[depth, 0]);
+                if (killers[depth, 1].sqSrc > 0)
+                    allkillers.Add(killers[depth, 1]);
+            }
+
+            foreach (MOVE mv in allkillers)
+            {
+                if (mv.pcSrc == pcSquares[mv.sqSrc] && mv.pcDst == pcSquares[mv.sqDst] && IsLegalMove(mv.sqSrc, mv.sqDst))
+                {
+                    Tuple<bool, int> cc = CheckedChecking(mv);
+                    if (!cc.Item1)
+                    {
+                        if (wantAll || wantCheck && cc.Item2 > 0 || wantCapture && mv.pcDst > 0)
+                            yield return mv;
+                    }
+                }
+            }
 
             List<MOVE> moves = GenerateMoves();
             List<MOVE> captureMoves = new List<MOVE>();
             List<MOVE> normalMoves = new List<MOVE>();
-            foreach (MOVE m in moves)
+            foreach (MOVE mv in moves)
             {
-                Tuple<bool, int> cc = CheckedChecking(m);
+                Tuple<bool, int> cc = CheckedChecking(mv);
                 if (!cc.Item1)
                 {
-                    if (cc.Item2 > 0)
-                        yield return m;
-                    else if (m.pcDst > 0)
-                        captureMoves.Add(m);
-                    else
-                        normalMoves.Add(m);
+                    if (wantCheck && cc.Item2 > 0)
+                        yield return mv;
+                    if (wantCheck && mv.pcDst > 0)
+                        captureMoves.Add(mv);
+                    else if (wantAll)
+                        normalMoves.Add(mv);
                 }
             }
             foreach (MOVE m in captureMoves)
                 yield return m;
-            foreach (MOVE m in normalMoves)
-                yield return m;
+            if (wantAll)
+                foreach (MOVE m in normalMoves)
+                    yield return m;
 
 
             Tuple<bool, int> CheckedChecking(MOVE m)
