@@ -71,14 +71,15 @@ namespace MoleXiangqi
                 {
                     if (wantCheck && cc.Item2 > 0)
                         yield return mv;
-                    if (wantCheck && mv.pcDst > 0)
+                    if (wantCapture && mv.pcDst > 0)
                         captureMoves.Add(mv);
                     else if (wantAll)
                         normalMoves.Add(mv);
                 }
             }
-            foreach (MOVE m in captureMoves)
-                yield return m;
+            if (wantCapture)
+                foreach (MOVE m in captureMoves)
+                    yield return m;
             if (wantAll)
                 foreach (MOVE m in normalMoves)
                     yield return m;
@@ -105,9 +106,9 @@ namespace MoleXiangqi
                     return new Tuple<bool, int>(true, 0);
                 }
 
-
+                int sqchecking = CheckedBy(1 - mySide);
                 UndoMovePiece(m);
-                return new Tuple<bool, int>(false, CheckedBy(1 - mySide));
+                return new Tuple<bool, int>(false, sqchecking);
             }
         }
 

@@ -278,7 +278,7 @@ namespace MoleXiangqi
                     return best;
                 //only extend check and capture
                 if (sqCheck == 0)
-                    moves = GetNextMove(3);
+                    moves = GetNextMove(1);
                 else
                     moves = GetNextMove(0);
             }
@@ -310,7 +310,7 @@ namespace MoleXiangqi
                         stat.CaptureExtensions++;
                 }
                 depth++;
-                int vl = SearchQuiesce(-beta, -alpha, qdepth + 1);
+                int vl = -SearchQuiesce(-beta, -alpha, qdepth + 1);
                 depth--;
                 UnmakeMove();
                 if (vl > beta)
