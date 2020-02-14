@@ -155,8 +155,13 @@ namespace MoleXiangqi
         {
             pvs = new List<MOVE>();
             if (depthleft <= 0)
-                //静态搜索深度不超过普通搜索的1倍
-                return SearchQuiesce(alpha, beta, depth);
+            {
+                if (stepList[stepList.Count - 1].checking > 0)
+                    //被照将时，推迟进入静态搜索
+                    depthleft++;
+                else
+                    return SearchQuiesce(alpha, beta, 0);
+            }
 
             stat.PVNodes++;
             if (stepList[stepList.Count - 1].halfMoveClock >= 120)
@@ -299,10 +304,10 @@ namespace MoleXiangqi
                 Debug.WriteLine("{0} {1} {2} {3}", mv, alpha, beta, best);
                 if (qdepth % 2 == 0)
                 {
-                    if (mv.pcDst > 0)
-                        stat.CaptureExtensions++;
-                    else
+                    if (stepList[stepList.Count -1 ].checking > 0)
                         stat.CheckExtesions++;
+                    else
+                        stat.CaptureExtensions++;
                 }
                 depth++;
                 int vl = SearchQuiesce(-beta, -alpha, qdepth + 1);
