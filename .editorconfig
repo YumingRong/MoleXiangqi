@@ -29,3 +29,6 @@ dotnet_diagnostic.CA1016.severity = silent
 
 # CA1824: 用 NeutralResourcesLanguageAttribute 标记程序集
 dotnet_diagnostic.CA1824.severity = silent
+
+# IDE0040: 添加可访问性修饰符
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:silent

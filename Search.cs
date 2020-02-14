@@ -9,7 +9,7 @@ namespace MoleXiangqi
     {
         public int QuiesceNodes, PVNodes, CutNodes;
         public long ElapsedTime;
-        public long Cutoffs;
+        public int Cutoffs, PVChanged;
         public int CaptureExtensions, CheckExtesions;
 
         public static void DisplayTimerProperties()
@@ -32,7 +32,7 @@ namespace MoleXiangqi
             StringBuilder sb = new StringBuilder();
             sb.AppendLine($"Nodes: total {totalNodes}， PV {PVNodes}, Cut {CutNodes}, Quiesce {QuiesceNodes}");
             sb.AppendLine($"Elapsed time: {ElapsedTime} millisecond. Nodes per second: {totalNodes * 1000 / ElapsedTime}");
-            sb.AppendLine($"Cutoffs: {Cutoffs}");
+            sb.AppendLine($"Cutoffs: {Cutoffs}, PV reseached: {PVChanged}");
             sb.AppendLine($"Extesions: Check {CheckExtesions}, Capture {CaptureExtensions}");
             return sb.ToString();
         }
@@ -104,6 +104,7 @@ namespace MoleXiangqi
             int alpha = -G.WIN;
             int beta = G.WIN;
             MOVE mvBest = new MOVE();
+            List<MOVE> subpv = null;
             for (int i = 0; i < rootMoves.Count; i++)
             {
                 MOVE mv = rootMoves[i].Key;
@@ -111,7 +112,18 @@ namespace MoleXiangqi
                 Debug.WriteLine("{0} {1} {2}", mv, alpha, beta);
                 MakeMove(mv);
                 depth++;
-                int vl = -SearchPV(-beta, -alpha, depthleft - 1, out List<MOVE> subpv);
+                int vl;
+                if (alpha == -G.WIN)
+                    vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
+                else
+                {
+                    vl = -SearchCut(-alpha, depthleft - 1);
+                    if (vl > beta)
+                    {
+                        stat.PVChanged++;
+                        vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
+                    }
+                }
                 depth--;
                 UnmakeMove();
 
@@ -158,6 +170,7 @@ namespace MoleXiangqi
             MOVE mvBest = new MOVE();
             int best = -G.MATE;
             int vl;
+            bool bResearch = false;
             List<MOVE> subpv = null;
             IEnumerable<MOVE> moves = GetNextMove();
             foreach (MOVE mv in moves)
@@ -172,7 +185,11 @@ namespace MoleXiangqi
                 {
                     vl = -SearchCut(-alpha, depthleft - 1);
                     if (vl > alpha && vl < beta)
+                    {
                         vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
+                        stat.PVChanged++;
+                        bResearch = true;
+                    }
                 }
                 depth--;
                 UnmakeMove();
@@ -189,6 +206,8 @@ namespace MoleXiangqi
                     {
                         alpha = vl;
                         mvBest = mv;
+                        if (bResearch)
+                            pvs.RemoveAt(pvs.Count - 1);
                         pvs.Add(mv);
                         pvs.AddRange(subpv);
                     }
@@ -217,9 +236,11 @@ namespace MoleXiangqi
             IEnumerable<MOVE> moves = GetNextMove();
             foreach (MOVE mv in moves)
             {
+                Debug.Write(new string('\t', depth));
+                Debug.WriteLine("{0} {1} {2} {3}", mv, beta - 1, beta, best);
                 MakeMove(mv);
                 depth++;
-                int vl = -SearchCut(1 - beta, depth - 1);
+                int vl = -SearchCut(1 - beta, depthleft - 1);
                 depth--;
                 UnmakeMove();
 
@@ -278,10 +299,14 @@ namespace MoleXiangqi
                         UnmakeMove();
                         continue;
                     }
+                    if (mv.pcDst > 0)
+                        stat.CaptureExtensions++;
+                    else
+                        stat.CheckExtesions++;
                 }
-                depth++;
                 Debug.Write(new string('\t', depth));
                 Debug.WriteLine("{0} {1} {2} {3}", mv, alpha, beta, best);
+                depth++;
                 int vl = -SearchQuiesce(-beta, -alpha, depthleft - 1);
                 depth--;
                 UnmakeMove();
