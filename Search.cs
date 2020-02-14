@@ -32,7 +32,7 @@ namespace MoleXiangqi
             StringBuilder sb = new StringBuilder();
             sb.AppendLine($"Nodes: total {totalNodes}， PV {PVNodes}, Cut {CutNodes}, Quiesce {QuiesceNodes}");
             sb.AppendLine($"Elapsed time: {ElapsedTime} millisecond. Nodes per second: {totalNodes * 1000 / ElapsedTime}");
-            sb.AppendLine($"Cutoffs: {Cutoffs}, PV reseached: {PVChanged}");
+            sb.AppendLine($"Cutoffs: {Cutoffs}, PV re-searched: {PVChanged}");
             sb.AppendLine($"Extesions: Check {CheckExtesions}, Capture {CaptureExtensions}");
             return sb.ToString();
         }
@@ -53,18 +53,15 @@ namespace MoleXiangqi
             rootMoves = new List<KeyValuePair<MOVE, int>>();
         }
 
+
         public MOVE SearchMain(int depthleft)
         {
             stat = new STATISTIC();
             PVLine = new List<MOVE>();
             killers = new MOVE[G.MAX_PLY, 2];
             history = new int[256, 256];
-            rootMoves.Clear();
+            rootMoves = InitRootMoves();
 
-            foreach (MOVE mv in GetNextMove())
-            {
-                rootMoves.Add(new KeyValuePair<MOVE, int>(mv, 0));
-            }
             int vl = 0;
 
             // 6. 做迭代加深搜索
@@ -114,11 +111,12 @@ namespace MoleXiangqi
                 depth++;
                 int vl;
                 if (alpha == -G.WIN)
-                    vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
+                    //check extension in PV
+                    vl = -SearchPV(-beta, -alpha, stepList[1].checking > 0 ? depthleft : depthleft - 1, out subpv);
                 else
                 {
                     vl = -SearchCut(-alpha, depthleft - 1);
-                    if (vl > beta)
+                    if (vl > alpha)
                     {
                         stat.PVChanged++;
                         vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
@@ -208,14 +206,14 @@ namespace MoleXiangqi
                         mvBest = mv;
                         if (bResearch)
                             pvs.RemoveAt(pvs.Count - 1);
-                        pvs.Add(mv);
-                        pvs.AddRange(subpv);
                     }
+                    pvs.Add(mv);
+                    pvs.AddRange(subpv);
                 }
             }
 
             if (mvBest.sqSrc != 0)
-                SetBestMove(mvBest);
+                SetBestMove(mvBest, best);
             return best;
         }
 
@@ -252,7 +250,7 @@ namespace MoleXiangqi
                         stat.Cutoffs++;
                         //吃送吃的子不记录为推荐着法
                         if (mv.pcDst != stepList[stepList.Count - 1].move.pcSrc)
-                            SetBestMove(mv);
+                            SetBestMove(mv, best);
                         return vl;
                     }
                 }
@@ -263,16 +261,16 @@ namespace MoleXiangqi
         public int SearchQuiesce(int alpha, int beta, int depthleft)
         {
             stat.QuiesceNodes++;
-            int best;
+            int best = depth - G.MATE;
             int sqCheck = stepList[stepList.Count - 1].checking;
             if (sqCheck > 0)
             {
                 RepititionResult rep = Repitition();
                 if (rep != RepititionResult.NONE)
                     return (int)rep;
-                best = depth - G.MATE;
             }
-            else
+            //为防止过早截断，有Matekiller时做延伸搜索
+            else if (!IsLegalMove(MateKiller.sqSrc, MateKiller.sqDst))
             {
                 //对于未被将军的局面，在生成着法前首先对局面作评价；
                 int vl = Simple_Evaluate();
@@ -319,7 +317,7 @@ namespace MoleXiangqi
                         stat.Cutoffs++;
                         //吃送吃的子不记录为推荐着法
                         if (mv.pcDst != stepList[stepList.Count - 1].move.pcSrc)
-                            SetBestMove(mv);
+                            SetBestMove(mv, best);
                         return vl;
                     }
                     best = vl;

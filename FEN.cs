@@ -101,7 +101,7 @@ namespace MoleXiangqi
             STEP step;
             step.move = new MOVE();
             step.zobrist = CalculateZobrist();
-            step.checking = 0;  //为了第一层静态搜索照将延申
+            step.checking = CheckedBy(sdPlayer);  
             //step.halfMoveClock = Convert.ToInt32(subs[4]);
             step.halfMoveClock = 0; //为简单起见，否则要再设一个变量
             stepList.Add(step);
