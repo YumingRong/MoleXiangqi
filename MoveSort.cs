@@ -33,6 +33,14 @@ namespace MoleXiangqi
                 if (!CheckCheck(mv))
                     yield return mv;
 
+            if (depth >= 2)
+            {
+                mv = killers[depth - 2, 0];
+                if (mv.pcSrc == pcSquares[mv.sqSrc] && mv.pcDst == pcSquares[mv.sqDst] && IsLegalMove(mv.sqSrc, mv.sqDst))
+                    if (!CheckCheck(mv))
+                        yield return mv;
+            }
+
             IEnumerable<MOVE> moves = EnumGenerateMoves();
             foreach (MOVE mv0 in moves)
                 if (!CheckCheck(mv0))
