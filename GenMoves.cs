@@ -526,32 +526,6 @@ namespace MoleXiangqi
                     yield return new MOVE(sqSrc, sqDst, pcSelfSide + KING_FROM, pcDst);
             }
         }
-
-        //List<MOVE> GenerateLegalMoves()
-        //{
-        //    int sqcheck = stepList[stepList.Count - 1].checking;
-        //    List<MOVE> moves = GenerateMoves();
-        //    foreach(MOVE m in moves)
-        //    {
-        //        if (sqcheck > 0)
-        //        {
-        //            int sqKing = sqPieces[SIDE_TAG(mySide) + KING_FROM];
-        //            //如果被照将，先试试走棋后，照将着法是否仍然成立
-        //            if (IsLegalMove(sqCheck, sqKing))
-        //            {
-        //                UndoMovePiece(m);
-        //                return new Tuple<bool, int>(true, 0);
-        //            }
-        //        }
-        //    }
-        //    // 如果移动后被将军了，那么着法是非法的
-        //    if (CheckedBy(mySide) > 0)
-        //    {
-        //        UndoMovePiece(m);
-        //        return new Tuple<bool, int>(true, 0);
-        //    }
-
-        //}
     }
 
         //重量级的着法生成和排序函数
@@ -938,5 +912,5 @@ namespace MoleXiangqi
         //    foreach (KeyValuePair<MOVE, int> mv_vl in nonCapMoves)
         //        yield return mv_vl.Key;
         //}
-    }
+   
 }

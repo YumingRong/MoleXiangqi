@@ -272,11 +272,14 @@ namespace MoleXiangqi
                 if (best > beta)
                     return best;
                 //only extend check and capture
-                moves = GetNextMove(3);
+                if (sqCheck == 0)
+                    moves = GetNextMove(3);
+                else
+                    moves = GetNextMove(0);
             }
             else
             {
-                if (sqCheck > 0)
+                if (sqCheck > 0)    //避免长照
                 {
                     RepititionResult rep = Repitition();
                     if (rep != RepititionResult.NONE)

@@ -83,7 +83,6 @@ namespace MoleXiangqi
                 foreach (MOVE m in normalMoves)
                     yield return m;
 
-
             Tuple<bool, int> CheckedChecking(MOVE m)
             {
                 int sqCheck = stepList[stepList.Count - 1].checking;
