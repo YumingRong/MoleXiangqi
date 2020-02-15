@@ -51,6 +51,10 @@ namespace MoleXiangqi
         {
             stopwatch = new Stopwatch();
             rootMoves = new List<KeyValuePair<MOVE, int>>();
+
+            //临时，需删除           
+            killers = new MOVE[G.MAX_PLY, 2];
+
         }
 
 
@@ -80,18 +84,18 @@ namespace MoleXiangqi
                     Console.WriteLine("Single feasible move");
                     break;
                 }
-                // 10. 搜索到杀棋则终止搜索
-                if (vl < -G.WIN || vl > G.WIN)
-                    break;
-
                 stopwatch.Stop();
                 stat.ElapsedTime += stopwatch.ElapsedMilliseconds;
                 Console.WriteLine(stat);
+
+                // 10. 搜索到杀棋则终止搜索
+                if (vl < -G.WIN || vl > G.WIN)
+                    break;
             }
             if (vl < -G.WIN)
                 Console.WriteLine("Resign");
             else if (vl > G.WIN)
-                Console.WriteLine("Mate in {0} steps", G.MATE - vl);
+                Console.WriteLine("Mate in {0} steps", G.MATE - vl - 1);
             return PVLine[0];
         }
 
@@ -110,18 +114,18 @@ namespace MoleXiangqi
                 MakeMove(mv);
                 depth++;
                 int vl;
-                if (alpha == -G.WIN)
-                    //check extension in PV
-                    vl = -SearchPV(-beta, -alpha, stepList[1].checking > 0 ? depthleft : depthleft - 1, out subpv);
-                else
-                {
-                    vl = -SearchCut(-alpha, depthleft - 1);
-                    if (vl > alpha)
-                    {
-                        stat.PVChanged++;
-                        vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
-                    }
-                }
+                vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
+                //if (alpha == -G.WIN)
+                //    vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
+                //else
+                //{
+                //    vl = -SearchCut(-alpha, depthleft - 1);
+                //    if (vl > alpha)
+                //    {
+                //        stat.PVChanged++;
+                //        vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
+                //    }
+                //}
                 depth--;
                 UnmakeMove();
 
@@ -175,26 +179,27 @@ namespace MoleXiangqi
             int vl;
             bool bResearch = false;
             List<MOVE> subpv = null;
-            IEnumerable<MOVE> moves = GetNextMove(0);
+            IEnumerable<MOVE> moves = GetNextMove(7);
             foreach (MOVE mv in moves)
             {
                 Debug.Write(new string('\t', depth));
                 Debug.WriteLine("{0} {1} {2} {3}", mv, alpha, beta, best);
                 MakeMove(mv);
                 depth++;
-                if (best == -G.MATE)
-                    vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
-                else
-                {
-                    vl = -SearchCut(-alpha, depthleft - 1);
-                    if (vl > alpha && vl < beta)
-                    {
-                        Debug.WriteLine("Re-search");
-                        vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
-                        stat.PVChanged++;
-                        bResearch = true;
-                    }
-                }
+                vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
+                //if (best == -G.MATE)
+                //    vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
+                //else
+                //{
+                //    vl = -SearchCut(-alpha, depthleft - 1);
+                //    if (vl > alpha && vl < beta)
+                //    {
+                //        Debug.WriteLine("Re-search");
+                //        vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
+                //        stat.PVChanged++;
+                //        bResearch = true;
+                //    }
+                //}
                 depth--;
                 UnmakeMove();
                 if (vl > best)
@@ -226,8 +231,13 @@ namespace MoleXiangqi
         int SearchCut(int beta, int depthleft)
         {
             if (depthleft <= 0)
-                //静态搜索深度不超过普通搜索的1倍
-                return SearchQuiesce(beta - 1, beta, 0);
+            {
+                if (stepList[stepList.Count - 1].checking > 0)
+                    //被照将时，推迟进入静态搜索
+                    depthleft++;
+                else
+                    return SearchQuiesce(beta - 1, beta, 0);
+            }
 
             stat.CutNodes++;
             if (stepList[stepList.Count - 1].halfMoveClock >= 120)
@@ -237,7 +247,7 @@ namespace MoleXiangqi
                 return (int)rep;
 
             int best = -G.MATE;
-            IEnumerable<MOVE> moves = GetNextMove(0);
+            IEnumerable<MOVE> moves = GetNextMove(7);
             foreach (MOVE mv in moves)
             {
                 Debug.Write(new string('\t', depth));
@@ -276,11 +286,13 @@ namespace MoleXiangqi
                 best = Simple_Evaluate();
                 if (best > beta)
                     return best;
+                if (best > alpha)
+                    alpha = best;
                 //only extend check and capture
                 if (sqCheck == 0)
                     moves = GetNextMove(1);
                 else
-                    moves = GetNextMove(0);
+                    moves = GetNextMove(7);
             }
             else
             {
@@ -293,7 +305,7 @@ namespace MoleXiangqi
                 best = depth - G.MATE;
                 //only extend evade and re-capture
                 if (sqCheck > 0)
-                    moves = GetNextMove(0);
+                    moves = GetNextMove(7);
                 else
                     moves = GetNextMove(2);
             }

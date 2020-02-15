@@ -27,28 +27,28 @@ namespace MoleXiangqi
         /*该函数首先返回matekiller，然后返回killer move
          * 对于其它着法，按照将、吃子、移动的优先级返回
          * 参数onlyCheckCapture: 
-         * 0 - 生成所有合法着法
          * 1 - 生成所有照将
          * 2 - 生成所有吃子
          * 3 - 生成所有照将和吃子
-         */
-        IEnumerable<MOVE> GetNextMove(int onlyCheckCapture)
+         * 7 - 生成所有合法着法
+        */
+        public IEnumerable<MOVE> GetNextMove(int moveType)
         {
-            bool wantCheck = (onlyCheckCapture & 0x01) > 0;
-            bool wantCapture = (onlyCheckCapture & 0x02) > 0;
-            bool wantAll = onlyCheckCapture == 0;
+            bool wantCheck = (moveType & 0x01) > 0;
+            bool wantCapture = (moveType & 0x02) > 0;
+            bool wantAll = moveType == 7;
 
-            List<MOVE> allkillers = new List<MOVE>();
+            List<MOVE> moves = new List<MOVE>();
             if (MateKiller.sqSrc > 0)
-                allkillers.Add(MateKiller);
+                moves.Add(MateKiller);
             if (killers[depth, 0].sqSrc > 0)
             {
-                allkillers.Add(killers[depth, 0]);
+                moves.Add(killers[depth, 0]);
                 if (killers[depth, 1].sqSrc > 0)
-                    allkillers.Add(killers[depth, 1]);
+                    moves.Add(killers[depth, 1]);
             }
 
-            foreach (MOVE mv in allkillers)
+            foreach (MOVE mv in moves)
             {
                 if (mv.pcSrc == pcSquares[mv.sqSrc] && mv.pcDst == pcSquares[mv.sqDst] && IsLegalMove(mv.sqSrc, mv.sqDst))
                 {
@@ -61,22 +61,32 @@ namespace MoleXiangqi
                 }
             }
 
-            List<MOVE> moves = GenerateMoves();
+            moves = GenerateMoves();
+            List<MOVE> checkMoves = new List<MOVE>();
             List<MOVE> captureMoves = new List<MOVE>();
             List<MOVE> normalMoves = new List<MOVE>();
+            //为避免一子淡水长将，能多子轮流照将就轮流将
+            MOVE lateCheck = new MOVE();
             foreach (MOVE mv in moves)
             {
                 Tuple<bool, int> cc = CheckedChecking(mv);
                 if (!cc.Item1)
                 {
                     if (wantCheck && cc.Item2 > 0)
-                        yield return mv;
-                    if (wantCapture && mv.pcDst > 0)
+                    {
+                        if (mv.pcDst == 0 && mv.sqSrc == stepList[stepList.Count - 2].checking)
+                            lateCheck = mv;
+                        else
+                            yield return mv;
+                    }
+                    else if (mv.pcDst > 0)
                         captureMoves.Add(mv);
                     else if (wantAll)
                         normalMoves.Add(mv);
                 }
             }
+            if (wantCheck && lateCheck.sqSrc > 0)
+                yield return lateCheck;
             if (wantCapture)
                 foreach (MOVE m in captureMoves)
                     yield return m;

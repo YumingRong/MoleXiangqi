@@ -365,30 +365,20 @@ namespace MoleXiangqi
         private void MenuActivePositionTest_Click(object sender, EventArgs e)
         {
             App_inGame = false;
-            string sourceDirectory = @"G:\象棋\全局\1-23届五羊杯";
-            IEnumerable<string> pgnFiles = Directory.EnumerateFiles(sourceDirectory, "*.PGN", SearchOption.AllDirectories);
-            int nFile = 0;
-            //统计棋子活动位置的数组
-            int[,] activeGrid = new int[2, 256];
-
-            foreach (string fileName in pgnFiles)
-            {
-                Console.WriteLine(fileName.Substring(sourceDirectory.Length + 1));
-                PgnFileStruct pgn = engine.ReadPgnFile(fileName);
-                nFile++;
-                engine.FromFEN(pgn.StartFEN);
-                int side = 0;
-                for (int i = 1; i < pgn.MoveList.Count; i++)
-                {
-                    MOVE step = pgn.MoveList[i];
-                    if (pos.pcSquares[step.sqDst] > 0)
-                        activeGrid[side, step.sqDst]++;
-                    engine.MakeMove(step);
-                    side = 1 ^ side;
-                }
-            }
-            POSITION.Write2Csv(@"G:\xqtest\capture.csv", activeGrid);
-            MessageBox.Show(String.Format("Finish reading.Total {0} files", nFile));
+            pos.FromFEN(@"2Ra1Rb2/4k4/9/9/9/9/9/4B1r2/4A4/3A1KBrc w - - 0 4");
+            engine.FromFEN(@"2Ra1Rb2/4k4/9/9/9/9/9/4B1r2/4A4/3A1KBrc w - - 0 4");
+            PanelBoard.Refresh();
+            Console.WriteLine("Check moves:");
+            foreach (MOVE mv in engine.GetNextMove(1))
+                Console.WriteLine(mv);
+            Console.WriteLine("--------------------------");
+            Console.WriteLine("Capture moves:");
+            foreach (MOVE mv in engine.GetNextMove(2))
+                Console.WriteLine(mv);
+            Console.WriteLine("--------------------------");
+            Console.WriteLine("Check + capture moves:");
+            foreach (MOVE mv in engine.GetNextMove(3))
+                Console.WriteLine(mv);
         }
 
         private void MenuEvaluate_Click(object sender, EventArgs e)
