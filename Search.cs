@@ -110,7 +110,7 @@ namespace MoleXiangqi
             {
                 MOVE mv = rootMoves[i].Key;
                 Debug.Write(new string('\t', depth));
-                Debug.WriteLine("{0} {1} {2}", mv, alpha, beta);
+                Debug.WriteLine($"{mv} {alpha}, {beta}");
                 MakeMove(mv);
                 depth++;
                 int vl;
@@ -183,7 +183,7 @@ namespace MoleXiangqi
             foreach (MOVE mv in moves)
             {
                 Debug.Write(new string('\t', depth));
-                Debug.WriteLine("{0} {1} {2} {3}", mv, alpha, beta, best);
+                Debug.WriteLine($"{mv} {alpha}, {beta}, {best}");
                 MakeMove(mv);
                 depth++;
                 vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
@@ -251,7 +251,7 @@ namespace MoleXiangqi
             foreach (MOVE mv in moves)
             {
                 Debug.Write(new string('\t', depth));
-                Debug.WriteLine("{0} {1} {2} {3}", mv, beta - 1, beta, best);
+                Debug.WriteLine($"{mv} {beta - 1}, {beta}, {best}");
                 MakeMove(mv);
                 depth++;
                 int vl = -SearchCut(1 - beta, depthleft - 1);
@@ -285,12 +285,15 @@ namespace MoleXiangqi
             {
                 best = Simple_Evaluate();
                 if (best > beta)
+                {
+                    stat.Cutoffs++;
                     return best;
+                }
                 if (best > alpha)
                     alpha = best;
                 //only extend check and capture
                 if (sqCheck == 0)
-                    moves = GetNextMove(1);
+                    moves = GetNextMove(3);
                 else
                     moves = GetNextMove(7);
             }
@@ -301,8 +304,19 @@ namespace MoleXiangqi
                     RepititionResult rep = Repitition();
                     if (rep != RepititionResult.NONE)
                         return (int)rep;
+                    best = depth - G.MATE;
                 }
-                best = depth - G.MATE;
+                else
+                {
+                    best = Simple_Evaluate();
+                    if (best > beta)
+                    {
+                        stat.Cutoffs++;
+                        return best;
+                    }
+                    if (best > alpha)
+                        alpha = best;
+                }
                 //only extend evade and re-capture
                 if (sqCheck > 0)
                     moves = GetNextMove(7);
@@ -311,9 +325,9 @@ namespace MoleXiangqi
             }
             foreach (MOVE mv in moves)
             {
-                MakeMove(mv);
                 Debug.Write(new string('\t', depth));
-                Debug.WriteLine("{0} {1} {2} {3}", mv, alpha, beta, best);
+                Debug.WriteLine($"{mv} {alpha}, {beta}, {best}, {depth}");
+                MakeMove(mv);
                 if (qdepth % 2 == 0)
                 {
                     if (stepList[stepList.Count -1 ].checking > 0)
