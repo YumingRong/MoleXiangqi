@@ -62,7 +62,6 @@ namespace MoleXiangqi
             }
 
             moves = GenerateMoves();
-            List<MOVE> checkMoves = new List<MOVE>();
             List<MOVE> captureMoves = new List<MOVE>();
             List<MOVE> normalMoves = new List<MOVE>();
             //为避免一子淡水长将，能多子轮流照将就轮流将
