@@ -98,7 +98,7 @@ namespace MoleXiangqi
                 sdPlayer = 0;
 
             stepList.Clear();
-            STEP step;
+            RECORD step;
             step.move = new MOVE();
             step.zobrist = CalculateZobrist();
             step.checking = CheckedBy(sdPlayer);  

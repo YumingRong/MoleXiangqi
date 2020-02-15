@@ -526,7 +526,6 @@ namespace MoleXiangqi
                     yield return new MOVE(sqSrc, sqDst, pcSelfSide + KING_FROM, pcDst);
             }
         }
-    }
 
         //重量级的着法生成和排序函数
         //public IEnumerable<MOVE> Complex_GenMoves()
@@ -912,5 +911,7 @@ namespace MoleXiangqi
         //    foreach (KeyValuePair<MOVE, int> mv_vl in nonCapMoves)
         //        yield return mv_vl.Key;
         //}
-   
+
+
+    }
 }

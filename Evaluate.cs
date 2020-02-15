@@ -499,7 +499,7 @@ namespace MoleXiangqi
                         {
                             case ROOK:
                                 if (SAME_FILE(sq, sqOppKing) || SAME_RANK(sq, sqOppKing))
-                                    positionValue[sd] += 15;
+                                    positionValue[sd] += 10;
                                 positionValue[sd] += cRookValue[sqMirror];
                                 break;
                             case CANNON:

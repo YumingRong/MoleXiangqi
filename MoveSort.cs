@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MoleXiangqi
 {
@@ -19,7 +16,7 @@ namespace MoleXiangqi
                 killers[depth, 1] = killers[depth, 0];
                 killers[depth, 0] = mv;
             }
-            history[mv.sqSrc, mv.sqDst] += depth * depth;
+            history[cnPieceTypes[ mv.pcSrc], mv.sqDst] += depth * depth;
             if (score > G.WIN)
                 MateKiller = mv;
         }

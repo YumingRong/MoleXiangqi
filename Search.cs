@@ -45,7 +45,7 @@ namespace MoleXiangqi
         public List<KeyValuePair<MOVE, int>> rootMoves;
 
         internal Stopwatch stopwatch;
-        internal int depth = 0;
+        internal int depth = 0, maxDepth;
 
         public void InitSearch()
         {
@@ -63,19 +63,19 @@ namespace MoleXiangqi
             stat = new STATISTIC();
             PVLine = new List<MOVE>();
             killers = new MOVE[G.MAX_PLY, 2];
-            history = new int[256, 256];
+            history = new int[40, 256];
             rootMoves = InitRootMoves();
 
             int vl = 0;
 
             // 6. 做迭代加深搜索
-            for (int i = 1; i <= depthleft; i++)
+            for (int maxDepth = 1; maxDepth <= depthleft; maxDepth++)
             {
                 Console.WriteLine("---------------------------");
-                Console.WriteLine("Search depth {0}", i);
+                Console.WriteLine("Search depth {0}", maxDepth);
                 stopwatch.Start();
 
-                vl = SearchRoot(i);
+                vl = SearchRoot(maxDepth);
 
                 PopPVLine();
 
@@ -95,7 +95,7 @@ namespace MoleXiangqi
             if (vl < -G.WIN)
                 Console.WriteLine("Resign");
             else if (vl > G.WIN)
-                Console.WriteLine("Mate in {0} steps", G.MATE - vl - 1);
+                Console.WriteLine("MATE in {0} steps!", G.MATE - vl);
             return PVLine[0];
         }
 
@@ -284,6 +284,8 @@ namespace MoleXiangqi
             if (qdepth % 2 == 0)
             {
                 best = Simple_Evaluate();
+                //if (depth > maxDepth)
+                //    return best;
                 if (best > beta)
                 {
                     stat.Cutoffs++;

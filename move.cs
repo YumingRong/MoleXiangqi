@@ -51,7 +51,7 @@ namespace MoleXiangqi
         }
     }
 
-    public struct STEP
+    public struct RECORD
     {
         public long zobrist;
         public int checking;
@@ -142,7 +142,7 @@ namespace MoleXiangqi
         public void MakeMove(MOVE mv)
         {
             MovePiece(mv);
-            STEP step;
+            RECORD step;
             step.move = mv;
             step.zobrist = stepList[stepList.Count - 1].zobrist ^ Zobrist.Get(mv.pcSrc, mv.sqSrc) ^ Zobrist.Get(mv.pcSrc, mv.sqDst);
             step.checking = CheckedBy(sdPlayer);
