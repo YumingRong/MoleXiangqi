@@ -98,7 +98,7 @@ namespace MoleXiangqi
         //以下数组都是Complex_Evaluate的输出
         public int[,] ivpc; //统计每一步各个棋子的位置分 300 * 48，供调试用
         public int[,] connectivityMap; //供统计调试用
-        public int[,] attackMap;
+        //public int[,] attackMap;
         /*Complex_evaluate可以顺便创建吃子走法并打分，虽然可能不全，比如两个子同时攻击同一个格子
          但是这种情况较少，且一般情况下总是优先用低价值的棋子去吃对方。
          而且调用captureMoves的静态搜素并不需要严格考虑所用局面。          */
@@ -111,6 +111,7 @@ namespace MoleXiangqi
             int[] PinnedPieces = new int[48];   //0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
             bool[,] BannedGrids = new bool[2, 256]; //空头炮与将之间不能走子
             int sqSrc, sqDst, pcDst, delta;
+            int[,] attackMap;
 
             int[] cDiscoveredAttack = { 0, 1, 25, 20, 20, 7, 3, 3 };
             //对阻挡将军的子进行判断

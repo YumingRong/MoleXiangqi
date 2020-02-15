@@ -527,8 +527,7 @@ namespace MoleXiangqi
             }
         }
 
-        //重量级的着法生成和排序函数
-        //public IEnumerable<MOVE> Complex_GenMoves()
+        //public int[] GenAttackMap()
         //{
         //    //举例：当头炮与对方的帅之间隔了自己的马和对方的相，
         //    //自己的马就放在DiscoveredAttack里，对方的相就在PinnedPieces里
@@ -758,7 +757,10 @@ namespace MoleXiangqi
         //                break;
         //        }
         //    }
+        //    return oppAttackMap;
+        //}
 
+        //重量级的着法生成和排序函数
         //    void AddMove(int sqFrom, int sqTo)
         //    {
         //        int pcFrom = pcSquares[sqFrom];
