@@ -458,7 +458,7 @@ namespace MoleXiangqi
 
         private void MenuRuleTest_Click(object sender, EventArgs e)
         {
-            pos.RuleTest(@"G:\C#\MoleXiangqi\TestPGN\将帅或兵卒若每步都联合其他子长捉一子仍作负局.PGN");
+            pos.RuleTest(@"J:\C#\MoleXiangqi\TestPGN\将帅或兵卒若每步都联合其他子长捉一子仍作负局.PGN");
         }
 
         void MakeMove(int sqFrom, int sqTo)

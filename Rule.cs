@@ -10,7 +10,7 @@ namespace MoleXiangqi
         // 重复局面检测。支持亚洲规则
         public RepititionResult Repitition()
         {
-            int[,] attackMap;
+            int[] myAttackMap, oppAttackMap;
             int repStart = -1;
             int nstep = stepList.Count - 1;
             // 1. 首先检测历史局面中是否有当前局面，如果没有，就用不着判断了
@@ -72,13 +72,13 @@ namespace MoleXiangqi
 
             for (int i = repStart; i <= nstep; i++)
             {
-                attackMap = GenAttackMap();
-
+                myAttackMap = GenOpponentAttackMap(1 - sdPlayer);
+                oppAttackMap = GenOpponentAttackMap(sdPlayer);
                 //一子轮捉两子或多子作和。两子分别轮捉两子或多子亦作和局
                 //本方被捉只在偶数层有，奇数层没有；对方被捉只在奇数层有，偶数层没有
-                PerpChase[sdPlayer].RemoveWhere(delegate (int pc) { return !Chased(pc); });
+                PerpChase[sdPlayer].RemoveWhere(delegate (int pc) { return !Chased(pc, myAttackMap, oppAttackMap); });
                 //对方的棋子在此层应该不被捉
-                PerpChase[1 - sdPlayer].RemoveWhere(delegate (int pc) { return Chased(pc); });
+                PerpChase[1 - sdPlayer].RemoveWhere(delegate (int pc) { return Chased(pc, oppAttackMap, myAttackMap); });
 
                 MovePiece(stepList[i].move);
             }
@@ -95,7 +95,7 @@ namespace MoleXiangqi
             return RepititionResult.DRAW;
 
             //这里的捉指亚洲规则的捉，调用此函数前必须先执行GenAttMap()
-            bool Chased(int pc)
+            bool Chased(int pc, int[] selfmap, int[] enemymap)
             {
                 int[] rulePieceValue =
                 { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -105,7 +105,7 @@ namespace MoleXiangqi
                 int sq = sqPieces[pc];
                 int sd = SIDE(pc);
                 int sdOpp = 1 - sd;
-                int pcOpp = attackMap[sdOpp, sq];
+                int pcOpp = enemymap[sq];
                 if (pcOpp == 0)
                     return false;  //没有捉子，排除
                 else if (cnPieceKinds[pc] == PAWN && HOME_HALF[sd, sq])
@@ -115,9 +115,9 @@ namespace MoleXiangqi
                     int sqOpp = sqPieces[pcOpp];
                     if (cnPieceKinds[pcOpp] == PAWN || cnPieceKinds[pcOpp] == KING)
                         return false;  //兵和将允许长捉其它子
-                    if (attackMap[sdOpp, sqOpp] == pc)
+                    if (enemymap[sqOpp] == pc)
                         return false;   //两子互捉，算成兑子，作和
-                    if (rulePieceValue[pc] <= rulePieceValue[pcOpp] && attackMap[sd, sq] > 0)
+                    if (rulePieceValue[pc] <= rulePieceValue[pcOpp] && selfmap[sq] > 0)
                         return false;   //攻击有根子不算捉，除非被攻击子价值更大
                                         //如果吃子导致被将军，则该棋子被牵制中，不算捉子
                     MOVE mv = new MOVE(sqOpp, sq, pcOpp, pc);
@@ -129,109 +129,6 @@ namespace MoleXiangqi
                 }
                 return true;
             }
-        }
-
-        //该函数等同于Evaluate的内部函数，只是去掉位置数组赋值，以提高速度，并减少耦合
-        //如发现任何bug，须一同修改
-        int[,] GenAttackMap()
-        {
-            int[,] attackMap = new int[2, 256];    //保存攻击该格的价值最低的棋子
-
-            int sqSrc, sqDst, delta, pcDst;
-            for (int sd = 0; sd < 2; sd++)
-            {
-                int bas = SIDE_TAG(sd);
-                for (int pc = bas; pc < bas + 16; pc++)
-                {
-                    sqSrc = sqPieces[pc];
-                    if (sqSrc == 0)
-                        continue;
-                    int pcKind = cnPieceKinds[pc];
-
-                    switch (pcKind)
-                    {
-                        case KING:
-                            for (int i = 0; i < 4; i++)
-                            {
-                                sqDst = sqSrc + ccKingDelta[i];
-                                if (IN_FORT[sqDst])
-                                    attackMap[sd, sqDst] = pc;
-                            }
-                            break;
-                        case ROOK:
-                            for (int j = 0; j < 4; j++)
-                            {
-                                delta = ccKingDelta[j];
-                                for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
-                                {
-                                    pcDst = pcSquares[sqDst];
-                                    attackMap[sd, sqDst] = pc;
-                                    if (pcDst != 0)
-                                        break;
-                                }
-                            }
-                            break;
-                        case CANNON:
-                            for (int j = 0; j < 4; j++)
-                            {
-                                int nDelta = ccKingDelta[j];
-                                for (sqDst = sqSrc + nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
-                                {
-                                    if (pcSquares[sqDst] != 0) //炮架
-                                    {
-                                        for (sqDst += nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
-                                        {
-                                            attackMap[sd, sqDst] = pc;
-                                            if (pcSquares[sqDst] != 0) //直瞄点
-                                                goto NextFor;
-                                        }
-                                    }
-                                }
-                            NextFor:;
-                            }
-                            break;
-                        case KNIGHT:
-                            for (int j = 0; j < 4; j++)
-                            {
-                                if (pcSquares[sqSrc + ccKingDelta[j]] == 0)
-                                {
-                                    attackMap[sd, sqSrc + ccKnightDelta[j, 0]] = pc;
-                                    attackMap[sd, sqSrc + ccKnightDelta[j, 1]] = pc;
-                                }
-                            }
-                            break;
-                        case PAWN:
-                            attackMap[sd, SQUARE_FORWARD(sqSrc, sd)] = pc;
-                            if (HOME_HALF[1 - sd, sqSrc])
-                            {
-                                attackMap[sd, sqSrc + 1] = pc;
-                                attackMap[sd, sqSrc - 1] = pc;
-                            }
-                            break;
-                        case BISHOP:
-                            for (int j = 0; j < 4; j++)
-                            {
-                                sqDst = sqSrc + ccGuardDelta[j];
-                                if (HOME_HALF[sd, sqDst] && pcSquares[sqDst] == 0)
-                                    attackMap[sd, sqDst + ccGuardDelta[j]] = pc;
-                            }
-                            break;
-                        case GUARD:
-                            for (int j = 0; j < 4; j++)
-                            {
-                                sqDst = sqSrc + ccGuardDelta[j];
-                                if (IN_FORT[sqDst])
-                                    attackMap[sd, sqDst] = pc;
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                //帅所在的格没有保护
-                attackMap[sd, sqPieces[bas + KING_FROM]] = 0;
-            }
-            return attackMap;
         }
 
         //http://blog.sina.com.cn/s/blog_5fd97aa90100vq5p.html

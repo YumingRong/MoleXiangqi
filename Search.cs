@@ -45,7 +45,7 @@ namespace MoleXiangqi
         public List<KeyValuePair<MOVE, int>> rootMoves;
 
         internal Stopwatch stopwatch;
-        internal int depth = 0, maxDepth;
+        internal int depth = 0;
 
         public void InitSearch()
         {
