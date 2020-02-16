@@ -588,12 +588,13 @@ namespace MoleXiangqi
             foreach (string fileName in pgnFiles)
             {
                 Console.WriteLine(fileName.Substring(sourceDirectory.Length + 1));
-                List<MOVE> iMoveList = ReadPgnFile(fileName).MoveList;
+                PgnFileStruct pgn = ReadPgnFile(fileName);
+                List<MOVE> iMoveList = pgn.MoveList;
                 nFile++;
                 int nSteps = iMoveList.Count;
                 totalSteps += nSteps;
                 bool[] captures = new bool[nSteps];
-                FromFEN(PGN.StartFEN);
+                FromFEN(pgn.StartFEN);
                 ivpc = new int[nSteps, 48];
                 Complex_Evaluate();
                 List<KeyValuePair<string, int>> mv_vals = new List<KeyValuePair<string, int>>();

@@ -30,10 +30,10 @@ namespace MoleXiangqi
             FillDictionary();
         }
 
-        public PgnFileStruct PGN;
 
         public PgnFileStruct ReadPgnFile(string szFileName)
         {
+            PgnFileStruct PGN = new PgnFileStruct();
             FromFEN(cszStartFen);
             PGN.StartFEN = cszStartFen;
             PGN.MoveList = new List<MOVE>();
@@ -188,7 +188,6 @@ namespace MoleXiangqi
                         {
                             if (s != PGN.Result)
                                 Debug.WriteLine(s);
-                            //iMoves.Add(mv);
                             return PGN;
                         }
                     }
