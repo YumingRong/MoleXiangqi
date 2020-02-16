@@ -16,7 +16,7 @@ namespace MoleXiangqi
                 killers[depth, 1] = killers[depth, 0];
                 killers[depth, 0] = mv;
             }
-            history[cnPieceTypes[ mv.pcSrc], mv.sqDst] += depth * depth;
+            history[cnPieceTypes[mv.pcSrc], mv.sqDst] += depth * depth;
             if (score > G.WIN)
                 MateKiller = mv;
         }
@@ -47,14 +47,11 @@ namespace MoleXiangqi
 
             foreach (MOVE mv in moves)
             {
+                //Warning! check is not tested here. To be done later. 
                 if (mv.pcSrc == pcSquares[mv.sqSrc] && mv.pcDst == pcSquares[mv.sqDst] && IsLegalMove(mv.sqSrc, mv.sqDst))
                 {
-                    Tuple<bool, int> cc = CheckedChecking(mv);
-                    if (!cc.Item1)
-                    {
-                        if (wantAll || wantCheck && cc.Item2 > 0 || wantCapture && mv.pcDst > 0)
-                            yield return mv;
-                    }
+                    if (wantAll || wantCheck && IsChecking(mv) || wantCapture && mv.pcDst > 0)
+                        yield return mv;
                 }
             }
 
@@ -65,21 +62,17 @@ namespace MoleXiangqi
             MOVE lateCheck = new MOVE();
             foreach (MOVE mv in moves)
             {
-                Tuple<bool, int> cc = CheckedChecking(mv);
-                if (!cc.Item1)
+                if (wantCheck && IsChecking(mv))
                 {
-                    if (wantCheck && cc.Item2 > 0)
-                    {
-                        if (mv.pcDst == 0 && mv.sqSrc == stepList[stepList.Count - 2].checking)
-                            lateCheck = mv;
-                        else
-                            yield return mv;
-                    }
-                    else if (mv.pcDst > 0)
-                        captureMoves.Add(mv);
-                    else if (wantAll)
-                        normalMoves.Add(mv);
+                    if (mv.pcDst == 0 && mv.sqSrc == stepList[stepList.Count - 2].checking)
+                        lateCheck = mv;
+                    else
+                        yield return mv;
                 }
+                else if (mv.pcDst > 0)
+                    captureMoves.Add(mv);
+                else if (wantAll)
+                    normalMoves.Add(mv);
             }
             if (wantCheck && lateCheck.sqSrc > 0)
                 yield return lateCheck;
@@ -90,56 +83,35 @@ namespace MoleXiangqi
                 foreach (MOVE m in normalMoves)
                     yield return m;
 
-            Tuple<bool, int> CheckedChecking(MOVE m)
+            bool IsChecking(MOVE m)
             {
-                int sqCheck = stepList[stepList.Count - 1].checking;
                 int mySide = sdPlayer;
                 MovePiece(m);
-                if (sqCheck > 0)
-                {
-                    int sqKing = sqPieces[SIDE_TAG(mySide) + KING_FROM];
-                    //如果被照将，先试试走棋后，照将着法是否仍然成立
-                    if (IsLegalMove(sqCheck, sqKing))
-                    {
-                        UndoMovePiece(m);
-                        return new Tuple<bool, int>(true, 0);
-                    }
-                }
-                // 如果移动后被将军了，那么着法是非法的
-                if (CheckedBy(mySide) > 0)
-                {
-                    UndoMovePiece(m);
-                    return new Tuple<bool, int>(true, 0);
-                }
-
                 int sqchecking = CheckedBy(1 - mySide);
                 UndoMovePiece(m);
-                return new Tuple<bool, int>(false, sqchecking);
+                return sqchecking > 0;
             }
         }
 
         public List<KeyValuePair<MOVE, int>> InitRootMoves()
         {
-            int[] oppAttackMap = GenAttackMap(1 - sdPlayer, FindAbsolutePin(1-sdPlayer));
+            int[] oppAttackMap = GenAttackMap(1 - sdPlayer, FindAbsolutePin(1 - sdPlayer));
             List<MOVE> moves = GenerateMoves();
             List<KeyValuePair<MOVE, int>> rmoves = new List<KeyValuePair<MOVE, int>>();
             foreach (MOVE mv in moves)
             {
                 MovePiece(mv);
                 int score = 0;
-                if (CheckedBy(1 - sdPlayer)==0)
-                {
-                    //check bonus
-                    if (CheckedBy(sdPlayer) > 0)
-                        score += 500;
+                //check bonus
+                if (CheckedBy(sdPlayer) > 0)
+                    score += 500;
 
-                    //capture bonus
-                    if (mv.pcDst > 0)
-                        score += cnPieceValue[mv.pcDst];
-                    if (oppAttackMap[mv.sqDst] > 0)
-                        score -= cnPieceValue[mv.pcSrc];
-                    rmoves.Add(new KeyValuePair<MOVE, int>(mv, score));
-                }
+                //capture bonus
+                if (mv.pcDst > 0)
+                    score += cnPieceValue[mv.pcDst];
+                if (oppAttackMap[mv.sqDst] > 0)
+                    score -= cnPieceValue[mv.pcSrc];
+                rmoves.Add(new KeyValuePair<MOVE, int>(mv, score));
                 UndoMovePiece(mv);
             }
             rmoves.Sort(SortLarge2Small);

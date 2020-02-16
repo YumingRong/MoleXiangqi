@@ -57,7 +57,6 @@ namespace MoleXiangqi
 
         }
 
-
         public MOVE SearchMain(int depthleft)
         {
             stat = new STATISTIC();

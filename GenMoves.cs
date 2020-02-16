@@ -186,54 +186,75 @@ namespace MoleXiangqi
         // 判断是否被杀
         public bool IsMate()
         {
-            //List<MOVE> mvs;
+            List<MOVE> mvs;
 
-            //mvs = GenerateMoves();
-            foreach (MOVE mv in GenerateMoves())
+            mvs = GenerateMoves();
+            return mvs.Count == 0;
+        }
+
+        //The move generated are after check test. So they are already legal. 
+        List<MOVE> GenerateMoves()
+        {
+            int sqSrc, sqDst, pcSrc, pcDst;
+            int myBase, oppBase;
+            int delta;
+            List<MOVE> mvs = new List<MOVE>();
+            int[] pins = FindAbsolutePin(sdPlayer);
+            myBase = SIDE_TAG(sdPlayer);
+            oppBase = OPP_SIDE_TAG(sdPlayer);
+
+            void AddMove()
             {
-                //Debug.WriteLine(MOVE2ICCS(mv) + "," + SRC(mv) + "-" + DST(mv));
-                MovePiece(mv);
-                if (CheckedBy(1 ^ sdPlayer) == 0)
+                MOVE mv = new MOVE(sqSrc, sqDst, pcSrc, pcDst);
+                int mySide = sdPlayer;
+                if (pins[pcSrc] == 0)
                 {
-                    UndoMovePiece(mv);
-                    return false;
+                    int sqCheck = stepList[stepList.Count - 1].checking;
+                    //如果被照将，先试试走棋后，照将着法是否仍然成立
+                    if (sqCheck > 0)
+                    {
+                        MovePiece(mv);
+                        int sqKing = sqPieces[SIDE_TAG(mySide) + KING_FROM];
+                        if (!IsLegalMove(sqCheck, sqKing))
+                        {
+                            if (CheckedBy(mySide) == 0)
+                                mvs.Add(mv);
+                        }
+                        UndoMovePiece(mv);
+                    }
+                    else
+                        mvs.Add(mv);
                 }
                 else
                 {
+                    MovePiece(mv);
+                    if (CheckedBy(mySide) == 0)
+                        mvs.Add(mv);
                     UndoMovePiece(mv);
                 }
             }
-            return true;
-        }
-
-        //着法生成器
-        List<MOVE> GenerateMoves()
-        {
-            int sqSrc, sqDst, pcDst;
-            int pcSelfSide, pcOppSide;
-            int delta;
-            List<MOVE> mvs = new List<MOVE>();
-            
-            pcSelfSide = SIDE_TAG(sdPlayer);
-            pcOppSide = OPP_SIDE_TAG(sdPlayer);
 
             for (int i = ROOK_FROM; i <= ROOK_TO; i++)
             {
-                sqSrc = sqPieces[pcSelfSide + i];
+                pcSrc = myBase + i;
+                sqSrc = sqPieces[pcSrc];
                 if (sqSrc == 0)
                     continue;
+
                 for (int j = 0; j < 4; j++)
                 {
+                    if (ccPinDelta[pins[pcSrc], j])
+                        continue;
                     delta = ccKingDelta[j];
                     for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
                     {
                         pcDst = pcSquares[sqDst];
                         if (pcDst == 0)
-                            mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, 0));
+                            AddMove();
                         else
                         {
-                            if ((pcDst & pcOppSide) != 0)
-                                mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
+                            if ((pcDst & oppBase) != 0)
+                                AddMove();
                             break;
                         }
                     }
@@ -241,17 +262,20 @@ namespace MoleXiangqi
             }
             for (int i = CANNON_FROM; i <= CANNON_TO; i++)
             {
-                sqSrc = sqPieces[pcSelfSide + i];
+                pcSrc = myBase + i;
+                sqSrc = sqPieces[pcSrc];
                 if (sqSrc == 0)
                     continue;
                 for (int j = 0; j < 4; j++)
                 {
+                    if (ccPinDelta[pins[pcSrc], j])
+                        continue;
                     delta = ccKingDelta[j];
                     for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
                     {
                         pcDst = pcSquares[sqDst];
                         if (pcDst == 0)
-                            mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, 0));
+                            AddMove();
                         else
                         {
                             for (sqDst += delta; IN_BOARD[sqDst]; sqDst += delta)
@@ -259,8 +283,8 @@ namespace MoleXiangqi
                                 pcDst = pcSquares[sqDst];
                                 if (pcDst != 0)
                                 {
-                                    if ((pcDst & pcOppSide) != 0)
-                                        mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
+                                    if ((pcDst & oppBase) != 0)
+                                        AddMove();
                                     goto NextFor1;
                                 }
                             }
@@ -273,8 +297,9 @@ namespace MoleXiangqi
 
             for (int i = KNIGHT_FROM; i <= KNIGHT_TO; i++)
             {
-                sqSrc = sqPieces[pcSelfSide + i];
-                if (sqSrc == 0)
+                pcSrc = myBase + i;
+                sqSrc = sqPieces[pcSrc];
+                if (sqSrc == 0 || pins[pcSrc] > 0)
                     continue;
                 for (int j = 0; j < 4; j++)
                 {
@@ -283,29 +308,33 @@ namespace MoleXiangqi
                     {
                         sqDst = sqSrc + ccKnightDelta[j, 0];
                         pcDst = pcSquares[sqDst];
-                        if (IN_BOARD[sqDst] && (pcDst & pcSelfSide) == 0)
-                            mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
+                        if (IN_BOARD[sqDst] && (pcDst & myBase) == 0)
+                            AddMove();
                         sqDst = sqSrc + ccKnightDelta[j, 1];
                         pcDst = pcSquares[sqDst];
-                        if (IN_BOARD[sqDst] && (pcDst & pcSelfSide) == 0)
-                            mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
+                        if (IN_BOARD[sqDst] && (pcDst & myBase) == 0)
+                            AddMove();
                     }
                 }
             }
 
             for (int i = PAWN_FROM; i <= PAWN_TO; i++)
             {
-                sqSrc = sqPieces[pcSelfSide + i];
+                pcSrc = myBase + i;
+                sqSrc = sqPieces[pcSrc];
                 if (sqSrc == 0)
                     continue;
-                sqDst = SQUARE_FORWARD(sqSrc, sdPlayer);
-                if (IN_BOARD[sqDst])
+                if ((pins[pcSrc] & 1) == 0)
                 {
-                    pcDst = pcSquares[sqDst];
-                    if ((pcDst & pcSelfSide) == 0)
-                        mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
+                    sqDst = SQUARE_FORWARD(sqSrc, sdPlayer);
+                    if (IN_BOARD[sqDst])
+                    {
+                        pcDst = pcSquares[sqDst];
+                        if ((pcDst & myBase) == 0)
+                            AddMove();
+                    }
                 }
-                if (HOME_HALF[1 - sdPlayer, sqSrc])
+                if (HOME_HALF[1 - sdPlayer, sqSrc] && (pins[pcSrc] & 2) == 0)
                 {
                     for (delta = -1; delta <= 1; delta += 2)
                     {
@@ -313,8 +342,8 @@ namespace MoleXiangqi
                         if (IN_BOARD[sqDst])
                         {
                             pcDst = pcSquares[sqDst];
-                            if ((pcDst & pcSelfSide) == 0)
-                                mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
+                            if ((pcDst & myBase) == 0)
+                                AddMove();
                         }
                     }
                 }
@@ -322,8 +351,9 @@ namespace MoleXiangqi
 
             for (int i = BISHOP_FROM; i <= BISHOP_TO; i++)
             {
-                sqSrc = sqPieces[pcSelfSide + i];
-                if (sqSrc == 0)
+                pcSrc = myBase + i;
+                sqSrc = sqPieces[pcSrc];
+                if (sqSrc == 0 || pins[pcSrc] > 0)
                     continue;
                 for (int j = 0; j < 4; j++)
                 {
@@ -332,43 +362,56 @@ namespace MoleXiangqi
                         continue;
                     sqDst += ccGuardDelta[j];
                     pcDst = pcSquares[sqDst];
-                    if ((pcDst & pcSelfSide) == 0)
-                        mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
+                    if ((pcDst & myBase) == 0)
+                        AddMove();
                 }
             }
 
             for (int i = GUARD_FROM; i <= GUARD_TO; i++)
             {
-                sqSrc = sqPieces[pcSelfSide + i];
-                if (sqSrc == 0)
+                pcSrc = myBase + i;
+                sqSrc = sqPieces[pcSrc];
+                if (sqSrc == 0 || pins[pcSrc] > 0)
                     continue;
                 for (int j = 0; j < 4; j++)
                 {
                     sqDst = sqSrc + ccGuardDelta[j];
-                    if (!IN_FORT[sqDst])
+                    if (IN_FORT[sqDst])
                     {
-                        continue;
+                        pcDst = pcSquares[sqDst];
+                        if ((pcDst & myBase) == 0)
+                            AddMove();
                     }
-                    pcDst = pcSquares[sqDst];
-                    if ((pcDst & pcSelfSide) == 0)
-                        mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst));
                 }
             }
 
-            sqSrc = sqPieces[pcSelfSide + KING_FROM];
+            pcSrc = myBase + KING_FROM;
+            sqSrc = sqPieces[pcSrc];
             for (int i = 0; i < 4; i++)
             {
                 sqDst = sqSrc + ccKingDelta[i];
                 if (!IN_FORT[sqDst])
                     continue;
                 pcDst = pcSquares[sqDst];
-                if ((pcDst & pcSelfSide) == 0)
-                    mvs.Add(new MOVE(sqSrc, sqDst, pcSelfSide + KING_FROM, pcDst));
+                if ((pcDst & myBase) == 0)
+                {
+                    MOVE mv = new MOVE(sqSrc, sqDst, myBase + KING_FROM, pcDst);
+                    MovePiece(mv);
+                    if (CheckedBy(1 - sdPlayer) == 0)
+                        mvs.Add(mv);
+                    UndoMovePiece(mv);
+                }
+            }
+
+            foreach (Tuple<int, int> pin in pinexception)
+            {
+                MOVE mv = new MOVE(pin.Item1, pin.Item2, pcSquares[pin.Item1], pcSquares[pin.Item2]);
+                mvs.Add(mv);
             }
             return mvs;
         }
 
-        //在形如红马-黑车-黑将的棋型中，黑车是可以吃红马的
+        //在形如红马-黑车-黑将的棋型中，黑车是可以吃红马的. Record from and to square
         List<Tuple<int, int>> pinexception;
         //发现己方被绝对牵制
         //0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
@@ -382,14 +425,10 @@ namespace MoleXiangqi
             int oppside = 1 - side;
 
             //对阻挡将军的子进行判断
-            void CheckBlocker(int pcBlocker, int sqPinner, int direction)
+            void CheckBlocker(int pcBlocker, int direction)
             {
                 if (SIDE(pcBlocker) == oppside)
-                {
                     PinnedPieces[pcBlocker] |= direction;
-                    //在形如红马-黑车-黑将的棋型中，黑车是可以吃红马的
-                    pinexception.Add(new Tuple<int, int>(sqPieces[pcBlocker], sqPinner));
-                }
             }
 
             int bas, sqKing;
@@ -413,7 +452,7 @@ namespace MoleXiangqi
                         }
                     }
                     if (nblock == 1)
-                        CheckBlocker(pcBlocker, sqSrc, 1);
+                        CheckBlocker(pcBlocker, 1);
                 }
 
                 if (SAME_RANK(sqSrc, sqKing))
@@ -429,7 +468,7 @@ namespace MoleXiangqi
                         }
                     }
                     if (nblock == 1)
-                        CheckBlocker(pcBlocker, sqSrc, 2);
+                        CheckBlocker(pcBlocker, 2);
                 }
             }
 
@@ -447,7 +486,7 @@ namespace MoleXiangqi
                     }
                     if (nblock == 2)
                         for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
-                            CheckBlocker(pcSquares[sq], sqSrc, 1);
+                            CheckBlocker(pcSquares[sq], 1);
                 }
                 if (SAME_RANK(sqSrc, sqKing))
                 {
@@ -460,21 +499,42 @@ namespace MoleXiangqi
                     }
                     if (nblock == 2)
                         for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
-                            CheckBlocker(pcSquares[sq], sqSrc, 2);
+                            CheckBlocker(pcSquares[sq], 2);
                 }
             }
 
-            // 3. 判断对方的将是否被马威胁(以仕(士)的步长当作马腿)
+            // 3. 判断将是否被马威胁(以仕/士的步长当作马腿)
             for (int i = 0; i < 4; i++)
             {
-                int pcBlocker = pcSquares[sqKing + ccGuardDelta[i]];
+                int sqBlocker = sqKing + ccGuardDelta[i];
+                int pcBlocker = pcSquares[sqBlocker];
                 if (pcBlocker != 0)
                     for (int j = 0; j < 2; j++)
                     {
-                        pcDst = pcSquares[sqKing + ccKnightCheckDelta[i, j]];
-                        if (cnPieceTypes[pcDst] == bas + KNIGHT)
-                            CheckBlocker(pcBlocker, sqPieces[pcDst], 3);
+                        int sqKnight = sqKing + ccKnightCheckDelta[i, j];
+                        pcDst = pcSquares[sqKnight];
+                        if (cnPieceTypes[pcDst] == bas + KNIGHT && SIDE(pcBlocker) == oppside)
+                            PinnedPieces[pcBlocker] |= 3;
+                        //在形如红马-黑车-黑将的棋型中，黑车是可以吃红马的
+                        if (IsLegalMove(sqBlocker, sqKnight))
+                            pinexception.Add(new Tuple<int, int>(sqBlocker, sqKnight));
                     }
+            }
+
+            //4. Is there king face to face risk?
+            sqSrc = sqPieces[32 + KING_FROM];
+            int sqDst = sqPieces[16 + KING_FROM];
+            if (SAME_FILE(sqSrc, sqDst))
+            {
+                int pcBlocker = 0, nblock = 0;
+                for (int i = sqSrc + 16; i < sqDst; i += 16)
+                    if (pcSquares[i] > 0)
+                    {
+                        pcBlocker = i;
+                        nblock++;
+                    }
+                if (nblock == 1)
+                    CheckBlocker(pcBlocker, 1);
             }
 
             return PinnedPieces;
