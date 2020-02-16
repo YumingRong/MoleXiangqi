@@ -213,7 +213,7 @@ namespace MoleXiangqi
             int pcSelfSide, pcOppSide;
             int delta;
             List<MOVE> mvs = new List<MOVE>();
-
+            
             pcSelfSide = SIDE_TAG(sdPlayer);
             pcOppSide = OPP_SIDE_TAG(sdPlayer);
 
@@ -368,16 +368,18 @@ namespace MoleXiangqi
             return mvs;
         }
 
-        //该函数类似于于Evaluate的内部函数，只是去掉位置数组，并单边赋值，以提高速度，并减少耦合
-        //如发现任何bug，须一同修改
-        int[] GenOpponentAttackMap(int myside)
+        //在形如红马-黑车-黑将的棋型中，黑车是可以吃红马的
+        List<Tuple<int, int>> pinexception;
+        //发现己方被绝对牵制
+        //0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
+        //输出<被牵制的方向，实施牵制的对方棋子位置>
+        int[] FindAbsolutePin(int side)
         {
             //举例：当头炮与对方的帅之间隔了自己的马和对方的相，
             //自己的马就放在DiscoveredAttack里，对方的相就在PinnedPieces里
-            int[] PinnedPieces = new int[48];   //0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
-            int sqSrc, sqDst, pcDst, delta;
-            int[] attackMap = new int[256];    //非行棋方保存攻击该格的价值最低的棋子
-            int oppside = 1 - myside;
+            int[] PinnedPieces = new int[48];
+            int sqSrc, pcDst, delta;
+            int oppside = 1 - side;
 
             //对阻挡将军的子进行判断
             void CheckBlocker(int pcBlocker, int sqPinner, int direction)
@@ -385,25 +387,24 @@ namespace MoleXiangqi
                 if (SIDE(pcBlocker) == oppside)
                 {
                     PinnedPieces[pcBlocker] |= direction;
-                    //在形如红炮-黑车-红兵-黑将的棋型中，黑车是可以吃红炮的
-                    if (IsLegalMove(sqPieces[pcBlocker], sqPinner))
-                        attackMap[sqPinner] = pcBlocker;
+                    //在形如红马-黑车-黑将的棋型中，黑车是可以吃红马的
+                    pinexception.Add(new Tuple<int, int>(sqPieces[pcBlocker], sqPinner));
                 }
             }
 
-            int bas, sqOppKing;
+            int bas, sqKing;
             //find absolute pin. 0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
-            bas = SIDE_TAG(myside);
-            sqOppKing = sqPieces[OPP_SIDE_TAG(myside) + KING_FROM];
+            bas = OPP_SIDE_TAG(side);
+            sqKing = sqPieces[SIDE_TAG(side) + KING_FROM];
 
             for (int pc = bas + ROOK_FROM; pc <= bas + ROOK_TO; pc++)
             {
                 sqSrc = sqPieces[pc];
-                if (SAME_FILE(sqSrc, sqOppKing))
+                if (SAME_FILE(sqSrc, sqKing))
                 {
-                    delta = Math.Sign(sqOppKing - sqSrc) * 16;
+                    delta = Math.Sign(sqKing - sqSrc) * 16;
                     int pcBlocker = 0, nblock = 0;
-                    for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
+                    for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
                     {
                         if (pcSquares[sq] != 0)
                         {
@@ -415,11 +416,11 @@ namespace MoleXiangqi
                         CheckBlocker(pcBlocker, sqSrc, 1);
                 }
 
-                if (SAME_RANK(sqSrc, sqOppKing))
+                if (SAME_RANK(sqSrc, sqKing))
                 {
-                    delta = Math.Sign(sqOppKing - sqSrc);
+                    delta = Math.Sign(sqKing - sqSrc);
                     int pcBlocker = 0, nblock = 0;
-                    for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
+                    for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
                     {
                         if (pcSquares[sq] != 0)
                         {
@@ -435,30 +436,30 @@ namespace MoleXiangqi
             for (int pc = bas + CANNON_FROM; pc <= bas + CANNON_TO; pc++)
             {
                 sqSrc = sqPieces[pc];
-                if (SAME_FILE(sqSrc, sqOppKing))
+                if (SAME_FILE(sqSrc, sqKing))
                 {
-                    delta = Math.Sign(sqOppKing - sqSrc) * 16;
+                    delta = Math.Sign(sqKing - sqSrc) * 16;
                     int nblock = 0;
-                    for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
+                    for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
                     {
                         if (pcSquares[sq] != 0)
                             nblock++;
                     }
                     if (nblock == 2)
-                        for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
+                        for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
                             CheckBlocker(pcSquares[sq], sqSrc, 1);
                 }
-                if (SAME_RANK(sqSrc, sqOppKing))
+                if (SAME_RANK(sqSrc, sqKing))
                 {
-                    delta = Math.Sign(sqOppKing - sqSrc);
+                    delta = Math.Sign(sqKing - sqSrc);
                     int nblock = 0;
-                    for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
+                    for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
                     {
                         if (pcSquares[sq] != 0)
                             nblock++;
                     }
                     if (nblock == 2)
-                        for (int sq = sqSrc + delta; sq != sqOppKing; sq += delta)
+                        for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
                             CheckBlocker(pcSquares[sq], sqSrc, 2);
                 }
             }
@@ -466,18 +467,30 @@ namespace MoleXiangqi
             // 3. 判断对方的将是否被马威胁(以仕(士)的步长当作马腿)
             for (int i = 0; i < 4; i++)
             {
-                int pcBlocker = pcSquares[sqOppKing + ccGuardDelta[i]];
+                int pcBlocker = pcSquares[sqKing + ccGuardDelta[i]];
                 if (pcBlocker != 0)
                     for (int j = 0; j < 2; j++)
                     {
-                        pcDst = pcSquares[sqOppKing + ccKnightCheckDelta[i, j]];
+                        pcDst = pcSquares[sqKing + ccKnightCheckDelta[i, j]];
                         if (cnPieceTypes[pcDst] == bas + KNIGHT)
                             CheckBlocker(pcBlocker, sqPieces[pcDst], 3);
                     }
             }
 
+            return PinnedPieces;
+        }
+
+        //该函数类似于于Evaluate的内部函数，只是去掉位置数组，并单边赋值，以提高速度，并减少耦合
+        //如发现任何bug，须一同修改
+        //调用前须先运行FindAbsolutePin(side)来生成绝对牵制信息
+        int[] GenAttackMap(int side, int[] PinnedPieces)
+        {
+            int sqSrc, sqDst, pcDst, delta;
+            int[] attackMap = new int[256];    //非行棋方保存攻击该格的价值最低的棋子
+
+            //find absolute pin. 0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
             //Generate enemy attack map, from most valuable piece to cheap piece
-            bas = SIDE_TAG(oppside);
+            int bas = SIDE_TAG(side);
             for (int pc = bas; pc < bas + 16; pc++)
             {
                 sqSrc = sqPieces[pc];
@@ -545,9 +558,9 @@ namespace MoleXiangqi
                         break;
                     case PAWN:
                         if ((pin & 1) == 0)
-                            attackMap[SQUARE_FORWARD(sqSrc, oppside)] = pc;
+                            attackMap[SQUARE_FORWARD(sqSrc, side)] = pc;
                         if ((pin & 2) == 0)
-                            if (HOME_HALF[1 - oppside, sqSrc])
+                            if (HOME_HALF[1 - side, sqSrc])
                             {
                                 attackMap[sqSrc + 1] = pc;
                                 attackMap[sqSrc - 1] = pc;
@@ -559,7 +572,7 @@ namespace MoleXiangqi
                         for (int j = 0; j < 4; j++)
                         {
                             sqDst = sqSrc + ccGuardDelta[j];
-                            if (HOME_HALF[oppside, sqDst] && pcSquares[sqDst] == 0)
+                            if (HOME_HALF[side, sqDst] && pcSquares[sqDst] == 0)
                                 attackMap[sqDst + ccGuardDelta[j]] = pc;
                         }
                         break;
@@ -575,6 +588,9 @@ namespace MoleXiangqi
                         break;
                 }
             }
+            foreach (Tuple<int, int> pin in pinexception)
+                attackMap[pin.Item2] = pcSquares[pin.Item1];
+
             return attackMap;
         }
 

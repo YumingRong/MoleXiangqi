@@ -120,14 +120,14 @@ namespace MoleXiangqi
 
         public List<KeyValuePair<MOVE, int>> InitRootMoves()
         {
-            int[] oppAttackMap = GenOpponentAttackMap(sdPlayer);
+            int[] oppAttackMap = GenAttackMap(1 - sdPlayer, FindAbsolutePin(1-sdPlayer));
             List<MOVE> moves = GenerateMoves();
             List<KeyValuePair<MOVE, int>> rmoves = new List<KeyValuePair<MOVE, int>>();
             foreach (MOVE mv in moves)
             {
                 MovePiece(mv);
                 int score = 0;
-                if (CheckedBy(1 - sdPlayer) == 0)
+                if (CheckedBy(1 - sdPlayer)==0)
                 {
                     //check bonus
                     if (CheckedBy(sdPlayer) > 0)
@@ -135,11 +135,9 @@ namespace MoleXiangqi
 
                     //capture bonus
                     if (mv.pcDst > 0)
-                    {
                         score += cnPieceValue[mv.pcDst];
-                        if (oppAttackMap[mv.sqDst] > 0)
-                            score -= cnPieceValue[mv.pcSrc];
-                    }
+                    if (oppAttackMap[mv.sqDst] > 0)
+                        score -= cnPieceValue[mv.pcSrc];
                     rmoves.Add(new KeyValuePair<MOVE, int>(mv, score));
                 }
                 UndoMovePiece(mv);

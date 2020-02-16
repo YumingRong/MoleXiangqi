@@ -72,8 +72,8 @@ namespace MoleXiangqi
 
             for (int i = repStart; i <= nstep; i++)
             {
-                myAttackMap = GenOpponentAttackMap(1 - sdPlayer);
-                oppAttackMap = GenOpponentAttackMap(sdPlayer);
+                myAttackMap = GenAttackMap(sdPlayer, FindAbsolutePin(sdPlayer));
+                oppAttackMap = GenAttackMap(1 - sdPlayer, FindAbsolutePin(1 - sdPlayer));
                 //一子轮捉两子或多子作和。两子分别轮捉两子或多子亦作和局
                 //本方被捉只在偶数层有，奇数层没有；对方被捉只在奇数层有，偶数层没有
                 PerpChase[sdPlayer].RemoveWhere(delegate (int pc) { return !Chased(pc, myAttackMap, oppAttackMap); });

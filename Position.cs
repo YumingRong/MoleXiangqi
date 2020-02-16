@@ -13,6 +13,7 @@ namespace MoleXiangqi
             InitPGN();
             InitEval();
             InitSearch();
+            pinexception = new List<Tuple<int, int>>();
         }
 
         // 基本成员
