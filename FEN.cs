@@ -37,10 +37,11 @@ namespace MoleXiangqi
             }
         }
 
-        //该函数相当于UCCI的position指令
-        public void FromFEN(string szFen)
+        //该函数相当于UCCI的position指令，文件格式正确返回true
+        public bool FromFEN(string szFen)
         {
-            Debug.Assert(!String.IsNullOrEmpty(szFen));
+            if (String.IsNullOrEmpty(szFen))
+                return false;
             // 棋盘上增加棋子
             void AddPiece(int sq, int pc)
             {
@@ -51,6 +52,8 @@ namespace MoleXiangqi
             }
 
             string[] subs = szFen.Split(' ');
+            if (subs.Length != 6)
+                return false;
             // FEN串的识别包括以下几个步骤：
             // 1. 初始化，清空棋盘
             ClearBoard();
@@ -63,33 +66,32 @@ namespace MoleXiangqi
 
             foreach (char c in subs[0])
             {
-                if (c != ' ')
+                if (c == '/')
                 {
-                    if (c == '/')
-                    {
-                        y = FILE_LEFT;
-                        x++;
-                        if (x > RANK_BOTTOM)
-                            break;
-                    }
-                    else if (Char.IsNumber(c))
-                    {
-                        y += c - '0';
-                    }
-                    else if (Char.IsUpper(c))
-                    {
-                        AddPiece(XY2Coord(y, x), Fen2Piece(c) + SIDE_TAG(0));
-                        y++;
-                    }
-                    else if (Char.IsLower(c))
-                    {
-                        AddPiece(XY2Coord(y, x), Fen2Piece(c) + SIDE_TAG(1));
-                        y++;
-                    }
+                    if (y != FILE_RIGHT + 1)
+                        return false;
+                    y = FILE_LEFT;
+                    x++;
+                }
+                else if (Char.IsNumber(c))
+                {
+                    y += c - '0';
+                }
+                else if (Char.IsUpper(c))
+                {
+                    AddPiece(XY2Coord(y, x), Fen2Piece(c) + SIDE_TAG(0));
+                    y++;
+                }
+                else if (Char.IsLower(c))
+                {
+                    AddPiece(XY2Coord(y, x), Fen2Piece(c) + SIDE_TAG(1));
+                    y++;
                 }
                 else
-                    break;
+                    return false;
             }
+            if (x != RANK_BOTTOM)
+                return false;
 
             // 3. 确定轮到哪方走
             if (subs[1] == "b")
@@ -101,10 +103,14 @@ namespace MoleXiangqi
             RECORD step;
             step.move = new MOVE();
             step.zobrist = CalculateZobrist();
-            step.checking = CheckedBy(sdPlayer);  
-            //step.halfMoveClock = Convert.ToInt32(subs[4]);
-            step.halfMoveClock = 0; //为简单起见，否则要再设一个变量
+            step.checking = CheckedBy(sdPlayer);
+            /*ElephantBoard向引擎传递局面时，<fen_string>总是最近一次吃过子的局面(或开始局面)，
+             * 后面所有的着法都用moves选项来传递给引擎，这样就包含了判断自然限着和长打的历史信息，
+             * 这些信息可由引擎来处理。
+             */
+            step.halfMoveClock = 0; //为简单起见
             stepList.Add(step);
+            return true;
         }
 
         // 生成FEN串

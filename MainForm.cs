@@ -22,8 +22,8 @@ namespace MoleXiangqi
         bool bSelected;
         List<MOVE> MoveList;
         List<string> CommentList;
-        POSITION pos;
-        POSITION engine;
+        readonly POSITION pos;
+        readonly POSITION engine;
         const int gridSize = 57;
         readonly SoundPlayer soundPlayer;
         readonly static int[] cnPieceImages = {
@@ -273,16 +273,14 @@ namespace MoleXiangqi
 
         private void MenuPasteFEN_Click(object sender, EventArgs e)
         {
-            try
+            if (pos.FromFEN(Clipboard.GetText()))
             {
-                pos.FromFEN(Clipboard.GetText());
+                PanelBoard.Refresh();
                 engine.FromFEN(Clipboard.GetText());
+                NewGameAsync();
             }
-            catch (Exception)
-            {
+            else
                 MessageBox.Show("不能识别的局面");
-            }
-            NewGameAsync();
         }
 
         private void MenuLoadFEN_Click(object sender, EventArgs e)
@@ -385,9 +383,14 @@ namespace MoleXiangqi
         {
             //App_inGame = false;
             string fen = @"3aka3/5P3/4b4/r3N4/9/8R/9/2n6/9/4KA3 w - - 0 1";
-            pos.FromFEN(fen);
-            PanelBoard.Refresh();
-            engine.FromFEN(fen);
+            if (pos.FromFEN(fen))
+            {
+                PanelBoard.Refresh();
+                engine.FromFEN(fen);
+                NewGameAsync();
+            }
+            else
+                MessageBox.Show("不能识别的局面");
             //engine.GenMoveTest();
             //NewGameAsync();
             //int score = engine.SearchQuiesce(-5000, 4998, 10);
