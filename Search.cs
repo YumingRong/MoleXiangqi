@@ -114,18 +114,17 @@ namespace MoleXiangqi
                 MakeMove(mv);
                 depth++;
                 int vl;
-                vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
-                //if (alpha == -G.WIN)
-                //    vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
-                //else
-                //{
-                //    vl = -SearchCut(-alpha, depthleft - 1);
-                //    if (vl > alpha)
-                //    {
-                //        stat.PVChanged++;
-                //        vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
-                //    }
-                //}
+                if (alpha == -G.WIN)
+                    vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
+                else
+                {
+                    vl = -SearchCut(-alpha, depthleft - 1);
+                    if (vl > alpha)
+                    {
+                        stat.PVChanged++;
+                        vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
+                    }
+                }
                 depth--;
                 UnmakeMove();
 
@@ -186,20 +185,19 @@ namespace MoleXiangqi
                 Debug.WriteLine($"{mv} {alpha}, {beta}, {best}");
                 MakeMove(mv);
                 depth++;
-                vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
-                //if (best == -G.MATE)
-                //    vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
-                //else
-                //{
-                //    vl = -SearchCut(-alpha, depthleft - 1);
-                //    if (vl > alpha && vl < beta)
-                //    {
-                //        Debug.WriteLine("Re-search");
-                //        vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
-                //        stat.PVChanged++;
-                //        bResearch = true;
-                //    }
-                //}
+                if (best == -G.MATE)
+                    vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
+                else
+                {
+                    vl = -SearchCut(-alpha, depthleft - 1);
+                    if (vl > alpha && vl < beta)
+                    {
+                        Debug.WriteLine("Re-search");
+                        vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
+                        stat.PVChanged++;
+                        bResearch = true;
+                    }
+                }
                 depth--;
                 UnmakeMove();
                 if (vl > best)

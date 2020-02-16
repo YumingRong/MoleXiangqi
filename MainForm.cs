@@ -382,7 +382,7 @@ namespace MoleXiangqi
         private void MenuEvaluate_Click(object sender, EventArgs e)
         {
             //App_inGame = false;
-            string fen = @"3aka3/5P3/4b4/r3N4/9/8R/9/2n6/9/4KA3 w - - 0 1";
+            string fen = @"2b1ka3/1R2aR3/4b1n2/9/9/C8/9/4r4/4A1p1r/4KA3 w - - 0 1";
             if (pos.FromFEN(fen))
             {
                 PanelBoard.Refresh();

@@ -30,7 +30,7 @@ namespace MoleXiangqi
             FillDictionary();
         }
 
-
+        //暂不支持（变招）识别
         public PgnFileStruct ReadPgnFile(string szFileName)
         {
             PgnFileStruct PGN = new PgnFileStruct();
