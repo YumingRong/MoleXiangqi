@@ -60,37 +60,37 @@ namespace MoleXiangqi
 
             //这边跳去SetIrrev()
             // 2. 读取棋盘上的棋子
-            int x, y;
-            x = RANK_TOP;
-            y = FILE_LEFT;
+            int y, x;
+            y = RANK_TOP;
+            x = FILE_LEFT;
 
             foreach (char c in subs[0])
             {
                 if (c == '/')
                 {
-                    if (y != FILE_RIGHT + 1)
+                    if (x != FILE_RIGHT + 1)
                         return false;
-                    y = FILE_LEFT;
-                    x++;
+                    x = FILE_LEFT;
+                    y++;
                 }
                 else if (Char.IsNumber(c))
                 {
-                    y += c - '0';
+                    x += c - '0';
                 }
                 else if (Char.IsUpper(c))
                 {
-                    AddPiece(XY2Coord(y, x), Fen2Piece(c) + SIDE_TAG(0));
-                    y++;
+                    AddPiece(XY2Coord(x, y), Fen2Piece(c) + SIDE_TAG(0));
+                    x++;
                 }
                 else if (Char.IsLower(c))
                 {
-                    AddPiece(XY2Coord(y, x), Fen2Piece(c) + SIDE_TAG(1));
-                    y++;
+                    AddPiece(XY2Coord(x, y), Fen2Piece(c) + SIDE_TAG(1));
+                    x++;
                 }
                 else
                     return false;
             }
-            if (x != RANK_BOTTOM)
+            if (y != RANK_BOTTOM)
                 return false;
 
             // 3. 确定轮到哪方走
