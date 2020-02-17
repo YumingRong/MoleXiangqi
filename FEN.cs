@@ -54,44 +54,38 @@ namespace MoleXiangqi
             string[] subs = szFen.Split(' ');
             if (subs.Length != 6)
                 return false;
+            //棋盘有10行
+            string[] rows = subs[0].Split('/');
+            if (rows.Length != 10)
+                return false;
             // FEN串的识别包括以下几个步骤：
             // 1. 初始化，清空棋盘
             ClearBoard();
 
-            //这边跳去SetIrrev()
             // 2. 读取棋盘上的棋子
-            int y, x;
-            y = RANK_TOP;
-            x = FILE_LEFT;
-
-            foreach (char c in subs[0])
+            for (int  y = 0; y < 10; y++)
             {
-                if (c == '/')
+                int x = 0;
+                foreach (char c in rows[y])
                 {
-                    if (x != FILE_RIGHT + 1)
+                    if (Char.IsNumber(c))
+                    {
+                        x += c - '0';
+                    }
+                    else if (Char.IsUpper(c))
+                    {
+                        AddPiece(UI_XY2Coord(x, y), Fen2Piece(c) + SIDE_TAG(0));
+                        x++;
+                    }
+                    else if (Char.IsLower(c))
+                    {
+                        AddPiece(UI_XY2Coord(x, y), Fen2Piece(c) + SIDE_TAG(1));
+                        x++;
+                    }
+                    else
                         return false;
-                    x = FILE_LEFT;
-                    y++;
                 }
-                else if (Char.IsNumber(c))
-                {
-                    x += c - '0';
-                }
-                else if (Char.IsUpper(c))
-                {
-                    AddPiece(XY2Coord(x, y), Fen2Piece(c) + SIDE_TAG(0));
-                    x++;
-                }
-                else if (Char.IsLower(c))
-                {
-                    AddPiece(XY2Coord(x, y), Fen2Piece(c) + SIDE_TAG(1));
-                    x++;
-                }
-                else
-                    return false;
             }
-            if (y != RANK_BOTTOM)
-                return false;
 
             // 3. 确定轮到哪方走
             if (subs[1] == "b")
