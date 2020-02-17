@@ -54,6 +54,7 @@ namespace MoleXiangqi
 
             //临时，需删除           
             killers = new MOVE[G.MAX_PLY, 2];
+            history = new int[40, 256];
 
         }
 
@@ -72,12 +73,11 @@ namespace MoleXiangqi
             {
                 Console.WriteLine("---------------------------");
                 Console.WriteLine("Search depth {0}", maxDepth);
-                stopwatch.Start();
 
+                stopwatch.Start();
                 vl = SearchRoot(maxDepth);
 
                 PopPVLine();
-
                 if (rootMoves.Count == 1)
                 {
                     Console.WriteLine("Single feasible move");
@@ -281,8 +281,6 @@ namespace MoleXiangqi
             if (qdepth % 2 == 0)
             {
                 best = Simple_Evaluate();
-                //if (depth > maxDepth)
-                //    return best;
                 if (best > beta)
                 {
                     stat.Cutoffs++;
@@ -292,7 +290,17 @@ namespace MoleXiangqi
                     alpha = best;
                 //only extend check and capture
                 if (sqCheck == 0)
-                    moves = GetNextMove(3);
+                {
+                    bool continuousCheck = stepList.Count >= 2 && stepList[stepList.Count - 2].checking > 0;
+                    //check extension only when in continuous check
+                    if (continuousCheck)
+                        moves = GetNextMove(3);
+                    //capture extension only when recapture
+                    else if (stepList[stepList.Count - 1].move.pcDst > 0)
+                        moves = GetNextMove(2);
+                    else
+                        return best;
+                }
                 else
                     moves = GetNextMove(7);
             }

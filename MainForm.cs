@@ -363,8 +363,9 @@ namespace MoleXiangqi
         private void MenuActivePositionTest_Click(object sender, EventArgs e)
         {
             App_inGame = false;
-            pos.FromFEN(@"2Ra1Rb2/4k4/9/9/9/9/9/4B1r2/4A4/3A1KBrc w - - 0 4");
-            engine.FromFEN(@"2Ra1Rb2/4k4/9/9/9/9/9/4B1r2/4A4/3A1KBrc w - - 0 4");
+            string fen = @"2b1ka3/1R2aR3/4b1n2/9/9/C8/9/4r4/4A1p1r/4KA3 w - - 0 1";
+            pos.FromFEN(fen);
+            engine.FromFEN(fen);
             PanelBoard.Refresh();
             Console.WriteLine("Check moves:");
             foreach (MOVE mv in engine.GetNextMove(1))
@@ -382,8 +383,9 @@ namespace MoleXiangqi
         private void MenuEvaluate_Click(object sender, EventArgs e)
         {
             //App_inGame = false;
-            string fen = @"4kab2/4a4/4b4/9/9/5R3/9/4B1r2/4A4/1R1A1KBrc w - - 0 1";
-                //@"2b1ka3/1R2aR3/4b1n2/9/9/C8/9/4r4/4A1p1r/4KA3 w - - 0 1";
+            string fen = @"2b1ka3/1R2aR3/4b1n2/9/9/C8/9/4r4/4A1p1r/4KA3 w - - 0 1";
+            //"4kab2/4a4/4b4/9/9/5R3/9/4B1r2/4A4/1R1A1KBrc w - - 0 1";
+            //
             if (pos.FromFEN(fen))
             {
                 PanelBoard.Refresh();
@@ -533,6 +535,16 @@ namespace MoleXiangqi
             }
             //else
             //    PlaySound("ILLEGAL");
+        }
+
+        private void MenuGenMoves_Click(object sender, EventArgs e)
+        {
+            App_inGame = false;
+            string fen = @"C1b1kg3/1R2gR3/4b1n2/9/9/9/9/4r4/4G1p1r/4KG3 b - - 1 1";
+            pos.FromFEN(fen);
+            engine.FromFEN(fen);
+            PanelBoard.Refresh();
+            engine.GenMoveTest();
         }
 
         void Write2Csv(string csvPath, int[] array)

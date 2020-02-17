@@ -500,14 +500,14 @@ namespace MoleXiangqi
                         {
                             case ROOK:
                                 if (SAME_FILE(sq, sqOppKing) || SAME_RANK(sq, sqOppKing))
-                                    positionValue[sd] += 10;
+                                    positionValue[sd] += 5;
                                 positionValue[sd] += cRookValue[sqMirror];
                                 break;
                             case CANNON:
                                 if (SAME_FILE(sq, sqOppKing))
-                                    positionValue[sd] += 20;
+                                    positionValue[sd] += 10;
                                 else if (SAME_RANK(sq, sqOppKing))
-                                    positionValue[sd] += 12;
+                                    positionValue[sd] += 8;
                                 break;
                             case KNIGHT:
                                 positionValue[sd] += cKnightValue[sqMirror];
