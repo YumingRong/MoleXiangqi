@@ -35,27 +35,36 @@ namespace MoleXiangqi
             bool wantCapture = (moveType & 0x02) > 0;
             bool wantAll = moveType == 7;
 
-            List<MOVE> moves = new List<MOVE>();
-            //if (MateKiller.sqSrc > 0)
-            //    moves.Add(MateKiller);
-            //if (killers[depth, 0].sqSrc > 0)
-            //{
-            //    moves.Add(killers[depth, 0]);
-            //    if (killers[depth, 1].sqSrc > 0)
-            //        moves.Add(killers[depth, 1]);
-            //}
+            List<MOVE> killerList = new List<MOVE>();
+            if (MateKiller.sqSrc > 0)
+                killerList.Add(MateKiller);
+            if (killers[depth, 0].sqSrc > 0)
+            {
+                killerList.Add(killers[depth, 0]);
+                if (killers[depth, 1].sqSrc > 0)
+                    killerList.Add(killers[depth, 1]);
+            }
 
-            //foreach (MOVE mv in moves)
-            //{
-            //    //Warning! check is not tested here. To be done later. 
-            //    if (mv.pcSrc == pcSquares[mv.sqSrc] && mv.pcDst == pcSquares[mv.sqDst] && IsLegalMove(mv.sqSrc, mv.sqDst))
-            //    {
-            //        if (wantAll || wantCheck && IsChecking(mv) || wantCapture && mv.pcDst > 0)
-            //            yield return mv;
-            //    }
-            //}
+            foreach (MOVE mv in killerList)
+            {
+                //Warning! check is not tested here. To be done later. 
+                if (mv.pcSrc == pcSquares[mv.sqSrc] && mv.pcDst == pcSquares[mv.sqDst] && IsLegalMove(mv.sqSrc, mv.sqDst))
+                {
+                    MovePiece(mv);
+                    if (CheckedBy(1-sdPlayer)>0)
+                    {
+                        UndoMovePiece(mv);
+                        continue;
+                    }
+                    UndoMovePiece(mv);
+                    if (wantAll || wantCheck && IsChecking(mv) || wantCapture && mv.pcDst > 0)
+                        yield return mv;
+                }
+            }
 
-            moves = GenerateMoves();
+            List<MOVE> moves = GenerateMoves();
+            foreach(MOVE mv in killerList)
+                moves.Remove(mv);
             List<MOVE> captureMoves = new List<MOVE>();
             List<MOVE> normalMoves = new List<MOVE>();
             //为避免一子淡水长将，能多子轮流照将就轮流将
@@ -95,7 +104,7 @@ namespace MoleXiangqi
 
         public List<KeyValuePair<MOVE, int>> InitRootMoves()
         {
-            int[] oppAttackMap = GenAttackMap(1 - sdPlayer, FindAbsolutePin(1 - sdPlayer));
+            int[] oppAttackMap = GenAttackMap(1 - sdPlayer);
             List<MOVE> moves = GenerateMoves();
             List<KeyValuePair<MOVE, int>> rmoves = new List<KeyValuePair<MOVE, int>>();
             foreach (MOVE mv in moves)

@@ -546,13 +546,14 @@ namespace MoleXiangqi
         //该函数类似于于Evaluate的内部函数，只是去掉位置数组，并单边赋值，以提高速度，并减少耦合
         //如发现任何bug，须一同修改
         //调用前须先运行FindAbsolutePin(side)来生成绝对牵制信息
-        int[] GenAttackMap(int side, int[] PinnedPieces)
+        int[] GenAttackMap(int side)
         {
             int sqSrc, sqDst, pcDst, delta;
             int[] attackMap = new int[256];    //非行棋方保存攻击该格的价值最低的棋子
 
             //find absolute pin. 0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
             //Generate enemy attack map, from most valuable piece to cheap piece
+            int[] PinnedPieces = FindAbsolutePin(side);
             int bas = SIDE_TAG(side);
             for (int pc = bas; pc < bas + 16; pc++)
             {
