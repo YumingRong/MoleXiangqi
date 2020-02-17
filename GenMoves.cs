@@ -421,6 +421,7 @@ namespace MoleXiangqi
             //举例：当头炮与对方的帅之间隔了自己的马和对方的相，
             //自己的马就放在DiscoveredAttack里，对方的相就在PinnedPieces里
             int[] PinnedPieces = new int[48];
+            pinexception.Clear();
             int sqSrc, pcDst, delta;
             int oppside = 1 - side;
 
@@ -514,10 +515,12 @@ namespace MoleXiangqi
                         int sqKnight = sqKing + ccKnightCheckDelta[i, j];
                         pcDst = pcSquares[sqKnight];
                         if (cnPieceTypes[pcDst] == bas + KNIGHT && SIDE(pcBlocker) == oppside)
+                        {
                             PinnedPieces[pcBlocker] |= 3;
-                        //在形如红马-黑车-黑将的棋型中，黑车是可以吃红马的
-                        if (IsLegalMove(sqBlocker, sqKnight))
-                            pinexception.Add(new Tuple<int, int>(sqBlocker, sqKnight));
+                            //在形如红马-黑车-黑将的棋型中，黑车是可以吃红马的
+                            if (IsLegalMove(sqBlocker, sqKnight))
+                                pinexception.Add(new Tuple<int, int>(sqBlocker, sqKnight));
+                        }
                     }
             }
 

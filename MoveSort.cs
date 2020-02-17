@@ -36,24 +36,24 @@ namespace MoleXiangqi
             bool wantAll = moveType == 7;
 
             List<MOVE> moves = new List<MOVE>();
-            if (MateKiller.sqSrc > 0)
-                moves.Add(MateKiller);
-            if (killers[depth, 0].sqSrc > 0)
-            {
-                moves.Add(killers[depth, 0]);
-                if (killers[depth, 1].sqSrc > 0)
-                    moves.Add(killers[depth, 1]);
-            }
+            //if (MateKiller.sqSrc > 0)
+            //    moves.Add(MateKiller);
+            //if (killers[depth, 0].sqSrc > 0)
+            //{
+            //    moves.Add(killers[depth, 0]);
+            //    if (killers[depth, 1].sqSrc > 0)
+            //        moves.Add(killers[depth, 1]);
+            //}
 
-            foreach (MOVE mv in moves)
-            {
-                //Warning! check is not tested here. To be done later. 
-                if (mv.pcSrc == pcSquares[mv.sqSrc] && mv.pcDst == pcSquares[mv.sqDst] && IsLegalMove(mv.sqSrc, mv.sqDst))
-                {
-                    if (wantAll || wantCheck && IsChecking(mv) || wantCapture && mv.pcDst > 0)
-                        yield return mv;
-                }
-            }
+            //foreach (MOVE mv in moves)
+            //{
+            //    //Warning! check is not tested here. To be done later. 
+            //    if (mv.pcSrc == pcSquares[mv.sqSrc] && mv.pcDst == pcSquares[mv.sqDst] && IsLegalMove(mv.sqSrc, mv.sqDst))
+            //    {
+            //        if (wantAll || wantCheck && IsChecking(mv) || wantCapture && mv.pcDst > 0)
+            //            yield return mv;
+            //    }
+            //}
 
             moves = GenerateMoves();
             List<MOVE> captureMoves = new List<MOVE>();
