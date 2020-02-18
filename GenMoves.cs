@@ -428,7 +428,7 @@ namespace MoleXiangqi
             //对阻挡将军的子进行判断
             void CheckBlocker(int pcBlocker, int direction)
             {
-                if (SIDE(pcBlocker) == oppside)
+                if (SIDE(pcBlocker) == side)
                     PinnedPieces[pcBlocker] |= direction;
             }
 

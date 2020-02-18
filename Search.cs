@@ -40,6 +40,8 @@ namespace MoleXiangqi
 
     partial class POSITION
     {
+        const int FUTILITY_MARGIN = 50;
+
         public STATISTIC stat;
         public List<MOVE> PVLine;
         public List<KeyValuePair<MOVE, int>> rootMoves;
@@ -146,6 +148,14 @@ namespace MoleXiangqi
             }
             rootMoves.RemoveAll(x => x.Value < -G.WIN);
             rootMoves.Sort(SortLarge2Small);
+
+            //late move reduction
+            for (int i = rootMoves.Count - 1; alpha - rootMoves[i].Value > FUTILITY_MARGIN; i--)
+            {
+                //lose a cannon/knight for nothing
+                Console.WriteLine($"Prune move: {rootMoves[i].Key}, score {rootMoves[i].Value}");
+                rootMoves.RemoveAt(i);
+            }
             Console.WriteLine("Root move\tScore");
             foreach (KeyValuePair<MOVE, int> mv_vl in rootMoves)
                 Console.WriteLine($"{mv_vl.Key}\t{mv_vl.Value}");
@@ -337,7 +347,7 @@ namespace MoleXiangqi
                 MakeMove(mv);
                 if (qdepth % 2 == 0)
                 {
-                    if (stepList[stepList.Count -1 ].checking > 0)
+                    if (stepList[stepList.Count - 1].checking > 0)
                         stat.CheckExtesions++;
                     else
                         stat.CaptureExtensions++;
