@@ -52,7 +52,7 @@ namespace MoleXiangqi
 
     public struct RECORD
     {
-        public long zobrist;
+        public ulong zobrist;
         public int checking;
         public MOVE move;
         public int halfMoveClock;  //120步不吃子作和的自然限招
