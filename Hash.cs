@@ -16,17 +16,17 @@ namespace MoleXiangqi
               5, 6, 6, 7, 7, 8, 8, 5, 5, 5, 5, 5, 4, 4, 4, 4
             };
 
-            readonly static long[,] table = new long[9, 256];
+            readonly static ulong[,] table = new ulong[9, 256];
 
             static Zobrist()
             {
                 Random rnd = new Random(20200115);
                 for (int i = 0; i < 9; i++)
                     for (int j = 0; j < 256; j++)
-                        table[i, j] = (long)(rnd.NextDouble() * Int64.MaxValue);
+                        table[i, j] = (ulong)(rnd.NextDouble() * UInt64.MaxValue);
             }
 
-            public static long Get(int pc, int sq)
+            public static ulong Get(int pc, int sq)
             {
                 return table[ZobristTypes[pc], sq];
             }
@@ -35,9 +35,9 @@ namespace MoleXiangqi
 
     partial class POSITION
     {
-        long CalculateZobrist()
+        ulong CalculateZobrist()
         {
-            long zob = 0;
+            ulong zob = 0;
             for (int x = FILE_LEFT; x < FILE_RIGHT; x++)
                 for (int y = RANK_TOP; y < RANK_BOTTOM; y++)
                 {

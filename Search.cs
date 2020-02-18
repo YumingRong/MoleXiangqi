@@ -57,13 +57,14 @@ namespace MoleXiangqi
             //临时，需删除           
             killers = new MOVE[G.MAX_PLY, 2];
             history = new int[40, 256];
-
+            MateKiller = new MOVE[G.MAX_PLY];
         }
 
         public MOVE SearchMain(int depthleft)
         {
             stat = new STATISTIC();
             PVLine = new List<MOVE>();
+            MateKiller = new MOVE[G.MAX_PLY];
             killers = new MOVE[G.MAX_PLY, 2];
             history = new int[40, 256];
             rootMoves = InitRootMoves();
@@ -78,16 +79,16 @@ namespace MoleXiangqi
 
                 stopwatch.Start();
                 vl = SearchRoot(maxDepth);
-
+                stopwatch.Stop();
+                
+                stat.ElapsedTime += stopwatch.ElapsedMilliseconds;
+                Console.WriteLine(stat);
                 PopPVLine();
                 if (rootMoves.Count == 1)
                 {
                     Console.WriteLine("Single feasible move");
                     break;
                 }
-                stopwatch.Stop();
-                stat.ElapsedTime += stopwatch.ElapsedMilliseconds;
-                Console.WriteLine(stat);
 
                 // 10. 搜索到杀棋则终止搜索
                 if (vl < -G.WIN || vl > G.WIN)
@@ -115,11 +116,15 @@ namespace MoleXiangqi
                 MakeMove(mv);
                 depth++;
                 int vl;
+
                 if (alpha == -G.WIN)
                     vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
                 else
                 {
-                    vl = -SearchCut(-alpha, depthleft - 1);
+                    if (depthleft > 2)
+                        vl = -SearchCut(-alpha, depthleft - 2);
+                    else
+                        vl = -SearchCut(-alpha, depthleft - 1);
                     if (vl > alpha)
                     {
                         stat.PVChanged++;

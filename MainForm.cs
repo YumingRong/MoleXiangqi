@@ -87,7 +87,7 @@ namespace MoleXiangqi
             //相当于go depth指令和bestmove反馈
             while (pos.sdPlayer == 1 && MenuAIBlack.Checked || pos.sdPlayer == 0 && MenuAIRed.Checked)
             {
-                Task<MOVE> GetBestMove = Task<MOVE>.Run(() => engine.SearchMain(3));
+                Task<MOVE> GetBestMove = Task<MOVE>.Run(() => engine.SearchMain(4));
                 MOVE bestmove = await GetBestMove;
                 MakeMove(bestmove.sqSrc, bestmove.sqDst);
             }

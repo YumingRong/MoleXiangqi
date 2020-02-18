@@ -7,7 +7,7 @@ namespace MoleXiangqi
     {
         internal MOVE[,] killers;
         internal int[,] history;
-        internal MOVE MateKiller;
+        internal MOVE[] MateKiller;
 
         void SetBestMove(MOVE mv, int score)
         {
@@ -18,7 +18,7 @@ namespace MoleXiangqi
             }
             history[cnPieceTypes[mv.pcSrc], mv.sqDst] += depth * depth;
             if (score > G.WIN)
-                MateKiller = mv;
+                MateKiller[depth] = mv;
         }
 
         /*该函数首先返回matekiller，然后返回killer move
@@ -35,44 +35,37 @@ namespace MoleXiangqi
             bool wantCapture = (moveType & 0x02) > 0;
             bool wantAll = moveType == 7;
 
-            List<MOVE> killerList = new List<MOVE>();
-            List<MOVE> killerDone = new List<MOVE>();
-            if (MateKiller.sqSrc > 0)
-                killerList.Add(MateKiller);
-            if (killers[depth, 0].sqSrc > 0)
+            MOVE killer = MateKiller[depth];
+            if (killer.pcSrc == pcSquares[killer.sqSrc] && killer.pcDst == pcSquares[killer.sqDst]
+                && IsLegalMove(killer.sqSrc, killer.sqDst))
             {
-                killerList.Add(killers[depth, 0]);
-                if (killers[depth, 1].sqSrc > 0)
-                    killerList.Add(killers[depth, 1]);
-            }
-
-            foreach (MOVE mv in killerList)
-            {
-                //Warning! check is not tested here. To be done later. 
-                if (mv.pcSrc == pcSquares[mv.sqSrc] && mv.pcDst == pcSquares[mv.sqDst] && IsLegalMove(mv.sqSrc, mv.sqDst))
-                {
-                    MovePiece(mv);
-                    if (CheckedBy(1 - sdPlayer) > 0)
+                MovePiece(killer);
+                bool notChecked = (CheckedBy(1 - sdPlayer) == 0);
+                UndoMovePiece(killer);
+                if (notChecked)
+                    if (wantAll || wantCheck && IsChecking(killer) || wantCapture && killer.pcDst > 0)
                     {
-                        UndoMovePiece(mv);
-                        continue;
+                        yield return killer;
                     }
-                    UndoMovePiece(mv);
-                    if (wantAll || wantCheck && IsChecking(mv) || wantCapture && mv.pcDst > 0)
-                    {
-                        killerDone.Add(mv);
-                        yield return mv;
-                    }
-                }
             }
 
             List<MOVE> moves = GenerateMoves();
-            //remove killers already done
-            foreach (MOVE mv in killerDone)
-                moves.Remove(mv);
-
             int[] scores = new int[moves.Count];
             int[] kinds = new int[moves.Count];//check, capture or normal move
+            
+            //assign killer bonus
+            if (killers[sdPlayer, 0].sqSrc > 0)
+            {
+                int j = moves.FindIndex(x => x == killers[sdPlayer, 0]);
+                if (j > -1)
+                    scores[j] = 15;
+                if (killers[sdPlayer, 0].sqSrc>0)
+                {
+                    j = moves.FindIndex(x => x == killers[sdPlayer, 1]);
+                    if (j > -1)
+                        scores[j] = 10;
+                }
+            }
             for (int i = 0; i < moves.Count; i++)
             {
                 MOVE mv = moves[i];
