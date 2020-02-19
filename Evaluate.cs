@@ -239,6 +239,22 @@ namespace MoleXiangqi
                                 CheckBlocker(sd, pcBlocker, sqPieces[pcDst], 3);
                         }
                 }
+
+                //4. Is there king face to face risk?
+                sqSrc = sqPieces[32 + KING_FROM];
+                sqDst = sqPieces[16 + KING_FROM];
+                if (SAME_FILE(sqSrc, sqDst))
+                {
+                    int pcBlocker = 0, nblock = 0;
+                    for (int i = sqSrc + 16; i < sqDst; i += 16)
+                        if (pcSquares[i] > 0)
+                        {
+                            pcBlocker = i;
+                            nblock++;
+                        }
+                    if (nblock == 1)
+                        PinnedPieces[pcBlocker] |= 1;
+                }
             }
 
 
