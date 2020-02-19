@@ -33,3 +33,59 @@
 
 
 下一步测试双车胁仕2和钓鱼马2。
+
+SEE Pseudo code:
+
+void PreSEE()
+{
+	Generate List<int sqFrom, int sqPinned> AbsolutePins;
+}
+
+List<MOVE> GenerateMoves(side = sdPlayer)
+{
+	Generate List<int sqFrom, int sqPin, int sqTo> RelativePins; //for rook, cannon, knight, bishop
+	Generate List<int sqFrom, int sqTo>[2] Captures; //for all except rook and cannon
+	Generate List<int sqFrom, int sqTo>[2] Quiets; //for all pieces except cannon
+	Generate List<int sqFrom, int sqTo> CannonMoves;  
+	List<MOVE> movelist= Captures[side] + Quiets[side] + CannonMoves; 
+	Removes those suicide;
+	return movelist;
+}
+
+int[] ModeMoves()
+{
+	foreach (MOVE mv in MoveList)
+	{
+		List<MOVE> attackers = Captures[me] where cap.To == sqDst;
+		List<MOVE> defenders = Capptures[opp] where cap.To == sqDst;
+		score[i] = SEE(mv.sqDst, attackers, defenders);
+	}
+}
+
+
+int SEE(int sqDst, List<MOVE> attackers, List<MOVE> defenders)
+{
+	MOVE mv = Lowest piece Value in attackers;
+	if (mv.sqSrc is in RelativePins.sqPin || mv.sqSrc is in AbsolutePin.sqFrom)
+		return UNCERTAIN;
+	if (cap.pcFrom == KING)
+		if (defenders.Count == 0)
+		{
+			if (KingsFace2Face)
+				return vlDst;
+		}
+	else
+		return 0;
+	
+	int vlDst = PieceValue[mv.pcDst];
+	if (defenders.Count == 0)
+		return vlDst;
+	MovePiece(mv);
+	attackers.Remove(mv);
+	List<int sqFrom> Slides = (Rook & Cannon defend where defend.sqDst == sqDst);
+	defenders.Append(Slides);
+
+	score = SEE (cap);
+	UndoMovePiece(mv);
+	return max(0, vlDst - score);
+}
