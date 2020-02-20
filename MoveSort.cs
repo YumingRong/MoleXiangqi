@@ -9,6 +9,13 @@ namespace MoleXiangqi
         internal int[,] history;
         internal MOVE[] MateKiller;
 
+        const int TransScore = +32766;
+        const int GoodScore = +4000;
+        const int KillerScore = +4;
+        const int HistoryScore = -24000;
+        const int BadScore = -28000;
+
+
         void SetBestMove(MOVE mv, int score)
         {
             if (killers[depth, 0] != mv)
