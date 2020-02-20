@@ -56,8 +56,8 @@ int[] ModeMoves()
 {
 	foreach (MOVE mv in MoveList)
 	{
-		List<MOVE> attackers = Captures[me] where cap.To == sqDst;
-		List<MOVE> defenders = Capptures[opp] where cap.To == sqDst;
+		List<MOVE> attackers = (Captures[me] + Quiets[me]) where cap.To == sqDst;
+		List<MOVE> defenders = (Capptures[opp] + Quiets[opp]) where cap.To == sqDst;
 		score[i] = SEE(mv.sqDst, attackers, defenders);
 	}
 }
@@ -85,7 +85,7 @@ int SEE(int sqDst, List<MOVE> attackers, List<MOVE> defenders)
 	List<int sqFrom> Slides = (Rook & Cannon defend where defend.sqDst == sqDst);
 	defenders.Append(Slides);
 
-	score = SEE (cap);
+	score = SEE (sqDst, defenders, attackers);
 	UndoMovePiece(mv);
 	return max(0, vlDst - score);
 }
