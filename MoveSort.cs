@@ -32,7 +32,7 @@ namespace MoleXiangqi
          * 对于其它着法，按吃子、照将、移动的优先级打分
          * 参数onlyCheckCapture: 
          * 1 - 生成所有照将
-         * 2 - 生成所有吃子
+         * 2 - 生成所有吃子，不包括吃仕相和未过河的兵
          * 3 - 生成所有照将和吃子
          * 7 - 生成所有合法着法
         */
@@ -88,8 +88,8 @@ namespace MoleXiangqi
                     if (mv.pcDst == 0 && stepList.Count >= 2 && mv.sqSrc == stepList[stepList.Count - 2].checking)
                         scores[i] -= 5;
                 }
-                else if (mv.pcDst > 0)
-                {
+                else if (mv.pcDst > 0 && !(cnPieceKinds[mv.pcDst] >= 5 && HOME_HALF[SIDE(mv.pcDst), mv.sqDst]))
+                {//吃子，不包括吃仕相和未过河的兵
                     kinds[i] |= 2;
                     //if capture last moving piece, it's probably a good capture
                     if (mv.sqDst == stepList[stepList.Count - 1].move.sqDst)
