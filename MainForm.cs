@@ -472,6 +472,23 @@ namespace MoleXiangqi
             Graphics g = PanelBoard.CreateGraphics();
             if (pos.IsLegalMove(sqFrom, sqTo))
             {
+                int pcCaptured = pos.pcSquares[sqTo];
+                MOVE step;
+                step.sqSrc = sqFrom;
+                step.sqDst = sqTo;
+                step.pcSrc = pos.pcSquares[sqFrom];
+                step.pcDst = pcCaptured;
+                pos.MakeMove(step);
+                if (pos.CheckedBy(1 - pos.sdPlayer) > 0)
+                {
+                    PlaySound("ILLEGAL");
+                    pos.UnmakeMove();
+                    return;
+                }
+                engine.MakeMove(step);
+                MoveList.Add(step);
+                CommentList.Add(textBoxComment.Text);
+
                 if (FENStep > 0)
                 {
                     //擦除上一步的起始和结束位置选择框
@@ -482,7 +499,7 @@ namespace MoleXiangqi
 
                 ptLastFrom = POSITION.UI_Coord2XY(sqFrom, bFlipped);
                 ptLastTo = POSITION.UI_Coord2XY(sqTo, bFlipped);
-                pcLast = cnPieceImages[pos.pcSquares[sqFrom]];
+                pcLast = cnPieceImages[step.pcSrc];
 
                 //擦除原来的位置
                 DrawBoard(ptLastFrom, g);
@@ -491,17 +508,6 @@ namespace MoleXiangqi
                 DrawSelection(ptLastTo, g);
                 DrawPiece(ptLastTo, pcLast, g);
                 bSelected = false;
-                int pcCaptured = pos.pcSquares[sqTo];
-
-                MOVE step;
-                step.sqSrc = sqFrom;
-                step.sqDst = sqTo;
-                step.pcSrc = pos.pcSquares[sqFrom];
-                step.pcDst = pcCaptured;
-                MoveList.Add(step);
-                pos.MakeMove(step);
-                engine.MakeMove(step);
-                CommentList.Add(textBoxComment.Text);
 
                 FENStep++;
                 string label = step.ToString();
@@ -514,7 +520,7 @@ namespace MoleXiangqi
                 else
                     PlaySound("MOVE");
 
-                if (pos.IsMate() || POSITION.cnPieceKinds[pcCaptured] == 1)
+                if (pos.IsMate())
                 {//直接吃王或者绝杀
                     if (pos.sdPlayer == 1 && MenuAIBlack.Checked && !MenuAIRed.Checked
       || pos.sdPlayer == 0 && MenuAIRed.Checked && !MenuAIBlack.Checked)
@@ -533,8 +539,6 @@ namespace MoleXiangqi
                     App_inGame = false;
                 }
             }
-            //else
-            //    PlaySound("ILLEGAL");
         }
 
         private void MenuGenMoves_Click(object sender, EventArgs e)

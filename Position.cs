@@ -10,6 +10,7 @@ namespace MoleXiangqi
             pcSquares = new int[256];
             sqPieces = new int[48];
             stepList = new List<RECORD>();
+            InitPreGen();
             InitPGN();
             InitEval();
             InitSearch();

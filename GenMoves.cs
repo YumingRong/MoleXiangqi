@@ -6,17 +6,6 @@ namespace MoleXiangqi
 {
     public partial class POSITION
     {
-        // 帅(将)的步长
-        static readonly int[] ccKingDelta = { -0x10, +0x10, -0x01, +0x01 };
-        // 仕(士)的步长
-        static readonly int[] ccGuardDelta = { -0x11, +0x11, -0x0f, +0x0f };
-        // 马的步长，以帅(将)的步长作为马腿
-        static readonly int[,] ccKnightDelta = { { -33, -31 }, { 31, 33 }, { -18, 14 }, { -14, 18 } };
-        // 马被将军的步长，以仕(士)的步长作为马腿
-        static readonly int[,] ccKnightCheckDelta = { { -33, -18 }, { 18, 33 }, { -31, -14 }, { 14, 31 } };
-        //[pin, direction]，用来判断棋子运动方向受不受牵制
-        static readonly bool[,] ccPinDelta = { { false, false, false, false }, { false, false, true, true, }, { true, true, false, false }, { true, true, true, true } };
-
         public bool IsLegalMove(int sqSrc, int sqDst)
         {
             int sqPin, pcMoved, pcCaptured, selfSide;
@@ -301,18 +290,12 @@ namespace MoleXiangqi
                 sqSrc = sqPieces[pcSrc];
                 if (sqSrc == 0 || pins[pcSrc] > 0)
                     continue;
-                for (int j = 0; j < 4; j++)
+                for (int j = 0; (sqDst= csqKnightMoves[sqSrc,j])>0; j++)
                 {
-                    int sqPin = sqSrc + ccKingDelta[j];
-                    if (pcSquares[sqPin] == 0)
+                    if (pcSquares[csqKnightPins[sqSrc, j]] == 0)
                     {
-                        sqDst = sqSrc + ccKnightDelta[j, 0];
                         pcDst = pcSquares[sqDst];
-                        if (IN_BOARD[sqDst] && (pcDst & myBase) == 0)
-                            AddMove();
-                        sqDst = sqSrc + ccKnightDelta[j, 1];
-                        pcDst = pcSquares[sqDst];
-                        if (IN_BOARD[sqDst] && (pcDst & myBase) == 0)
+                        if ((pcDst & myBase) == 0)
                             AddMove();
                     }
                 }
@@ -355,15 +338,14 @@ namespace MoleXiangqi
                 sqSrc = sqPieces[pcSrc];
                 if (sqSrc == 0 || pins[pcSrc] > 0)
                     continue;
-                for (int j = 0; j < 4; j++)
+                for (int j = 0; (sqDst = csqBishopMoves[sqSrc,j])>0; j++)
                 {
-                    sqDst = sqSrc + ccGuardDelta[j];
-                    if (!(HOME_HALF[sdPlayer, sqDst] && pcSquares[sqDst] == 0))
-                        continue;
-                    sqDst += ccGuardDelta[j];
-                    pcDst = pcSquares[sqDst];
-                    if ((pcDst & myBase) == 0)
-                        AddMove();
+                    if (pcSquares[(sqDst+sqSrc)/2] == 0)
+                    {
+                        pcDst = pcSquares[sqDst];
+                        if ((pcDst & myBase) == 0)
+                            AddMove();
+                    }
                 }
             }
 
@@ -373,25 +355,18 @@ namespace MoleXiangqi
                 sqSrc = sqPieces[pcSrc];
                 if (sqSrc == 0 || pins[pcSrc] > 0)
                     continue;
-                for (int j = 0; j < 4; j++)
+                for (int j = 0; (sqDst = csqAdvisorMoves[sqSrc,j]) >0; j++)
                 {
-                    sqDst = sqSrc + ccGuardDelta[j];
-                    if (IN_FORT[sqDst])
-                    {
                         pcDst = pcSquares[sqDst];
                         if ((pcDst & myBase) == 0)
                             AddMove();
-                    }
                 }
             }
 
             pcSrc = myBase + KING_FROM;
             sqSrc = sqPieces[pcSrc];
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; (sqDst = csqKingMoves[sqSrc, i])!=0; i++)
             {
-                sqDst = sqSrc + ccKingDelta[i];
-                if (!IN_FORT[sqDst])
-                    continue;
                 pcDst = pcSquares[sqDst];
                 if ((pcDst & myBase) == 0)
                 {
