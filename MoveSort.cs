@@ -16,14 +16,14 @@ namespace MoleXiangqi
         const int BadScore = -28000;
 
 
-        void SetBestMove(MOVE mv, int score)
+        void SetBestMove(MOVE mv, int score,int depthleft)
         {
             if (killers[depth, 0] != mv)
             {
                 killers[depth, 1] = killers[depth, 0];
                 killers[depth, 0] = mv;
             }
-            history[cnPieceTypes[mv.pcSrc], mv.sqDst] += depth * depth;
+            history[cnPieceTypes[mv.pcSrc], mv.sqDst] += depthleft * depthleft;
             if (score > G.WIN)
                 MateKiller[depth] = mv;
         }

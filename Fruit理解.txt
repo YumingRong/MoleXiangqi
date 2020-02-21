@@ -53,6 +53,38 @@ int search_full_root(list_t * list, board_t * board, int depth, int search_type)
 
 1.4 int full_search(board_t * board, int alpha, int beta, int depth, int height, mv_t pv[], int node_type)
 1.4.1 int full_quiescence(board_t * board, int alpha, int beta, int depth, int height, mv_t pv[]) 
+照将中，depth++
+mate-distance pruning
+bool trans_retrieve(trans_t * trans, uint64 key, int * move, int * min_depth, int * max_depth, int * min_value, int * max_value) 查找hash表
+1.4.2 int value_from_trans(int value, int height) 如果value是杀棋，value加上层数
+根据TT查询到的值，进行alpha裁剪和beta裁剪
+null-move pruning
+1.4.3 void move_do_null(board_t * board, undo_t * undo) 
+1.4.4 bool do_ver(const board_t * board) 确认不处在zugzwang局面
+1.4.5 int full_no_null(board_t * board, int alpha, int beta, int depth, int height, mv_t pv[], int node_type, int trans_move, int * best_move) {
+1.4.6 void sort_init(sort_t * sort, board_t * board, const attack_t * attack, int depth, int height, int trans_killer) 
+生成合法着法，返回sort
+Single reply extention
+1.4.7 int sort_next(sort_t * sort) 阶段性生成下一步着法，测试其合法性后返回
+1.4.7.1 int history_prob(int move, const board_t * board) 返回relative history heuristic
+1.4.7.1.1 int history_index(int move, const board_t * board) 返回 piece * 64 + tosqure]
+
+history pruning。history 分数低于正常的60%,depth--
+futility pruning
+1.4.8 bool move_is_dangerous(int move, const board_t * board) 兵即将升变
+history-pruning re-search
+
+1.4.9 void good_move(int move, const board_t * board, int depth, int height) 
+	move是非吃子的最佳着法。更新killer[2]。history[index]+=depth*depth。history上限16384，超过后与history一起打对折。
+1.4.10 void history_bad(int move, const board_t * board) 
+	move是非吃子的非最佳着法。HistTot[index]++，上限16384，超过后与history一起打对折。
+存储最佳着法
+1.4.11 int value_to_trans(int value, int height) 如果胜负已分，value = MATE-height
+void trans_store(trans_t * trans, uint64 key, int move, int depth, int min_value, int max_value) 
+
+
+
+1.4.1 int full_quiescence(board_t * board, int alpha, int beta, int depth, int height, mv_t pv[]) 
 1.4.1.2 void search_check()	看是否到了限定的时间、深度，以结束搜素
 1.4.1.2.1 void search_send_stat() 更新搜索统计数据
 1.4.1.3 bool board_is_repetition(const board_t * board)
@@ -61,8 +93,3 @@ int search_full_root(list_t * list, board_t * board, int depth, int search_type)
 1.4.1.5.1 void attack_set(attack_t * attack, const board_t * board) 生成所有将军的棋子位置和方向，放到attack列表里
 1.4.1.5.2 bool legal_evasion_exist(const board_t * board, const attack_t * attack)  有躲避照将的着法
 1.4.1.5.2.1 bool gen_evasions(list_t * list, const board_t * board, const attack_t * attack, bool legal, bool stop) 有无躲避将军的着法，放到list里
-照将中，depth++
-mate-distance pruning
-
-
-

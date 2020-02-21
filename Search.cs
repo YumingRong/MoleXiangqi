@@ -236,7 +236,7 @@ namespace MoleXiangqi
             }
 
             if (mvBest.sqSrc != 0)
-                SetBestMove(mvBest, best);
+                SetBestMove(mvBest, best, depthleft);
             return best;
         }
 
@@ -278,7 +278,7 @@ namespace MoleXiangqi
                         stat.Cutoffs++;
                         //吃送吃的子不记录为推荐着法
                         if (mv.pcDst != stepList[stepList.Count - 1].move.pcSrc)
-                            SetBestMove(mv, best);
+                            SetBestMove(mv, best, depthleft);
                         return vl;
                     }
                 }
@@ -364,9 +364,6 @@ namespace MoleXiangqi
                 if (vl > beta)
                 {
                     stat.Cutoffs++;
-                    //吃送吃的子不记录为推荐着法
-                    if (mv.pcDst != stepList[stepList.Count - 1].move.pcSrc)
-                        SetBestMove(mv, best);
                     return vl;
                 }
                 if (vl > best)
