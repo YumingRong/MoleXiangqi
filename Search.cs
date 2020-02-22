@@ -53,11 +53,6 @@ namespace MoleXiangqi
         {
             stopwatch = new Stopwatch();
             rootMoves = new List<KeyValuePair<MOVE, int>>();
-
-            //临时，需删除           
-            killers = new MOVE[G.MAX_PLY, 2];
-            history = new int[40, 256];
-            MateKiller = new MOVE[G.MAX_PLY];
         }
 
         public MOVE SearchMain(int maxDepth)
@@ -65,8 +60,8 @@ namespace MoleXiangqi
             stat = new STATISTIC();
             PVLine = new List<MOVE>();
             MateKiller = new MOVE[G.MAX_PLY];
-            killers = new MOVE[G.MAX_PLY, 2];
-            history = new int[40, 256];
+            Killers = new MOVE[G.MAX_PLY, 2];
+            History = new int[40, 256];
             rootMoves = InitRootMoves();
 
             int vl = 0;
@@ -80,7 +75,7 @@ namespace MoleXiangqi
                 stopwatch.Start();
                 vl = SearchRoot(depthleft);
                 stopwatch.Stop();
-                
+
                 stat.ElapsedTime += stopwatch.ElapsedMilliseconds;
                 Debug.WriteLine(stat);
                 PopPVLine();
@@ -208,6 +203,7 @@ namespace MoleXiangqi
             MOVE mvBest = new MOVE();
             bool bResearch = false;
             List<MOVE> subpv = null;
+            List<MOVE> played = new List<MOVE>();
             IEnumerable<MOVE> moves = GetNextMove(7);
             foreach (MOVE mv in moves)
             {
@@ -231,6 +227,7 @@ namespace MoleXiangqi
                 }
                 depth--;
                 UnmakeMove();
+                played.Add(mv);
                 if (vl > best)
                 {
                     best = vl;
@@ -238,6 +235,13 @@ namespace MoleXiangqi
                     {
                         stat.Cutoffs++;
                         mvBest = mv;
+                        if (mv.sqDst == 0)
+                        {
+                            played.Remove(mv);
+                            foreach (MOVE m in played)
+                                HistoryBad(m);
+                            HistoryGood(mv);
+                        }
                         break;
                     }
                     if (vl > alpha)
@@ -252,9 +256,7 @@ namespace MoleXiangqi
                 }
             }
 
-            Debug.Assert(mvBest.sqSrc != 0);
-            if (mvBest.pcDst == 0)
-                SetBestMove(mvBest, best, depthleft);
+            SetBestMove(mvBest, best, depthleft);
             return best;
         }
 
@@ -276,6 +278,7 @@ namespace MoleXiangqi
 
             IEnumerable<MOVE> moves = GetNextMove(7);
             MOVE mvBest = new MOVE();
+            List<MOVE> played = new List<MOVE>();
             foreach (MOVE mv in moves)
             {
                 Debug.Write(new string('\t', depth));
@@ -285,6 +288,7 @@ namespace MoleXiangqi
                 int vl = -SearchCut(1 - beta, depthleft - 1);
                 depth--;
                 UnmakeMove();
+                played.Add(mv);
 
                 if (vl > best)
                 {
@@ -292,16 +296,19 @@ namespace MoleXiangqi
                     mvBest = mv;
                     if (vl > beta)
                     {
-                        //吃送吃的子不记录为推荐着法
-                        //if (mvBest.pcDst != stepList[stepList.Count - 1].move.pcSrc)
-                        //    SetBestMove(mvBest, best, depthleft);
+                        if (mv.sqDst == 0)
+                        {
+                            played.Remove(mv);
+                            foreach (MOVE m in played)
+                                HistoryBad(m);
+                            HistoryGood(mv);
+                        }
                         stat.Cutoffs++;
                         return vl;
                     }
                 }
             }
-            if (mvBest.pcDst == 0)
-                SetBestMove(mvBest, best, depthleft);
+            SetBestMove(mvBest, best, depthleft);
             return best;
         }
 
