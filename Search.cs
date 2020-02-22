@@ -60,7 +60,7 @@ namespace MoleXiangqi
             MateKiller = new MOVE[G.MAX_PLY];
         }
 
-        public MOVE SearchMain(int depthleft)
+        public MOVE SearchMain(int maxDepth)
         {
             stat = new STATISTIC();
             PVLine = new List<MOVE>();
@@ -72,17 +72,17 @@ namespace MoleXiangqi
             int vl = 0;
 
             // 6. 做迭代加深搜索
-            for (int maxDepth = 1; maxDepth <= depthleft; maxDepth++)
+            for (int depthleft = 1; depthleft <= maxDepth; depthleft++)
             {
-                Console.WriteLine("---------------------------");
-                Console.WriteLine("Search depth {0}", maxDepth);
+                Debug.WriteLine("---------------------------");
+                Console.WriteLine("info depth {0}", depthleft);
 
                 stopwatch.Start();
-                vl = SearchRoot(maxDepth);
+                vl = SearchRoot(depthleft);
                 stopwatch.Stop();
                 
                 stat.ElapsedTime += stopwatch.ElapsedMilliseconds;
-                Console.WriteLine(stat);
+                Debug.WriteLine(stat);
                 PopPVLine();
                 if (rootMoves.Count == 1)
                 {
@@ -111,6 +111,7 @@ namespace MoleXiangqi
             for (int i = 0; i < rootMoves.Count; i++)
             {
                 MOVE mv = rootMoves[i].Key;
+                Console.WriteLine($"info currmove {mv}, currmovenumber {i}");
                 Debug.Write(new string('\t', depth));
                 Debug.WriteLine($"{mv} {alpha}, {beta}");
                 MakeMove(mv);
@@ -168,7 +169,26 @@ namespace MoleXiangqi
             return alpha;
         }
 
-        public int SearchPV(int alpha, int beta, int depthleft, out List<MOVE> pvs)
+        int HarmlessPruning(int beta)
+        {
+            if (stepList[stepList.Count - 1].halfMoveClock >= 120)
+                return 0;
+            RepititionResult rep = Repitition();
+            if (rep != RepititionResult.NONE)
+                return (int)rep;
+
+            if (G.UseDistancePruning)
+            {
+                // lower bound
+                int vl = -G.MATE + depth + 2;
+                if (vl > beta)
+                    return vl;
+            }
+
+            return -G.MATE;
+        }
+
+        int SearchPV(int alpha, int beta, int depthleft, out List<MOVE> pvs)
         {
             pvs = new List<MOVE>();
             if (depthleft <= 0)
@@ -181,15 +201,11 @@ namespace MoleXiangqi
             }
 
             stat.PVNodes++;
-            if (stepList[stepList.Count - 1].halfMoveClock >= 120)
-                return 0;
-            RepititionResult rep = Repitition();
-            if (rep != RepititionResult.NONE)
-                return (int)rep;
 
+            int best = HarmlessPruning(beta);
+            if (best > -G.MATE)
+                return best;
             MOVE mvBest = new MOVE();
-            int best = -G.MATE;
-            int vl;
             bool bResearch = false;
             List<MOVE> subpv = null;
             IEnumerable<MOVE> moves = GetNextMove(7);
@@ -199,6 +215,7 @@ namespace MoleXiangqi
                 Debug.WriteLine($"{mv} {alpha}, {beta}, {best}");
                 MakeMove(mv);
                 depth++;
+                int vl;
                 if (best == -G.MATE)
                     vl = -SearchPV(-beta, -alpha, depthleft - 1, out subpv);
                 else
@@ -235,7 +252,8 @@ namespace MoleXiangqi
                 }
             }
 
-            if (mvBest.sqSrc != 0)
+            Debug.Assert(mvBest.sqSrc != 0);
+            if (mvBest.pcDst == 0)
                 SetBestMove(mvBest, best, depthleft);
             return best;
         }
@@ -252,14 +270,12 @@ namespace MoleXiangqi
             }
 
             stat.CutNodes++;
-            if (stepList[stepList.Count - 1].halfMoveClock >= 120)
-                return 0;
-            RepititionResult rep = Repitition();
-            if (rep != RepititionResult.NONE)
-                return (int)rep;
+            int best = HarmlessPruning(beta);
+            if (best > -G.MATE)
+                return best;
 
-            int best = -G.MATE;
             IEnumerable<MOVE> moves = GetNextMove(7);
+            MOVE mvBest = new MOVE();
             foreach (MOVE mv in moves)
             {
                 Debug.Write(new string('\t', depth));
@@ -273,16 +289,19 @@ namespace MoleXiangqi
                 if (vl > best)
                 {
                     best = vl;
+                    mvBest = mv;
                     if (vl > beta)
                     {
-                        stat.Cutoffs++;
                         //吃送吃的子不记录为推荐着法
-                        if (mv.pcDst != stepList[stepList.Count - 1].move.pcSrc)
-                            SetBestMove(mv, best, depthleft);
+                        //if (mvBest.pcDst != stepList[stepList.Count - 1].move.pcSrc)
+                        //    SetBestMove(mvBest, best, depthleft);
+                        stat.Cutoffs++;
                         return vl;
                     }
                 }
             }
+            if (mvBest.pcDst == 0)
+                SetBestMove(mvBest, best, depthleft);
             return best;
         }
 

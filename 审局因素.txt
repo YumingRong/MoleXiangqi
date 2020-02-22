@@ -38,7 +38,7 @@ SEE Pseudo code:
 
 void PreSEE()
 {
-	Generate List<int sqFrom, int sqPinned> AbsolutePins;
+	Generate List<int sqFrom, int sqPin, int sqTo> AbsolutePins;
 }
 
 List<MOVE> GenerateMoves(side = sdPlayer)
@@ -56,6 +56,7 @@ int[] ModeMoves()
 {
 	foreach (MOVE mv in MoveList)
 	{
+		assign killer and history score to mv;
 		List<MOVE> attackers = (Captures[me] + Quiets[me]) where cap.To == sqDst;
 		List<MOVE> defenders = (Capptures[opp] + Quiets[opp]) where cap.To == sqDst;
 		score[i] = SEE(mv.sqDst, attackers, defenders);
@@ -66,7 +67,7 @@ int[] ModeMoves()
 int SEE(int sqDst, List<MOVE> attackers, List<MOVE> defenders)
 {
 	MOVE mv = Lowest piece Value in attackers;
-	if (mv.sqSrc is in RelativePins.sqPin || mv.sqSrc is in AbsolutePin.sqFrom)
+	if (mv.sqSrc is in RelativePins.sqPin || mv.sqSrc is in AbsolutePin.sqFrom || mv.sqSrc is in AbsolutePin.sqTo)
 		return UNCERTAIN;
 	if (cap.pcFrom == KING)
 		if (defenders.Count == 0)
@@ -78,14 +79,20 @@ int SEE(int sqDst, List<MOVE> attackers, List<MOVE> defenders)
 		return 0;
 	
 	int vlDst = PieceValue[mv.pcDst];
-	if (defenders.Count == 0)
-		return vlDst;
 	MovePiece(mv);
 	attackers.Remove(mv);
 	List<int sqFrom> Slides = (Rook & Cannon defend where defend.sqDst == sqDst);
 	defenders.Append(Slides);
+	if (defenders.Count == 0)
+		return vlDst;
 
 	score = SEE (sqDst, defenders, attackers);
 	UndoMovePiece(mv);
 	return max(0, vlDst - score);
 }
+
+着法和打分要不要分阶段生成
+Quiesce延伸条件
+zobristkey ^ turn
+
+

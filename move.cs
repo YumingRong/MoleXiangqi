@@ -36,7 +36,7 @@ namespace MoleXiangqi
 
         public override int GetHashCode()
         {
-            return (sqSrc<<8) + sqDst;
+            return (sqSrc << 8) + sqDst;
         }
 
         public static bool operator ==(MOVE left, MOVE right)
@@ -151,6 +151,8 @@ namespace MoleXiangqi
                 step.zobrist ^= Zobrist.Get(mv.pcDst, mv.sqDst);
                 step.halfMoveClock = 0;
             }
+            if (cnPieceKinds[mv.pcSrc] == PAWN && SQUARE_FORWARD(mv.sqSrc, 1 - sdPlayer) == mv.sqDst)
+                step.halfMoveClock = 0;
             stepList.Add(step);
         }
 
