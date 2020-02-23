@@ -625,8 +625,8 @@ namespace MoleXiangqi
                                 delta = ccKingDelta[j];
                                 for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
                                 {
-                                    pcDst = pcSquares[sqDst];
                                     attackMap[side, sqDst].Add(pc);
+                                    pcDst = pcSquares[sqDst];
                                     if (pcDst != 0)
                                         break;
                                 }
