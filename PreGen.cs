@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace MoleXiangqi
@@ -182,6 +182,14 @@ namespace MoleXiangqi
         void InitPreGen()
         {
             int i, j, n, sqSrc, sqDst;
+            for (n= 0;n<2;n++)
+                for (int x = FILE_LEFT; x <= FILE_RIGHT; x++)
+                    for (int y = RANK_TOP; y <= RANK_BOTTOM; y++)
+                    {
+                        int sq = XY2Coord(x, y);
+                        attackMap[n, sq] = new List<int>();
+                    }
+
             // 接下来生成着法预生成数组，连同将军预判数组
             for (sqSrc = 0; sqSrc < 256; sqSrc++)
             {

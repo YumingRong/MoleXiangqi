@@ -181,6 +181,144 @@ namespace MoleXiangqi
             return mvs.Count == 0;
         }
 
+        //在形如红马-黑车-黑将的棋型中，黑车是可以吃红马的. Record from and to square
+        List<Tuple<int, int>> pinexception;
+        //Record <sqFrom, sqPinned, sqTo>
+        List<Tuple<int, int, int>> AbsolutePins = new List<Tuple<int, int, int>>();
+        //发现己方被绝对牵制
+        //0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
+        //输出<被牵制的方向，实施牵制的对方棋子位置>
+        int[] FindAbsolutePin(int side)
+        {
+            //举例：当头炮与对方的帅之间隔了自己的马和对方的相，
+            //自己的马就放在DiscoveredAttack里，对方的相就在PinnedPieces里
+            int[] PinnedPieces = new int[48];
+            pinexception.Clear();
+            AbsolutePins.Clear();
+            int sqSrc, pcDst, delta;
+            int oppside = 1 - side;
+
+            int bas, sqKing;
+            //find absolute pin. 0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
+            bas = OPP_SIDE_TAG(side);
+            sqKing = sqPieces[SIDE_TAG(side) + KING_FROM];
+
+            //对阻挡将军的子进行判断
+            void CheckBlocker(int pcBlocker, int direction)
+            {
+                if (SIDE(pcBlocker) == side)
+                    PinnedPieces[pcBlocker] |= direction;
+                //AbsolutePins.Add(new Tuple<int, int, int>(sqSrc, sqPieces[pcBlocker], sqKing));
+            }
+
+            for (int pc = bas + ROOK_FROM; pc <= bas + ROOK_TO; pc++)
+            {
+                sqSrc = sqPieces[pc];
+                if (SAME_FILE(sqSrc, sqKing))
+                {
+                    delta = Math.Sign(sqKing - sqSrc) * 16;
+                    int pcBlocker = 0, nblock = 0;
+                    for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
+                    {
+                        if (pcSquares[sq] != 0)
+                        {
+                            pcBlocker = pcSquares[sq];
+                            nblock++;
+                        }
+                    }
+                    if (nblock == 1)
+                        CheckBlocker(pcBlocker, 1);
+                }
+
+                if (SAME_RANK(sqSrc, sqKing))
+                {
+                    delta = Math.Sign(sqKing - sqSrc);
+                    int pcBlocker = 0, nblock = 0;
+                    for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
+                    {
+                        if (pcSquares[sq] != 0)
+                        {
+                            pcBlocker = pcSquares[sq];
+                            nblock++;
+                        }
+                    }
+                    if (nblock == 1)
+                        CheckBlocker(pcBlocker, 2);
+                }
+            }
+
+            for (int pc = bas + CANNON_FROM; pc <= bas + CANNON_TO; pc++)
+            {
+                sqSrc = sqPieces[pc];
+                if (SAME_FILE(sqSrc, sqKing))
+                {
+                    delta = Math.Sign(sqKing - sqSrc) * 16;
+                    int nblock = 0;
+                    for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
+                    {
+                        if (pcSquares[sq] != 0)
+                            nblock++;
+                    }
+                    if (nblock == 2)
+                        for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
+                            if (pcSquares[sq] > 0)
+                                CheckBlocker(pcSquares[sq], 1);
+                }
+                if (SAME_RANK(sqSrc, sqKing))
+                {
+                    delta = Math.Sign(sqKing - sqSrc);
+                    int nblock = 0;
+                    for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
+                    {
+                        if (pcSquares[sq] != 0)
+                            nblock++;
+                    }
+                    if (nblock == 2)
+                        for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
+                            if (pcSquares[sq] > 0)
+                                CheckBlocker(pcSquares[sq], 2);
+                }
+            }
+
+            // 3. 判断将是否被马威胁(以仕/士的步长当作马腿)
+            for (int i = 0; i < 4; i++)
+            {
+                int sqBlocker = sqKing + ccGuardDelta[i];
+                int pcBlocker = pcSquares[sqBlocker];
+                if (pcBlocker != 0)
+                    for (int j = 0; j < 2; j++)
+                    {
+                        int sqKnight = sqKing + ccKnightCheckDelta[i, j];
+                        pcDst = pcSquares[sqKnight];
+                        if (cnPieceTypes[pcDst] == bas + KNIGHT && SIDE(pcBlocker) == oppside)
+                        {
+                            PinnedPieces[pcBlocker] |= 3;
+                            //在形如红马-黑车-黑将的棋型中，黑车是可以吃红马的
+                            if (IsLegalMove(sqBlocker, sqKnight))
+                                pinexception.Add(new Tuple<int, int>(sqBlocker, sqKnight));
+                        }
+                    }
+            }
+
+            //4. Is there king face to face risk?
+            sqSrc = sqPieces[32 + KING_FROM];
+            int sqDst = sqPieces[16 + KING_FROM];
+            if (SAME_FILE(sqSrc, sqDst))
+            {
+                int pcBlocker = 0, nblock = 0;
+                for (int i = sqSrc + 16; i < sqDst; i += 16)
+                    if (pcSquares[i] > 0)
+                    {
+                        pcBlocker = i;
+                        nblock++;
+                    }
+                if (nblock == 1)
+                    CheckBlocker(pcBlocker, 1);
+            }
+
+            return PinnedPieces;
+        }
+
         //The move generated are after check test. So they are already legal. 
         List<MOVE> GenerateMoves()
         {
@@ -189,6 +327,7 @@ namespace MoleXiangqi
             int delta;
             List<MOVE> mvs = new List<MOVE>();
             int[] pins = FindAbsolutePin(sdPlayer);
+
             myBase = SIDE_TAG(sdPlayer);
             oppBase = OPP_SIDE_TAG(sdPlayer);
 
@@ -290,7 +429,7 @@ namespace MoleXiangqi
                 sqSrc = sqPieces[pcSrc];
                 if (sqSrc == 0 || pins[pcSrc] > 0)
                     continue;
-                for (int j = 0; (sqDst= csqKnightMoves[sqSrc,j])>0; j++)
+                for (int j = 0; (sqDst = csqKnightMoves[sqSrc, j]) > 0; j++)
                 {
                     if (pcSquares[csqKnightPins[sqSrc, j]] == 0)
                     {
@@ -338,9 +477,9 @@ namespace MoleXiangqi
                 sqSrc = sqPieces[pcSrc];
                 if (sqSrc == 0 || pins[pcSrc] > 0)
                     continue;
-                for (int j = 0; (sqDst = csqBishopMoves[sqSrc,j])>0; j++)
+                for (int j = 0; (sqDst = csqBishopMoves[sqSrc, j]) > 0; j++)
                 {
-                    if (pcSquares[(sqDst+sqSrc)/2] == 0)
+                    if (pcSquares[(sqDst + sqSrc) / 2] == 0)
                     {
                         pcDst = pcSquares[sqDst];
                         if ((pcDst & myBase) == 0)
@@ -355,17 +494,17 @@ namespace MoleXiangqi
                 sqSrc = sqPieces[pcSrc];
                 if (sqSrc == 0 || pins[pcSrc] > 0)
                     continue;
-                for (int j = 0; (sqDst = csqAdvisorMoves[sqSrc,j]) >0; j++)
+                for (int j = 0; (sqDst = csqAdvisorMoves[sqSrc, j]) > 0; j++)
                 {
-                        pcDst = pcSquares[sqDst];
-                        if ((pcDst & myBase) == 0)
-                            AddMove();
+                    pcDst = pcSquares[sqDst];
+                    if ((pcDst & myBase) == 0)
+                        AddMove();
                 }
             }
 
             pcSrc = myBase + KING_FROM;
             sqSrc = sqPieces[pcSrc];
-            for (int i = 0; (sqDst = csqKingMoves[sqSrc, i])!=0; i++)
+            for (int i = 0; (sqDst = csqKingMoves[sqSrc, i]) != 0; i++)
             {
                 pcDst = pcSquares[sqDst];
                 if ((pcDst & myBase) == 0)
@@ -386,412 +525,131 @@ namespace MoleXiangqi
             return mvs;
         }
 
-        //在形如红马-黑车-黑将的棋型中，黑车是可以吃红马的. Record from and to square
-        List<Tuple<int, int>> pinexception;
-        //发现己方被绝对牵制
-        //0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
-        //输出<被牵制的方向，实施牵制的对方棋子位置>
-        int[] FindAbsolutePin(int side)
-        {
-            //举例：当头炮与对方的帅之间隔了自己的马和对方的相，
-            //自己的马就放在DiscoveredAttack里，对方的相就在PinnedPieces里
-            int[] PinnedPieces = new int[48];
-            pinexception.Clear();
-            int sqSrc, pcDst, delta;
-            int oppside = 1 - side;
-
-            //对阻挡将军的子进行判断
-            void CheckBlocker(int pcBlocker, int direction)
-            {
-                if (SIDE(pcBlocker) == side)
-                    PinnedPieces[pcBlocker] |= direction;
-            }
-
-            int bas, sqKing;
-            //find absolute pin. 0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
-            bas = OPP_SIDE_TAG(side);
-            sqKing = sqPieces[SIDE_TAG(side) + KING_FROM];
-
-            for (int pc = bas + ROOK_FROM; pc <= bas + ROOK_TO; pc++)
-            {
-                sqSrc = sqPieces[pc];
-                if (SAME_FILE(sqSrc, sqKing))
-                {
-                    delta = Math.Sign(sqKing - sqSrc) * 16;
-                    int pcBlocker = 0, nblock = 0;
-                    for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
-                    {
-                        if (pcSquares[sq] != 0)
-                        {
-                            pcBlocker = pcSquares[sq];
-                            nblock++;
-                        }
-                    }
-                    if (nblock == 1)
-                        CheckBlocker(pcBlocker, 1);
-                }
-
-                if (SAME_RANK(sqSrc, sqKing))
-                {
-                    delta = Math.Sign(sqKing - sqSrc);
-                    int pcBlocker = 0, nblock = 0;
-                    for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
-                    {
-                        if (pcSquares[sq] != 0)
-                        {
-                            pcBlocker = pcSquares[sq];
-                            nblock++;
-                        }
-                    }
-                    if (nblock == 1)
-                        CheckBlocker(pcBlocker, 2);
-                }
-            }
-
-            for (int pc = bas + CANNON_FROM; pc <= bas + CANNON_TO; pc++)
-            {
-                sqSrc = sqPieces[pc];
-                if (SAME_FILE(sqSrc, sqKing))
-                {
-                    delta = Math.Sign(sqKing - sqSrc) * 16;
-                    int nblock = 0;
-                    for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
-                    {
-                        if (pcSquares[sq] != 0)
-                            nblock++;
-                    }
-                    if (nblock == 2)
-                        for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
-                            CheckBlocker(pcSquares[sq], 1);
-                }
-                if (SAME_RANK(sqSrc, sqKing))
-                {
-                    delta = Math.Sign(sqKing - sqSrc);
-                    int nblock = 0;
-                    for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
-                    {
-                        if (pcSquares[sq] != 0)
-                            nblock++;
-                    }
-                    if (nblock == 2)
-                        for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
-                            CheckBlocker(pcSquares[sq], 2);
-                }
-            }
-
-            // 3. 判断将是否被马威胁(以仕/士的步长当作马腿)
-            for (int i = 0; i < 4; i++)
-            {
-                int sqBlocker = sqKing + ccGuardDelta[i];
-                int pcBlocker = pcSquares[sqBlocker];
-                if (pcBlocker != 0)
-                    for (int j = 0; j < 2; j++)
-                    {
-                        int sqKnight = sqKing + ccKnightCheckDelta[i, j];
-                        pcDst = pcSquares[sqKnight];
-                        if (cnPieceTypes[pcDst] == bas + KNIGHT && SIDE(pcBlocker) == oppside)
-                        {
-                            PinnedPieces[pcBlocker] |= 3;
-                            //在形如红马-黑车-黑将的棋型中，黑车是可以吃红马的
-                            if (IsLegalMove(sqBlocker, sqKnight))
-                                pinexception.Add(new Tuple<int, int>(sqBlocker, sqKnight));
-                        }
-                    }
-            }
-
-            //4. Is there king face to face risk?
-            sqSrc = sqPieces[32 + KING_FROM];
-            int sqDst = sqPieces[16 + KING_FROM];
-            if (SAME_FILE(sqSrc, sqDst))
-            {
-                int pcBlocker = 0, nblock = 0;
-                for (int i = sqSrc + 16; i < sqDst; i += 16)
-                    if (pcSquares[i] > 0)
-                    {
-                        pcBlocker = i;
-                        nblock++;
-                    }
-                if (nblock == 1)
-                    CheckBlocker(pcBlocker, 1);
-            }
-
-            return PinnedPieces;
-        }
-
         //该函数类似于于Evaluate的内部函数，只是去掉位置数组，并单边赋值，以提高速度，并减少耦合
         //如发现任何bug，须一同修改
         //调用前须先运行FindAbsolutePin(side)来生成绝对牵制信息
-        int[] GenAttackMap(int side)
+        List<int>[,] attackMap = new List<int>[2, 256];
+        void GenAttackMap()
         {
             int sqSrc, sqDst, pcDst, delta;
-            int[] attackMap = new int[256];    //非行棋方保存攻击该格的价值最低的棋子
-
-            //find absolute pin. 0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
-            //Generate enemy attack map, from most valuable piece to cheap piece
-            int[] PinnedPieces = FindAbsolutePin(side);
-            int bas = SIDE_TAG(side);
-            for (int pc = bas; pc < bas + 16; pc++)
+            for (int side = 0; side<2;side++)
             {
-                sqSrc = sqPieces[pc];
-                if (sqSrc == 0)
-                    continue;
-                int pin = PinnedPieces[pc];
+                for (int x = FILE_LEFT; x<=FILE_RIGHT;x++)
+                    for(int y= RANK_TOP; y<= RANK_BOTTOM;y++)
+                    {
+                        int sq = XY2Coord(x, y);
+                        attackMap[side, sq].Clear();
+                    }
+                //find absolute pin. 0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
+                //Generate enemy attack map, from most valuable piece to cheap piece
 
-                switch (cnPieceKinds[pc])
+                int[] PinnedPieces = FindAbsolutePin(side);
+                int bas = SIDE_TAG(side);
+                for (int pc = bas; pc < bas + 16; pc++)
                 {
-                    case KING:
-                        for (int i = 0; i < 4; i++)
-                        {
-                            sqDst = sqSrc + ccKingDelta[i];
-                            if (IN_FORT[sqDst])
-                                attackMap[sqDst] = pc;
-                        }
-                        break;
-                    case ROOK:
-                        for (int j = 0; j < 4; j++)
-                        {
-                            if (ccPinDelta[pin, j])
+                    sqSrc = sqPieces[pc];
+                    if (sqSrc == 0)
+                        continue;
+                    int pin = PinnedPieces[pc];
+
+                    switch (cnPieceKinds[pc])
+                    {
+                        case GUARD:
+                            if (pin > 0)
                                 continue;
-                            delta = ccKingDelta[j];
-                            for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
+                            for (int j = 0; j < 4; j++)
                             {
-                                pcDst = pcSquares[sqDst];
-                                attackMap[sqDst] = pc;
-                                if (pcDst != 0)
-                                    break;
+                                sqDst = sqSrc + ccGuardDelta[j];
+                                if (IN_FORT[sqDst])
+                                    attackMap[side, sqDst].Add(pc);
                             }
-                        }
-                        break;
-                    case CANNON:
-                        for (int j = 0; j < 4; j++)
-                        {
-                            if (ccPinDelta[pin, j])
+                            break;
+                        case BISHOP:
+                            if (pin > 0)
                                 continue;
-                            delta = ccKingDelta[j];
-                            for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
+                            for (int j = 0; j < 4; j++)
                             {
-                                if (pcSquares[sqDst] != 0) //炮架
+                                sqDst = sqSrc + ccGuardDelta[j];
+                                if (HOME_HALF[side, sqDst] && pcSquares[sqDst] == 0)
+                                    attackMap[side, sqDst + ccGuardDelta[j]].Add(pc);
+                            }
+                            break;
+                        case PAWN:
+                            if ((pin & 1) == 0)
+                                attackMap[side, SQUARE_FORWARD(sqSrc, side)].Add(pc);
+                            if ((pin & 2) == 0)
+                                if (HOME_HALF[1 - side, sqSrc])
                                 {
-                                    for (sqDst += delta; IN_BOARD[sqDst]; sqDst += delta)
-                                    {
-                                        attackMap[sqDst] = pc;
-                                        if (pcSquares[sqDst] != 0) //直瞄点
-                                            goto NextFor;
-                                    }
+                                    attackMap[side, sqSrc + 1].Add(pc);
+                                    attackMap[side, sqSrc - 1].Add(pc);
+                                }
+                            break;
+                        case KNIGHT:
+                            if (pin > 0)
+                                continue;
+                            for (int j = 0; j < 4; j++)
+                            {
+                                if (pcSquares[sqSrc + ccKingDelta[j]] == 0)
+                                {
+                                    attackMap[side, sqSrc + ccKnightDelta[j, 0]].Add(pc);
+                                    attackMap[side, sqSrc + ccKnightDelta[j, 1]].Add(pc);
                                 }
                             }
-                        NextFor:;
-                        }
-                        break;
-                    case KNIGHT:
-                        if (pin > 0)
-                            continue;
-                        for (int j = 0; j < 4; j++)
-                        {
-                            if (pcSquares[sqSrc + ccKingDelta[j]] == 0)
+                            break;
+                        case CANNON:
+                            for (int j = 0; j < 4; j++)
                             {
-                                attackMap[sqSrc + ccKnightDelta[j, 0]] = pc;
-                                attackMap[sqSrc + ccKnightDelta[j, 1]] = pc;
+                                if (ccPinDelta[pin, j])
+                                    continue;
+                                delta = ccKingDelta[j];
+                                for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
+                                {
+                                    if (pcSquares[sqDst] != 0) //炮架
+                                    {
+                                        for (sqDst += delta; IN_BOARD[sqDst]; sqDst += delta)
+                                        {
+                                            attackMap[side, sqDst].Add(pc);
+                                            if (pcSquares[sqDst] != 0) //直瞄点
+                                                goto NextFor;
+                                        }
+                                    }
+                                }
+                            NextFor:;
                             }
-                        }
-                        break;
-                    case PAWN:
-                        if ((pin & 1) == 0)
-                            attackMap[SQUARE_FORWARD(sqSrc, side)] = pc;
-                        if ((pin & 2) == 0)
-                            if (HOME_HALF[1 - side, sqSrc])
+                            break;
+                        case ROOK:
+                            for (int j = 0; j < 4; j++)
                             {
-                                attackMap[sqSrc + 1] = pc;
-                                attackMap[sqSrc - 1] = pc;
+                                if (ccPinDelta[pin, j])
+                                    continue;
+                                delta = ccKingDelta[j];
+                                for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
+                                {
+                                    pcDst = pcSquares[sqDst];
+                                    attackMap[side, sqDst].Add(pc);
+                                    if (pcDst != 0)
+                                        break;
+                                }
                             }
-                        break;
-                    case BISHOP:
-                        if (pin > 0)
-                            continue;
-                        for (int j = 0; j < 4; j++)
-                        {
-                            sqDst = sqSrc + ccGuardDelta[j];
-                            if (HOME_HALF[side, sqDst] && pcSquares[sqDst] == 0)
-                                attackMap[sqDst + ccGuardDelta[j]] = pc;
-                        }
-                        break;
-                    case GUARD:
-                        if (pin > 0)
-                            continue;
-                        for (int j = 0; j < 4; j++)
-                        {
-                            sqDst = sqSrc + ccGuardDelta[j];
-                            if (IN_FORT[sqDst])
-                                attackMap[sqDst] = pc;
-                        }
-                        break;
+                            break;
+                        case KING:
+                            for (int i = 0; i < 4; i++)
+                            {
+                                sqDst = sqSrc + ccKingDelta[i];
+                                if (IN_FORT[sqDst])
+                                    attackMap[side, sqDst].Add(pc);
+                            }
+                            break;
+                    }
                 }
+
             }
             foreach (Tuple<int, int> pin in pinexception)
-                attackMap[pin.Item2] = pcSquares[pin.Item1];
-
-            return attackMap;
+            {
+                int pc = pcSquares[pin.Item1];
+                attackMap[SIDE(pc), pin.Item2].Add(pc);
+            }
         }
-
-
-        //着法生成器
-        //IEnumerable<MOVE> EnumGenerateMoves()
-        //{
-        //    int sqSrc, sqDst, pcDst, delta;
-        //    int pcSelfSide, pcOppSide;
-
-        //    pcSelfSide = SIDE_TAG(sdPlayer);
-        //    pcOppSide = OPP_SIDE_TAG(sdPlayer);
-
-        //    for (int i = ROOK_FROM; i <= ROOK_TO; i++)
-        //    {
-        //        sqSrc = sqPieces[pcSelfSide + i];
-        //        if (sqSrc == 0)
-        //            continue;
-        //        for (int j = 0; j < 4; j++)
-        //        {
-        //            delta = ccKingDelta[j];
-        //            for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
-        //            {
-        //                pcDst = pcSquares[sqDst];
-        //                if (pcDst == 0)
-        //                    yield return new MOVE(sqSrc, sqDst, pcSelfSide + i, 0);
-        //                else
-        //                {
-        //                    if ((pcDst & pcOppSide) != 0)
-        //                        yield return new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst);
-        //                    break;
-        //                }
-        //            }
-        //        }
-        //    }
-        //    for (int i = CANNON_FROM; i <= CANNON_TO; i++)
-        //    {
-        //        sqSrc = sqPieces[pcSelfSide + i];
-        //        if (sqSrc == 0)
-        //            continue;
-        //        for (int j = 0; j < 4; j++)
-        //        {
-        //            delta = ccKingDelta[j];
-        //            for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
-        //            {
-        //                pcDst = pcSquares[sqDst];
-        //                if (pcDst == 0)
-        //                    yield return new MOVE(sqSrc, sqDst, pcSelfSide + i, 0);
-        //                else
-        //                {
-        //                    for (sqDst += delta; IN_BOARD[sqDst]; sqDst += delta)
-        //                    {
-        //                        pcDst = pcSquares[sqDst];
-        //                        if (pcDst != 0)
-        //                        {
-        //                            if ((pcDst & pcOppSide) != 0)
-        //                                yield return new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst);
-        //                            goto NextFor1;
-        //                        }
-        //                    }
-
-        //                }
-        //            }
-        //        NextFor1:;
-        //        }
-        //    }
-
-        //    for (int i = KNIGHT_FROM; i <= KNIGHT_TO; i++)
-        //    {
-        //        sqSrc = sqPieces[pcSelfSide + i];
-        //        if (sqSrc == 0)
-        //            continue;
-        //        for (int j = 0; j < 4; j++)
-        //        {
-        //            int sqPin = sqSrc + ccKingDelta[j];
-        //            if (pcSquares[sqPin] == 0)
-        //            {
-        //                sqDst = sqSrc + ccKnightDelta[j, 0];
-        //                pcDst = pcSquares[sqDst];
-        //                if (IN_BOARD[sqDst] && (pcDst & pcSelfSide) == 0)
-        //                    yield return new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst);
-        //                sqDst = sqSrc + ccKnightDelta[j, 1];
-        //                pcDst = pcSquares[sqDst];
-        //                if (IN_BOARD[sqDst] && (pcDst & pcSelfSide) == 0)
-        //                    yield return new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst);
-        //            }
-        //        }
-        //    }
-
-        //    for (int i = PAWN_FROM; i <= PAWN_TO; i++)
-        //    {
-        //        sqSrc = sqPieces[pcSelfSide + i];
-        //        if (sqSrc == 0)
-        //            continue;
-        //        sqDst = SQUARE_FORWARD(sqSrc, sdPlayer);
-        //        if (IN_BOARD[sqDst])
-        //        {
-        //            pcDst = pcSquares[sqDst];
-        //            if ((pcDst & pcSelfSide) == 0)
-        //                yield return new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst);
-        //        }
-        //        if (HOME_HALF[1 - sdPlayer, sqSrc])
-        //        {
-        //            for (delta = -1; delta <= 1; delta += 2)
-        //            {
-        //                sqDst = sqSrc + delta;
-        //                if (IN_BOARD[sqDst])
-        //                {
-        //                    pcDst = pcSquares[sqDst];
-        //                    if ((pcDst & pcSelfSide) == 0)
-        //                        yield return new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst);
-        //                }
-        //            }
-        //        }
-        //    }
-
-        //    for (int i = BISHOP_FROM; i <= BISHOP_TO; i++)
-        //    {
-        //        sqSrc = sqPieces[pcSelfSide + i];
-        //        if (sqSrc == 0)
-        //            continue;
-        //        for (int j = 0; j < 4; j++)
-        //        {
-        //            sqDst = sqSrc + ccGuardDelta[j];
-        //            if (!(HOME_HALF[sdPlayer, sqDst] && pcSquares[sqDst] == 0))
-        //                continue;
-        //            sqDst += ccGuardDelta[j];
-        //            pcDst = pcSquares[sqDst];
-        //            if ((pcDst & pcSelfSide) == 0)
-        //                yield return new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst);
-        //        }
-        //    }
-
-        //    for (int i = GUARD_FROM; i <= GUARD_TO; i++)
-        //    {
-        //        sqSrc = sqPieces[pcSelfSide + i];
-        //        if (sqSrc == 0)
-        //            continue;
-        //        for (int j = 0; j < 4; j++)
-        //        {
-        //            sqDst = sqSrc + ccGuardDelta[j];
-        //            if (!IN_FORT[sqDst])
-        //            {
-        //                continue;
-        //            }
-        //            pcDst = pcSquares[sqDst];
-        //            if ((pcDst & pcSelfSide) == 0)
-        //                yield return new MOVE(sqSrc, sqDst, pcSelfSide + i, pcDst);
-        //        }
-        //    }
-
-        //    sqSrc = sqPieces[pcSelfSide + KING_FROM];
-        //    for (int i = 0; i < 4; i++)
-        //    {
-        //        sqDst = sqSrc + ccKingDelta[i];
-        //        if (!IN_FORT[sqDst])
-        //            continue;
-        //        pcDst = pcSquares[sqDst];
-        //        if ((pcDst & pcSelfSide) == 0)
-        //            yield return new MOVE(sqSrc, sqDst, pcSelfSide + KING_FROM, pcDst);
-        //    }
-        //}
 
     }
 }

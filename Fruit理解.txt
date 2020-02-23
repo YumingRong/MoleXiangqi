@@ -87,9 +87,54 @@ int full_root(list_t * list, board_t * board, int alpha, int beta, int depth, in
 
 int full_quiescence(board_t * board, int alpha, int beta, int depth, int height, mv_t pv[]) 
 1 void search_check()	看是否到了限定的时间、深度，以结束搜素
-1.1 void search_send_stat() 更新搜索统计数据
-1.2 bool board_is_repetition(const board_t * board)
-4.1.4 bool recog_draw(const board_t * board) 是否官和局面
+2 void search_send_stat() 更新搜索统计数据
+3 bool board_is_repetition(const board_t * board)
+4 bool recog_draw(const board_t * board) 是否官和局面
+5 mate-distance pruning
+6 如果不被照将，审局评分，并进行alpha-beta裁剪
+7 void sort_init_qs(sort_t * sort, board_t * board, const attack_t * attack, bool check) 
+	如果被照将，筛选所有防御着法；如果剩余深度>=0,筛选吃子及照将；否则，只筛选吃子。
+遍历着法列表，
+	8 int sort_next_qs(sort_t * sort) 
+		8.1	void gen_pseudo_evasions(list_t * list, const board_t * board, const attack_t * attack) 
+			8.1.1 bool gen_evasions(list_t * list, const board_t * board, const attack_t * attack, bool legal, bool stop) {
+				通过躲将、吃子和阻拦三种手段生成防御着法
+			8.2 void note_moves_simple(list_t * list, const board_t * board) 
+				给列表中的所有着法打分
+			8.2.1 int move_value_simple(int move, const board_t * board) 
+			8.2.1.1 int mvv_lva(int move, const board_t * board) 返回被吃子和走子的PIECE_ORDER差异
+			排序
+			8.6 bool pseudo_is_legal(int move, board_t * board) 
+				检查着法是否导致自杀。如果动王，看王的新位置是否受攻击。如果动其它子，看是否被pin且discover攻击线路。
+			8.6.1 bool is_attacked(const board_t * board, int to, int colour) 
+				遍历colour方棋子，返回是否攻击to格
+		8.3	void gen_captures(list_t * list, const board_t * board) 
+			生成吃子着法，返回list
+			8.4 void note_mvv_lva(list_t * list, const board_t * board) 
+				给列表中的所有着法打分
+			排序（与躲将的打分排序几乎无差别）
+			如果不是好的吃子或者造成自杀，跳过
+			8.7 bool capture_is_good(int move, const board_t * board)
+			8.7.1 int see_move(int move, const board_t * board) 
+		8.5 void gen_quiet_checks(list_t * list, board_t * board) 
+		8.5.1 void add_quiet_checks(list_t * list, const board_t * board) 
+			8.5.1.1 void find_pins(int list[], const board_t * board)
+				遍历己方所有棋子，如能间接照将，将阻拦的square放入list
+			生成所有抽将和直接照将着法
+			如果自杀或者送吃，跳过
+	delta pruning，默认不开
+	走子
+	做下一层静态搜索
+	撤销走子
+	alpha-beta裁剪
+
+
+static int full_no_null(board_t * board, int alpha, int beta, int depth, int height, mv_t pv[], int node_type, int trans_move, int * best_move) {
+
+
+
+
+
 4.1.5 bool board_is_mate(const board_t * board) 被将军且没有规避手段
 4.1.5.1 void attack_set(attack_t * attack, const board_t * board) 
 	遍历对方棋子，把所有将军的棋子位置和方向，放到attack列表里

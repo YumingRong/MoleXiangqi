@@ -38,16 +38,14 @@ SEE Pseudo code:
 
 void PreSEE()
 {
-	Generate List<int sqFrom, int sqPin, int sqTo> AbsolutePins;
+	Generate List<int sqFrom, int sqPin> AbsolutePins;
 }
 
 List<MOVE> GenerateMoves(side = sdPlayer)
 {
-	Generate List<int sqFrom, int sqPin, int sqTo> RelativePins; //for rook, cannon, knight, bishop
-	Generate List<int sqFrom, int sqTo>[2] Captures; //for all except rook and cannon
-	Generate List<int sqFrom, int sqTo>[2] Quiets; //for all pieces except cannon
+	Generate List<int sqFrom, int sqTo>[2] Moves; //for all except rook and cannon
 	Generate List<int sqFrom, int sqTo> CannonMoves;  
-	List<MOVE> movelist= Captures[side] + Quiets[side] + CannonMoves; 
+	List<MOVE> movelist= Moves[side] + CannonMoves; 
 	Removes those suicide;
 	return movelist;
 }
@@ -57,42 +55,16 @@ int[] ModeMoves()
 	foreach (MOVE mv in MoveList)
 	{
 		assign killer and history score to mv;
-		List<MOVE> attackers = (Captures[me] + Quiets[me]) where cap.To == sqDst;
-		List<MOVE> defenders = (Capptures[opp] + Quiets[opp]) where cap.To == sqDst;
+		List<MOVE> attackers = Moves[me] where cap.To == sqDst;
+		List<MOVE> defenders = Moves[opp] where cap.To == sqDst;
 		score[i] = SEE(mv.sqDst, attackers, defenders);
 	}
 }
 
-
-int SEE(int sqDst, List<MOVE> attackers, List<MOVE> defenders)
-{
-	MOVE mv = Lowest piece Value in attackers;
-	if (mv.sqSrc is in RelativePins.sqPin || mv.sqSrc is in AbsolutePin.sqFrom || mv.sqSrc is in AbsolutePin.sqTo)
-		return UNCERTAIN;
-	if (cap.pcFrom == KING)
-		if (defenders.Count == 0)
-		{
-			if (KingsFace2Face)
-				return vlDst;
-		}
-	else
-		return 0;
-	
-	int vlDst = PieceValue[mv.pcDst];
-	MovePiece(mv);
-	attackers.Remove(mv);
-	List<int sqFrom> Slides = (Rook & Cannon defend where defend.sqDst == sqDst);
-	defenders.Append(Slides);
-	if (defenders.Count == 0)
-		return vlDst;
-
-	score = SEE (sqDst, defenders, attackers);
-	UndoMovePiece(mv);
-	return max(0, vlDst - score);
-}
 
 着法和打分要不要分阶段生成
 Quiesce延伸条件
 zobristkey ^ turn
 
 
+Generate list of pieces <sqPC, sqSlider> that are attacked or protected by sliding pieces (rook & cannon)

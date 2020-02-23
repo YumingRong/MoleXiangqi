@@ -72,13 +72,12 @@ namespace MoleXiangqi
 
             for (int i = repStart; i <= nstep; i++)
             {
-                myAttackMap = GenAttackMap(sdPlayer);
-                oppAttackMap = GenAttackMap(1 - sdPlayer);
+                GenAttackMap();
                 //一子轮捉两子或多子作和。两子分别轮捉两子或多子亦作和局
                 //本方被捉只在偶数层有，奇数层没有；对方被捉只在奇数层有，偶数层没有
-                PerpChase[sdPlayer].RemoveWhere(delegate (int pc) { return !Chased(pc, myAttackMap, oppAttackMap); });
+                PerpChase[sdPlayer].RemoveWhere(delegate (int pc) { return !Chased(pc); });
                 //对方的棋子在此层应该不被捉
-                PerpChase[1 - sdPlayer].RemoveWhere(delegate (int pc) { return Chased(pc, oppAttackMap, myAttackMap); });
+                PerpChase[1 - sdPlayer].RemoveWhere(delegate (int pc) { return Chased(pc); });
 
                 MovePiece(stepList[i].move);
             }
@@ -95,38 +94,36 @@ namespace MoleXiangqi
             return RepititionResult.DRAW;
 
             //这里的捉指亚洲规则的捉，调用此函数前必须先执行GenAttMap()
-            bool Chased(int pc, int[] selfmap, int[] enemymap)
+            bool Chased(int pc)
             {
                 int[] rulePieceValue =
-                { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-            4, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            4, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            };
+                { 
+                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                    4, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                    4, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                };
                 int sq = sqPieces[pc];
                 int sd = SIDE(pc);
                 int sdOpp = 1 - sd;
-                int pcOpp = enemymap[sq];
-                if (pcOpp == 0)
+                if (attackMap[sdOpp, sq].Count == 0)
                     return false;  //没有捉子，排除
-                else if (cnPieceKinds[pc] == PAWN && HOME_HALF[sd, sq])
+                if (cnPieceKinds[pc] == PAWN && HOME_HALF[sd, sq])
                     return false;                     //可以长捉未过河的兵
-                else
-                {
-                    int sqOpp = sqPieces[pcOpp];
-                    if (cnPieceKinds[pcOpp] == PAWN || cnPieceKinds[pcOpp] == KING)
-                        return false;  //兵和将允许长捉其它子
-                    if (enemymap[sqOpp] == pc)
-                        return false;   //两子互捉，算成兑子，作和
-                    if (rulePieceValue[pc] <= rulePieceValue[pcOpp] && selfmap[sq] > 0)
-                        return false;   //攻击有根子不算捉，除非被攻击子价值更大
-                                        //如果吃子导致被将军，则该棋子被牵制中，不算捉子
-                    MOVE mv = new MOVE(sqOpp, sq, pcOpp, pc);
-                    MovePiece(mv);
-                    int suicide = CheckedBy(sdOpp);
-                    UndoMovePiece(mv);
-                    if (suicide > 0)
-                        return false;
-                }
+                int pcOpp = attackMap[sdOpp, sq][0];
+                if (cnPieceKinds[pcOpp] == PAWN || cnPieceKinds[pcOpp] == KING)
+                    return false;  //兵和将允许长捉其它子
+                int sqOpp = sqPieces[pcOpp];
+                if (attackMap[sd, sqOpp].Contains(pc))
+                    return false;   //两子互捉，算成兑子，作和
+                if (rulePieceValue[pc] <= rulePieceValue[pcOpp] && attackMap[sd, sq].Count > 0)
+                    return false;   //攻击有根子不算捉，除非被攻击子价值更大
+                                    //如果吃子导致被将军，则该棋子被牵制中，不算捉子
+                MOVE mv = new MOVE(sqOpp, sq, pcOpp, pc);
+                MovePiece(mv);
+                int suicide = CheckedBy(sdOpp);
+                UndoMovePiece(mv);
+                if (suicide > 0)
+                    return false;
                 return true;
             }
         }
