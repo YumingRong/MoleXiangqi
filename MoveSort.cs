@@ -42,12 +42,8 @@ namespace MoleXiangqi
             if (History[cnPieceTypes[mv.pcSrc] - 17, mv.sqDst] > HistoryMax)
             {
                 for (int pc = 0; pc < 14; pc++)
-                    for (int x = FILE_LEFT; x <= FILE_RIGHT; x++)
-                        for (int y = RANK_TOP; y <= RANK_BOTTOM; y++)
-                        {
-                            int sq = XY2Coord(x, y);
-                            History[pc, sq] /= 2;
-                        }
+                    foreach (int sq in cboard90)
+                        History[pc, sq] /= 2;
             }
             if (score > G.WIN)
                 MateKiller[depth] = mv;

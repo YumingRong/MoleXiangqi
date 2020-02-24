@@ -75,6 +75,8 @@ namespace MoleXiangqi
           1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 5, 5, 6, 6, 7, 7,
         };
 
+        public readonly static int[] cboard90 = new int[90]; 
+
         //Interface to graphic board. x, y is 0~9
         public int UI_GetPiece(int x, int y)
         {

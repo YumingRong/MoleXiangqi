@@ -38,10 +38,8 @@ namespace MoleXiangqi
         ulong CalculateZobrist()
         {
             ulong zob = 0;
-            for (int x = FILE_LEFT; x < FILE_RIGHT; x++)
-                for (int y = RANK_TOP; y < RANK_BOTTOM; y++)
+            foreach (int sq in cboard90)
                 {
-                    int sq = XY2Coord(x, y);
                     int pc = pcSquares[sq];
                     if (pc > 0)
                         zob ^= Zobrist.Get(pc, sq);

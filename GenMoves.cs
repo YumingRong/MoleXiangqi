@@ -540,12 +540,8 @@ namespace MoleXiangqi
             int sqSrc, sqDst, pcDst, delta;
             for (int side = 0; side < 2; side++)
             {
-                for (int x = FILE_LEFT; x <= FILE_RIGHT; x++)
-                    for (int y = RANK_TOP; y <= RANK_BOTTOM; y++)
-                    {
-                        int sq = XY2Coord(x, y);
-                        attackMap[side, sq].Clear();
-                    }
+                foreach (int sq in cboard90)
+                    attackMap[side, sq].Clear();
                 //find absolute pin. 0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
                 //Generate enemy attack map, from most valuable piece to cheap piece
 

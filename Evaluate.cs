@@ -413,11 +413,10 @@ namespace MoleXiangqi
 
             int[] connectivity = new int[2];
             captureMoves = new List<KeyValuePair<MOVE, int>>();
-            for (int y = RANK_TOP; y <= RANK_BOTTOM; y++)
-                for (int x = FILE_LEFT; x <= FILE_RIGHT; x++)
+            foreach (int sq in cboard90)
                 {
                     int conn00 = connectivity[0], conn01 = connectivity[1];
-                    sqDst = XY2Coord(x, y);
+                    sqDst = sq;
                     pcDst = pcSquares[sqDst];
                     int sd = SIDE(pcDst);
                     if (sd != -1)
