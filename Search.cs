@@ -107,7 +107,7 @@ namespace MoleXiangqi
             for (int i = 0; i < rootMoves.Count; i++)
             {
                 MOVE mv = rootMoves[i].Key;
-                Console.WriteLine($"info currmove {mv}, currmovenumber {i}");
+                //Console.WriteLine($"info currmove {mv}, currmovenumber {i}");
                 Debug.Write(new string('\t', depth));
                 Debug.WriteLine($"{mv} {alpha}, {beta}");
                 MakeMove(mv);
