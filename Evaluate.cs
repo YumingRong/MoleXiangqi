@@ -535,6 +535,8 @@ namespace MoleXiangqi
                                 }
                                 break;
                             case PAWN:
+                                positionValue[sd] += cKingPawnValue[sqMirror];
+                                break;
                             case KING:
                                 positionValue[sd] += cKingPawnValue[sqMirror];
                                 break;

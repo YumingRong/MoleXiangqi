@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace MoleXiangqi
 {
@@ -16,28 +17,25 @@ namespace MoleXiangqi
               5, 6, 6, 7, 7, 8, 8, 5, 5, 5, 5, 5, 4, 4, 4, 4
             };
 
-            readonly static ulong[,] table = new ulong[9, 256];
+            readonly static UInt64[,] table = new UInt64[9, 256];
 
             static Zobrist()
             {
                 Random rnd = new Random(20200115);
                 for (int i = 0; i < 9; i++)
                     for (int j = 0; j < 256; j++)
-                        table[i, j] = (ulong)(rnd.NextDouble() * UInt64.MaxValue);
+                        table[i, j] = (UInt64)(rnd.NextDouble() * UInt64.MaxValue);
             }
 
-            public static ulong Get(int pc, int sq)
+            public static UInt64 Get(int pc, int sq)
             {
                 return table[ZobristTypes[pc], sq];
             }
         };
-    }
 
-    partial class POSITION
-    {
-        ulong CalculateZobrist()
+        UInt64 CalculateZobrist()
         {
-            ulong zob = 0;
+            UInt64 zob = 0;
             foreach (int sq in cboard90)
                 {
                     int pc = pcSquares[sq];
@@ -47,5 +45,33 @@ namespace MoleXiangqi
             return zob;
         }
 
+        // 置换表结构，置换表信息夹在两个Zobrist校验锁中间，可以防止存取冲突
+        struct HashStruct
+        {
+            public UInt32 ZobristLock;
+            public UInt16 move;
+            public byte MinDepth,MaxDepth;
+            public Int16 alpha, beta;
+        }
+
+        Dictionary<UInt32, HashStruct> Trans;
+        // 存储置换表局面信息
+        void RecordHash(UInt64 key, int vl, int depth, MOVE mv)
+        {
+            Debug.Assert(vl < G.MATE && vl>-G.MATE);
+            if (vl > G.RULEWIN || vl < -G.RULEWIN)
+                return;
+            if (Trans.TryGetValue((UInt32)(key >> 16), out HashStruct entry))
+            {
+                if ((UInt32)(key & 0xffff) == entry.ZobristLock)
+                {
+                    if (entry.MinDepth <depth || entry.alpha> vl)
+                    {
+                        entry.alpha = (Int16)vl;
+                        entry.MinDepth = (byte)depth;
+                    }
+                }
+            }
+        }
     }
 }

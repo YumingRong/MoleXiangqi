@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace MoleXiangqi
 {
-    public enum RepititionResult { WIN = G.WIN + 10, DRAW = 0, LOSE = -G.WIN - 10, NONE };
+    public enum RepititionResult { WIN = G.RULEWIN, DRAW = 0, LOSE = -G.RULEWIN, NONE = -1 };
 
     partial class POSITION
     {
@@ -98,7 +98,7 @@ namespace MoleXiangqi
             {
                 Debug.Assert(pc >= 16 && pc < 48);
                 int[] rulePieceValue =
-                { 
+                {
                     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                     4, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                     4, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1,

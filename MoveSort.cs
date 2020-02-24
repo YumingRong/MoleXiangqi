@@ -26,19 +26,19 @@ namespace MoleXiangqi
           7, 8, 8, 9, 9,10,10,11,11,11,11,11,12,12,13,13
         };
 
-        void SetBestMove(MOVE mv, int score, int depthleft)
+        void SetBestMove(MOVE mv, int score, int depth)
         {
             Debug.Assert(mv.sqSrc != 0);
             Debug.Assert(score > -G.MATE && score < G.MATE);
-            Debug.Assert(depthleft >= 0);
+            Debug.Assert(depth >= 0);
             if (mv.pcDst > 0)
                 return;
-            if (Killers[depth, 0] != mv)
+            if (Killers[height, 0] != mv)
             {
-                Killers[depth, 1] = Killers[depth, 0];
-                Killers[depth, 0] = mv;
+                Killers[height, 1] = Killers[height, 0];
+                Killers[height, 0] = mv;
             }
-            History[cnPieceTypes[mv.pcSrc] - 17, mv.sqDst] += depthleft * depthleft;
+            History[cnPieceTypes[mv.pcSrc] - 17, mv.sqDst] += depth * depth;
             if (History[cnPieceTypes[mv.pcSrc] - 17, mv.sqDst] > HistoryMax)
             {
                 for (int pc = 0; pc < 14; pc++)
@@ -46,7 +46,7 @@ namespace MoleXiangqi
                         History[pc, sq] /= 2;
             }
             if (score > G.WIN)
-                MateKiller[depth] = mv;
+                MateKiller[height] = mv;
         }
 
         void HistoryGood(MOVE mv)
@@ -78,7 +78,7 @@ namespace MoleXiangqi
             bool wantCapture = (moveType & 0x02) > 0;
             bool wantAll = moveType == 7;
 
-            MOVE killer = MateKiller[depth];
+            MOVE killer = MateKiller[height];
             if (killer.pcSrc == pcSquares[killer.sqSrc] && killer.pcDst == pcSquares[killer.sqDst]
                 && IsLegalMove(killer.sqSrc, killer.sqDst))
             {
@@ -102,12 +102,12 @@ namespace MoleXiangqi
             {
                 int j = moves.FindIndex(x => x == Killers[sdPlayer, 0]);
                 if (j > -1)
-                    scores[j] = 15;
+                    scores[j] += KillerScore;
                 if (Killers[sdPlayer, 0].sqSrc > 0)
                 {
                     j = moves.FindIndex(x => x == Killers[sdPlayer, 1]);
                     if (j > -1)
-                        scores[j] = 10;
+                        scores[j] += KillerScore - 1;
                 }
             }
             for (int i = 0; i < moves.Count; i++)
@@ -131,10 +131,16 @@ namespace MoleXiangqi
                 }
                 else if (wantAll)
                 {
-                    //scores[i] += HistHit[cnPieceHistIndex[mv.pcSrc], mv.sqDst] * HistoryMax / (HistTotal[cnPieceHistIndex[mv.pcSrc], mv.sqDst] + 1) + HistoryScore;
                     kinds[i] |= 4;
                 }
-                scores[i] += SEE(mv, attackMap[sdPlayer, mv.sqDst], attackMap[1 - sdPlayer, mv.sqDst]);
+                int s = SEE(mv, attackMap[sdPlayer, mv.sqDst], attackMap[1 - sdPlayer, mv.sqDst]);
+                scores[i] += s;
+                if (s > 0)
+                    scores[i] += GoodScore;
+                else if (s == 0)
+                    scores[i] += HistHit[cnPieceHistIndex[mv.pcSrc], mv.sqDst] * HistoryMax / (HistTotal[cnPieceHistIndex[mv.pcSrc], mv.sqDst] + 1) + HistoryScore;
+                else
+                    scores[i] += BadScore;
             }
             List<KeyValuePair<MOVE, int>> l = new List<KeyValuePair<MOVE, int>>();
             for (int i = 0; i < moves.Count; i++)
