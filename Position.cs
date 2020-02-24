@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace MoleXiangqi
 {
@@ -96,6 +97,7 @@ namespace MoleXiangqi
 
         public static System.Drawing.Point UI_Coord2XY(int sq, bool flipped)
         {
+            Debug.Assert(IN_BOARD[sq]);
             if (flipped)
                 sq = SQUARE_FLIP(sq);
             return new System.Drawing.Point(FILE_X(sq) - FILE_LEFT, RANK_Y(sq) - RANK_TOP);
@@ -103,16 +105,19 @@ namespace MoleXiangqi
 
         public static int SQUARE_FLIP(int sq)
         {
+            Debug.Assert(IN_BOARD[sq]);
             return 254 - sq;
         }
 
         public static int FILE_FLIP(int x)
         {
+            Debug.Assert(x >= 0 && x < 16);
             return 14 - x;
         }
 
         public static int RANK_FLIP(int y)
         {
+            Debug.Assert(y >= 0 && y < 16);
             return 15 - y;
         }
 
@@ -123,36 +128,44 @@ namespace MoleXiangqi
          */
         public static int SIDE_TAG(int sd)
         {
+            Debug.Assert(sd == 0 || sd == 1);
             return (sd > 0 ? 32 : 16);
         }
 
         public static int OPP_SIDE_TAG(int sd)
         {
+            Debug.Assert(sd == 0 || sd == 1);
             return (sd > 0 ? 16 : 32);
         }
 
         public static int INDEX(int pc)
         {
+            Debug.Assert(pc < 48);
             return pc & 15;
         }
 
         public static int SIDE(int pc)
         {
+            Debug.Assert(pc < 48);
             return (pc >> 4) - 1;
         }
 
         public static int XY2Coord(int x, int y)
         {
+            Debug.Assert(x >= 0 && x < 16);
+            Debug.Assert(y >= 0 && y < 16);
             return x + (y << 4);
         }
 
         public static int FILE_X(int sq)
         {
+            Debug.Assert(IN_BOARD[sq]);
             return sq & 15;
         }
 
         public static int RANK_Y(int sq)
         {
+            Debug.Assert(IN_BOARD[sq]);
             return sq >> 4;
         }
 

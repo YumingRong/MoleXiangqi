@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace MoleXiangqi
 {
@@ -10,7 +11,6 @@ namespace MoleXiangqi
         // 重复局面检测。支持亚洲规则
         public RepititionResult Repitition()
         {
-            int[] myAttackMap, oppAttackMap;
             int repStart = -1;
             int nstep = stepList.Count - 1;
             // 1. 首先检测历史局面中是否有当前局面，如果没有，就用不着判断了
@@ -96,6 +96,7 @@ namespace MoleXiangqi
             //这里的捉指亚洲规则的捉，调用此函数前必须先执行GenAttMap()
             bool Chased(int pc)
             {
+                Debug.Assert(pc >= 16 && pc < 48);
                 int[] rulePieceValue =
                 { 
                     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -103,6 +104,7 @@ namespace MoleXiangqi
                     4, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                 };
                 int sq = sqPieces[pc];
+                Debug.Assert(IN_BOARD[sq]);
                 int sd = SIDE(pc);
                 int sdOpp = 1 - sd;
                 if (attackMap[sdOpp, sq].Count == 0)
@@ -131,6 +133,7 @@ namespace MoleXiangqi
         //http://blog.sina.com.cn/s/blog_5fd97aa90100vq5p.html
         public RepititionResult RuleTest(string filename)
         {
+            Debug.Assert(filename != null);
             PgnFileStruct pgn = ReadPgnFile(filename);
             FromFEN(pgn.StartFEN);
             foreach (MOVE mv in pgn.MoveList)

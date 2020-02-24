@@ -29,6 +29,8 @@ namespace MoleXiangqi
         void SetBestMove(MOVE mv, int score, int depthleft)
         {
             Debug.Assert(mv.sqSrc != 0);
+            Debug.Assert(score > -G.MATE && score < G.MATE);
+            Debug.Assert(depthleft >= 0);
             if (mv.pcDst > 0)
                 return;
             if (Killers[depth, 0] != mv)
@@ -177,10 +179,7 @@ namespace MoleXiangqi
                     if (mv.pcDst == 0 && stepList.Count >= 2 && mv.sqSrc == stepList[stepList.Count - 2].checking)
                         scores[i] -= 5;
                 }
-                else
-                {
-                    scores[i] += SEE(mv, attackMap[sdPlayer, mv.sqDst], attackMap[1 - sdPlayer, mv.sqDst]);
-                }
+                scores[i] += SEE(mv, attackMap[sdPlayer, mv.sqDst], attackMap[1 - sdPlayer, mv.sqDst]);
             }
             List<KeyValuePair<MOVE, int>> l = new List<KeyValuePair<MOVE, int>>();
             for (int i = 0; i < moves.Count; i++)
@@ -207,72 +206,162 @@ namespace MoleXiangqi
             Console.WriteLine("End of moves");
         }
 
-        int SEE(MOVE mv, List<int> attackers, List<int> defenders)
+        //SEE is basically as same as SubSEE. But it copy the attack and defend list to make them mutable
+        //SEE can return negative value. SubSEE only return positive value. 
+        int SEE(MOVE mv, in List<int> attackers, List<int> defenders)
         {
             Debug.Assert(mv.sqSrc != 0);
             Debug.Assert(attackers != null);
-            Debug.Assert(defenders!=null);
+            Debug.Assert(defenders != null);
             if (!(cnPieceKinds[mv.pcSrc] == CANNON && mv.pcDst == 0))
                 Debug.Assert(attackers.Contains(mv.pcSrc));
 
+            List<int> atts = new List<int>(attackers);
+            List<int> defs = new List<int>(defenders);
+
             int sqDst = mv.sqDst;
+            int vlDst = cnPieceValue[pcSquares[sqDst]];
+            MovePiece(mv);
+            Debug.Assert(CheckedBy(1 - sdPlayer) == 0);
+            //find defending slider piece behind the attacking piece
+            int attKind = cnPieceKinds[mv.pcSrc];
+            bool potentialHideSlider = attKind == PAWN || attKind == ROOK || attKind == KING;
+            if (potentialHideSlider)
+            {
+                foreach (int pc in attackMap[sdPlayer, mv.sqSrc])
+                {
+                    int d = cnPieceKinds[pc];
+                    if (d == CANNON || d == ROOK)
+                    {
+                        int sqDef = sqPieces[pc];
+                        if ((SAME_FILE(sqDef, sqDst) || SAME_RANK(sqDef, sqDst)) && Math.Sign(sqDst - mv.sqSrc) == Math.Sign(mv.sqSrc - sqDef))
+                        {
+                            defs.Add(pc);
+                            defs.Sort(delegate (int x, int y) { return y.CompareTo(x); });
+                        }
+                    }
+                }
+                //cancel defending cannon behind the piece
+                if (defs.Count > 0 && cnPieceKinds[defs[0]] == CANNON)
+                {
+                    int sqCannon = sqPieces[defs[0]];
+                    if ((SAME_FILE(sqCannon, mv.sqSrc) || SAME_RANK(sqCannon, mv.sqDst)) && Math.Sign(sqDst - mv.sqSrc) == Math.Sign(mv.sqSrc - sqCannon))
+                        defs.RemoveAt(0);
+                }
+            }
+            if (defs.Count == 0)
+            {
+                UndoMovePiece(mv);
+                return vlDst;
+            }
+            if (!(cnPieceKinds[mv.pcSrc] == CANNON && mv.pcDst == 0)) //only for tier 1
+                atts.Remove(mv.pcSrc);
+            if (potentialHideSlider)
+            {
+                foreach (int pc in attackMap[SIDE(mv.pcSrc), mv.sqSrc])
+                {
+                    int d = cnPieceKinds[pc];
+                    if (d == CANNON || d == ROOK)
+                    {
+                        int sqDef = sqPieces[pc];
+                        if ((SAME_FILE(sqDef, sqDst) || SAME_RANK(sqDef, sqDst)) && Math.Sign(sqDst - mv.sqSrc) == Math.Sign(mv.sqSrc - sqDef))
+                        {
+                            atts.Add(pc);
+                            atts.Sort(delegate (int x, int y) { return y.CompareTo(x); });
+                        }
+                    }
+                }
+                //cancel attacking cannon behind the piece
+                if (atts.Count > 0 && cnPieceKinds[atts[0]] == CANNON)
+                {
+                    int sqCannon = sqPieces[atts[0]];
+                    if ((SAME_FILE(sqCannon, mv.sqSrc) || SAME_RANK(sqCannon, mv.sqDst)) && Math.Sign(sqDst - mv.sqSrc) == Math.Sign(mv.sqSrc - sqCannon))
+                        atts.RemoveAt(0);
+                }
+            }
+            MOVE dmv = new MOVE(sqPieces[defs[0]], sqDst, defs[0], mv.pcSrc);
+            Debug.Assert(IsLegalMove(sqPieces[defs[0]], sqDst));
+            int score = -SubSEE(dmv, defs, atts);
+            UndoMovePiece(mv);
+            return vlDst + score;
+        }
+
+        int SubSEE(MOVE mv, in List<int> atts, List<int> defs)
+        {
+            Debug.Assert(mv.sqSrc != 0);
+            Debug.Assert(atts != null);
+            Debug.Assert(defs != null);
+            if (!(cnPieceKinds[mv.pcSrc] == CANNON && mv.pcDst == 0))
+                Debug.Assert(atts.Contains(mv.pcSrc));
+
+            int sqDst = mv.sqDst;
+            int vlDst = cnPieceValue[pcSquares[sqDst]];
             MovePiece(mv);
             if (cnPieceKinds[mv.pcSrc] == KING)
-                if (KingsFace2Face())
+                if (defs.Count > 0 || KingsFace2Face())
                 {
                     UndoMovePiece(mv);
                     return 0;
                 }
-            int vlDst = cnPieceValue[pcSquares[sqDst]];
-            if (!(cnPieceKinds[mv.pcSrc] == CANNON && mv.pcDst == 0))
-                attackers.Remove(mv.pcSrc);
             //find defending slider piece behind the attacking piece
-            int defSlider = 0;
-            foreach (int pc in attackMap[1 - SIDE(mv.pcSrc), mv.sqSrc])
+            int attKind = cnPieceKinds[mv.pcSrc];
+            bool potentialHideSlider = attKind == PAWN || attKind == ROOK || attKind == KING;
+            if (potentialHideSlider)
             {
-                int d = cnPieceKinds[pc];
-                if (d == CANNON || d == ROOK)
+                foreach (int pc in attackMap[sdPlayer, mv.sqSrc])
                 {
-                    int sqDef = sqPieces[pc];
-                    if ((SAME_FILE(sqDef, sqDst) || SAME_RANK(sqDef, sqDst)) && Math.Sign(sqDst - mv.sqSrc) == Math.Sign(mv.sqSrc - sqDef))
+                    int d = cnPieceKinds[pc];
+                    if (d == CANNON || d == ROOK)
                     {
-                        defSlider = pc;
-                        defenders.Add(defSlider);
-                        defenders.Sort(delegate (int x, int y) { return cnPieceValue[x].CompareTo(cnPieceValue[y]); });
+                        int sqDef = sqPieces[pc];
+                        if ((SAME_FILE(sqDef, sqDst) || SAME_RANK(sqDef, sqDst)) && Math.Sign(sqDst - mv.sqSrc) == Math.Sign(mv.sqSrc - sqDef))
+                        {
+                            defs.Add(pc);
+                            defs.Sort(delegate (int x, int y) { return y.CompareTo(x); });
+                        }
                     }
                 }
+                //cancel defending cannon behind the piece
+                if (defs.Count > 0 && cnPieceKinds[defs[0]] == CANNON)
+                {
+                    int sqCannon = sqPieces[defs[0]];
+                    if ((SAME_FILE(sqCannon, mv.sqSrc) || SAME_RANK(sqCannon, mv.sqDst)) && Math.Sign(sqDst - mv.sqSrc) == Math.Sign(mv.sqSrc - sqCannon))
+                        defs.RemoveAt(0);
+                }
             }
-            if (defenders.Count == 0)
+            if (defs.Count == 0)
             {
-                if (!(cnPieceKinds[mv.pcSrc] == CANNON && mv.pcDst == 0))
-                    attackers.Add(mv.pcSrc);
                 UndoMovePiece(mv);
                 return vlDst;
             }
-            int attSlider = 0;
-            foreach (int pc in attackMap[SIDE(mv.pcSrc), mv.sqSrc])
+            atts.Remove(mv.pcSrc);
+            if (potentialHideSlider)
             {
-                int d = cnPieceKinds[pc];
-                if (d == CANNON || d == ROOK)
+                foreach (int pc in attackMap[SIDE(mv.pcSrc), mv.sqSrc])
                 {
-                    int sqDef = sqPieces[pc];
-                    if ((SAME_FILE(sqDef, sqDst) || SAME_RANK(sqDef, sqDst)) && Math.Sign(sqDst - mv.sqSrc) == Math.Sign(mv.sqSrc - sqDef))
+                    int d = cnPieceKinds[pc];
+                    if (d == CANNON || d == ROOK)
                     {
-                        attSlider = pc;
-                        attackers.Add(attSlider);
-                        attackers.Sort(delegate (int x, int y) { return cnPieceValue[x].CompareTo(cnPieceValue[y]); });
+                        int sqDef = sqPieces[pc];
+                        if ((SAME_FILE(sqDef, sqDst) || SAME_RANK(sqDef, sqDst)) && Math.Sign(sqDst - mv.sqSrc) == Math.Sign(mv.sqSrc - sqDef))
+                        {
+                            atts.Add(pc);
+                            atts.Sort(delegate (int x, int y) { return y.CompareTo(x); });
+                        }
                     }
                 }
+                //cancel attacking cannon behind the piece
+                if (atts.Count > 0 && cnPieceKinds[atts[0]] == CANNON)
+                {
+                    int sqCannon = sqPieces[atts[0]];
+                    if ((SAME_FILE(sqCannon, mv.sqSrc) || SAME_RANK(sqCannon, mv.sqDst)) && Math.Sign(sqDst - mv.sqSrc) == Math.Sign(mv.sqSrc - sqCannon))
+                        atts.RemoveAt(0);
+                }
             }
-            MOVE dmv = new MOVE(sqPieces[defenders[0]], sqDst, defenders[0], mv.pcSrc);
-            Debug.Assert(IsLegalMove(sqPieces[defenders[0]], sqDst));
-            int score = -SEE(dmv, defenders, attackers);
-            if (attSlider > 0)
-                attackers.Remove(attSlider);
-            if (defSlider > 0)
-                defenders.Remove(defSlider);
+            MOVE dmv = new MOVE(sqPieces[defs[0]], sqDst, defs[0], mv.pcSrc);
+            Debug.Assert(IsLegalMove(sqPieces[defs[0]], sqDst));
+            int score = -SubSEE(dmv, defs, atts);
             UndoMovePiece(mv);
-            attackers.Insert(0, mv.pcSrc);
             return Math.Max(0, vlDst + score);
         }
 

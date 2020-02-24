@@ -33,6 +33,7 @@ namespace MoleXiangqi
         //暂不支持（变招）识别
         public PgnFileStruct ReadPgnFile(string szFileName)
         {
+            Debug.Assert(szFileName != null);
             PgnFileStruct PGN = new PgnFileStruct();
             FromFEN(cszStartFen);
             PGN.StartFEN = cszStartFen;

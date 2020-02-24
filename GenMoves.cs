@@ -93,6 +93,7 @@ namespace MoleXiangqi
         // 判断是否被将军
         public int CheckedBy(int side)
         {
+            Debug.Assert(side == 0 || side == 1);
             int i, j, sqSrc, sqDst;
             int pcSelfSide, pcOppSide, pcDst, delta;
             pcSelfSide = SIDE_TAG(side);
@@ -192,6 +193,8 @@ namespace MoleXiangqi
         {
             //举例：当头炮与对方的帅之间隔了自己的马和对方的相，
             //自己的马就放在DiscoveredAttack里，对方的相就在PinnedPieces里
+            Debug.Assert(side == 0 || side == 1);
+
             int[] PinnedPieces = new int[48];
             pinexception.Clear();
             AbsolutePins.Clear();
@@ -309,7 +312,7 @@ namespace MoleXiangqi
                 for (int i = sqSrc + 16; i < sqDst; i += 16)
                     if (pcSquares[i] > 0)
                     {
-                        pcBlocker = i;
+                        pcBlocker = pcSquares[i];
                         nblock++;
                     }
                 if (nblock == 1)
@@ -446,27 +449,28 @@ namespace MoleXiangqi
                 sqSrc = sqPieces[pcSrc];
                 if (sqSrc == 0)
                     continue;
-                if ((pins[pcSrc] & 1) == 0)
+                sqDst = SQUARE_FORWARD(sqSrc, sdPlayer);
+                if (IN_BOARD[sqDst])
                 {
-                    sqDst = SQUARE_FORWARD(sqSrc, sdPlayer);
-                    if (IN_BOARD[sqDst])
+                    pcDst = pcSquares[sqDst];
+                    if ((pcDst & myBase) == 0)
+                        AddMove();
+                }
+                if ((pins[pcSrc] & 2) == 0)
+                {
+                    sqDst = sqSrc - 1;
+                    if (HOME_HALF[1 - sdPlayer, sqDst])
                     {
                         pcDst = pcSquares[sqDst];
                         if ((pcDst & myBase) == 0)
                             AddMove();
                     }
-                }
-                if (HOME_HALF[1 - sdPlayer, sqSrc] && (pins[pcSrc] & 2) == 0)
-                {
-                    for (delta = -1; delta <= 1; delta += 2)
+                    sqDst = sqSrc + 1;
+                    if (HOME_HALF[1 - sdPlayer, sqDst])
                     {
-                        sqDst = sqSrc + delta;
-                        if (IN_BOARD[sqDst])
-                        {
-                            pcDst = pcSquares[sqDst];
-                            if ((pcDst & myBase) == 0)
-                                AddMove();
-                        }
+                        pcDst = pcSquares[sqDst];
+                        if ((pcDst & myBase) == 0)
+                            AddMove();
                     }
                 }
             }
@@ -532,10 +536,10 @@ namespace MoleXiangqi
         void GenAttackMap()
         {
             int sqSrc, sqDst, pcDst, delta;
-            for (int side = 0; side<2;side++)
+            for (int side = 0; side < 2; side++)
             {
-                for (int x = FILE_LEFT; x<=FILE_RIGHT;x++)
-                    for(int y= RANK_TOP; y<= RANK_BOTTOM;y++)
+                for (int x = FILE_LEFT; x <= FILE_RIGHT; x++)
+                    for (int y = RANK_TOP; y <= RANK_BOTTOM; y++)
                     {
                         int sq = XY2Coord(x, y);
                         attackMap[side, sq].Clear();
@@ -545,7 +549,7 @@ namespace MoleXiangqi
 
                 int[] PinnedPieces = FindAbsolutePin(side);
                 int bas = SIDE_TAG(side);
-                for (int pc = bas; pc < bas + 16; pc++)
+                for (int pc = bas + 15; pc >= bas; pc--)
                 {
                     sqSrc = sqPieces[pc];
                     if (sqSrc == 0)
@@ -554,45 +558,22 @@ namespace MoleXiangqi
 
                     switch (cnPieceKinds[pc])
                     {
-                        case GUARD:
-                            if (pin > 0)
-                                continue;
+                        case KING:
+                            for (int i = 0; (sqDst = csqKingMoves[sqSrc, i]) != 0; i++)
+                                attackMap[side, sqDst].Add(pc);
+                            break;
+                        case ROOK:
                             for (int j = 0; j < 4; j++)
                             {
-                                sqDst = sqSrc + ccGuardDelta[j];
-                                if (IN_FORT[sqDst])
+                                if (ccPinDelta[pin, j])
+                                    continue;
+                                delta = ccKingDelta[j];
+                                for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
+                                {
                                     attackMap[side, sqDst].Add(pc);
-                            }
-                            break;
-                        case BISHOP:
-                            if (pin > 0)
-                                continue;
-                            for (int j = 0; j < 4; j++)
-                            {
-                                sqDst = sqSrc + ccGuardDelta[j];
-                                if (HOME_HALF[side, sqDst] && pcSquares[sqDst] == 0)
-                                    attackMap[side, sqDst + ccGuardDelta[j]].Add(pc);
-                            }
-                            break;
-                        case PAWN:
-                            if ((pin & 1) == 0)
-                                attackMap[side, SQUARE_FORWARD(sqSrc, side)].Add(pc);
-                            if ((pin & 2) == 0)
-                                if (HOME_HALF[1 - side, sqSrc])
-                                {
-                                    attackMap[side, sqSrc + 1].Add(pc);
-                                    attackMap[side, sqSrc - 1].Add(pc);
-                                }
-                            break;
-                        case KNIGHT:
-                            if (pin > 0)
-                                continue;
-                            for (int j = 0; j < 4; j++)
-                            {
-                                if (pcSquares[sqSrc + ccKingDelta[j]] == 0)
-                                {
-                                    attackMap[side, sqSrc + ccKnightDelta[j, 0]].Add(pc);
-                                    attackMap[side, sqSrc + ccKnightDelta[j, 1]].Add(pc);
+                                    pcDst = pcSquares[sqDst];
+                                    if (pcDst != 0)
+                                        break;
                                 }
                             }
                             break;
@@ -617,28 +598,41 @@ namespace MoleXiangqi
                             NextFor:;
                             }
                             break;
-                        case ROOK:
-                            for (int j = 0; j < 4; j++)
+                        case KNIGHT:
+                            if (pin > 0)
+                                continue;
+                            for (int j = 0; (sqDst = csqKnightMoves[sqSrc, j]) > 0; j++)
                             {
-                                if (ccPinDelta[pin, j])
-                                    continue;
-                                delta = ccKingDelta[j];
-                                for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
-                                {
+                                if (pcSquares[csqKnightPins[sqSrc, j]] == 0)
                                     attackMap[side, sqDst].Add(pc);
-                                    pcDst = pcSquares[sqDst];
-                                    if (pcDst != 0)
-                                        break;
-                                }
                             }
                             break;
-                        case KING:
-                            for (int i = 0; i < 4; i++)
+                        case PAWN:
+                            sqDst = SQUARE_FORWARD(sqSrc, side);
+                            if (IN_BOARD[sqDst])
+                                attackMap[side, sqDst].Add(pc);
+                            if ((pin & 2) == 0)
                             {
-                                sqDst = sqSrc + ccKingDelta[i];
-                                if (IN_FORT[sqDst])
+                                if (HOME_HALF[1 - side, sqSrc - 1])
+                                    attackMap[side, sqSrc - 1].Add(pc);
+                                if (HOME_HALF[1 - side, sqSrc + 1])
+                                    attackMap[side, sqSrc + 1].Add(pc);
+                            }
+                            break;
+                        case BISHOP:
+                            if (pin > 0)
+                                continue;
+                            for (int j = 0; (sqDst = csqBishopMoves[sqSrc, j]) > 0; j++)
+                            {
+                                if (pcSquares[(sqDst + sqSrc) / 2] == 0)
                                     attackMap[side, sqDst].Add(pc);
                             }
+                            break;
+                        case GUARD:
+                            if (pin > 0)
+                                continue;
+                            for (int j = 0; (sqDst = csqAdvisorMoves[sqSrc, j]) > 0; j++)
+                                attackMap[side, sqDst].Add(pc);
                             break;
                     }
                 }
@@ -648,6 +642,7 @@ namespace MoleXiangqi
             {
                 int pc = pcSquares[pin.Item1];
                 attackMap[SIDE(pc), pin.Item2].Add(pc);
+                attackMap[SIDE(pc), pin.Item2].Sort(delegate (int x, int y) { return y.CompareTo(x); });
             }
         }
 

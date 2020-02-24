@@ -121,7 +121,9 @@ namespace MoleXiangqi
 
         public void MovePiece(MOVE mv)
         {
-            Debug.Assert(IN_BOARD[mv.sqDst]);
+            Debug.Assert(IN_BOARD[mv.sqSrc] && IN_BOARD[mv.sqDst]);
+            Debug.Assert(mv.pcSrc > 0);
+
             sqPieces[mv.pcDst] = 0;
             sqPieces[mv.pcSrc] = mv.sqDst;
             pcSquares[mv.sqSrc] = 0;
@@ -131,6 +133,9 @@ namespace MoleXiangqi
 
         public void UndoMovePiece(MOVE mv)
         {
+            Debug.Assert(IN_BOARD[mv.sqSrc] && IN_BOARD[mv.sqDst]);
+            Debug.Assert(mv.pcSrc > 0);
+
             sqPieces[mv.pcSrc] = mv.sqSrc;
             pcSquares[mv.sqSrc] = mv.pcSrc;
             sqPieces[mv.pcDst] = mv.sqDst;
@@ -151,8 +156,6 @@ namespace MoleXiangqi
                 step.zobrist ^= Zobrist.Get(mv.pcDst, mv.sqDst);
                 step.halfMoveClock = 0;
             }
-            if (cnPieceKinds[mv.pcSrc] == PAWN && SQUARE_FORWARD(mv.sqSrc, 1 - sdPlayer) == mv.sqDst)
-                step.halfMoveClock = 0;
             stepList.Add(step);
         }
 

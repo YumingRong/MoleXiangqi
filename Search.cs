@@ -57,6 +57,7 @@ namespace MoleXiangqi
 
         public MOVE SearchMain(int maxDepth)
         {
+            Debug.Assert(maxDepth > 0);
             stat = new STATISTIC();
             PVLine = new List<MOVE>();
             MateKiller = new MOVE[G.MAX_PLY];
