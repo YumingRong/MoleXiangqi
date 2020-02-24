@@ -183,7 +183,8 @@ namespace MoleXiangqi
         }
 
         //在形如红马-黑车-黑将的棋型中，黑车是可以吃红马的. Record from and to square
-        List<Tuple<int, int>> pinexception;
+        List<Tuple<int, int>> pinexception = new List<Tuple<int, int>>();
+        bool[,] bannedGrids;
         //Record <sqFrom, sqPinned, sqTo>
         List<Tuple<int, int, int>> AbsolutePins = new List<Tuple<int, int, int>>();
         //发现己方被绝对牵制
@@ -198,6 +199,7 @@ namespace MoleXiangqi
             int[] PinnedPieces = new int[48];
             pinexception.Clear();
             AbsolutePins.Clear();
+            bannedGrids = new bool[2, 256];
             int sqSrc, pcDst, delta;
             int oppside = 1 - side;
 
@@ -253,23 +255,13 @@ namespace MoleXiangqi
             for (int pc = bas + CANNON_FROM; pc <= bas + CANNON_TO; pc++)
             {
                 sqSrc = sqPieces[pc];
+                delta = 0;
                 if (SAME_FILE(sqSrc, sqKing))
-                {
                     delta = Math.Sign(sqKing - sqSrc) * 16;
-                    int nblock = 0;
-                    for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
-                    {
-                        if (pcSquares[sq] != 0)
-                            nblock++;
-                    }
-                    if (nblock == 2)
-                        for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
-                            if (pcSquares[sq] > 0)
-                                CheckBlocker(pcSquares[sq], 1);
-                }
                 if (SAME_RANK(sqSrc, sqKing))
-                {
                     delta = Math.Sign(sqKing - sqSrc);
+                if (delta != 0)
+                {
                     int nblock = 0;
                     for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
                     {
@@ -277,9 +269,16 @@ namespace MoleXiangqi
                             nblock++;
                     }
                     if (nblock == 2)
+                    {
                         for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
                             if (pcSquares[sq] > 0)
                                 CheckBlocker(pcSquares[sq], 2);
+                    }
+                    else if (nblock == 0)
+                    {
+                        for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
+                            bannedGrids[1 - side, sq] = true;
+                    }
                 }
             }
 
@@ -330,12 +329,15 @@ namespace MoleXiangqi
             int delta;
             List<MOVE> mvs = new List<MOVE>();
             int[] pins = FindAbsolutePin(sdPlayer);
+            FindAbsolutePin(1 - sdPlayer);
 
             myBase = SIDE_TAG(sdPlayer);
             oppBase = OPP_SIDE_TAG(sdPlayer);
 
             void AddMove()
             {
+                if (bannedGrids[sdPlayer, sqDst])
+                    return;
                 MOVE mv = new MOVE(sqSrc, sqDst, pcSrc, pcDst);
                 int mySide = sdPlayer;
                 if (pins[pcSrc] == 0)

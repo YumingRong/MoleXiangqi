@@ -132,19 +132,13 @@ namespace MoleXiangqi
                 else if (mv.pcDst > 0 && !(cnPieceKinds[mv.pcDst] >= 5 && HOME_HALF[SIDE(mv.pcDst), mv.sqDst]))
                 {//吃子，不包括吃仕相和未过河的兵
                     kinds[i] |= 2;
-                    scores[i] += SEE(mv, attackMap[sdPlayer, mv.sqDst], attackMap[1 - sdPlayer, mv.sqDst]);
-                    //if capture last moving piece, it's probably a good capture
-                    if (mv.sqDst == stepList[stepList.Count - 1].move.sqDst)
-                        scores[i] += cnPieceValue[mv.pcDst];
-                    else
-                        scores[i] += cnPieceValue[mv.pcDst] / 2;
                 }
                 else if (wantAll)
                 {
-                    scores[i] += SEE(mv, attackMap[sdPlayer, mv.sqDst], attackMap[1 - sdPlayer, mv.sqDst]);
                     //scores[i] += HistHit[cnPieceHistIndex[mv.pcSrc], mv.sqDst] * HistoryMax / (HistTotal[cnPieceHistIndex[mv.pcSrc], mv.sqDst] + 1) + HistoryScore;
                     kinds[i] |= 4;
                 }
+                scores[i] += SEE(mv, attackMap[sdPlayer, mv.sqDst], attackMap[1 - sdPlayer, mv.sqDst]);
             }
             List<KeyValuePair<MOVE, int>> l = new List<KeyValuePair<MOVE, int>>();
             for (int i = 0; i < moves.Count; i++)
