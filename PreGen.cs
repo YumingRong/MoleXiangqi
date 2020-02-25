@@ -182,10 +182,6 @@ namespace MoleXiangqi
         void InitPreGen()
         {
             int i, n, sqSrc, sqDst;
-            for (n= 0;n<2;n++)
-                foreach(int sq in cboard90)
-                        attackMap[n, sq] = new List<int>();
-
             n = 0;
             for (int x = FILE_LEFT; x <= FILE_RIGHT; x++)
                 for (int y = RANK_TOP; y <= RANK_BOTTOM; y++)
@@ -193,6 +189,10 @@ namespace MoleXiangqi
                     int sq = XY2Coord(x, y);
                     cboard90[n++] = sq;
                 }
+
+            for (n = 0; n < 2; n++)
+                foreach (int sq in cboard90)
+                    attackMap[n, sq] = new List<int>();
 
             // 接下来生成着法预生成数组，连同将军预判数组
             for (sqSrc = 0; sqSrc < 256; sqSrc++)

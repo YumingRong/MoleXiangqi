@@ -18,13 +18,14 @@ namespace MoleXiangqi
             };
 
             readonly static UInt64[,] table = new UInt64[9, 256];
-
+            public readonly static UInt64 turn;
             static Zobrist()
             {
                 Random rnd = new Random(20200115);
                 for (int i = 0; i < 9; i++)
                     for (int j = 0; j < 256; j++)
                         table[i, j] = (UInt64)(rnd.NextDouble() * UInt64.MaxValue);
+                turn = (UInt64)(rnd.NextDouble() * UInt64.MaxValue);
             }
 
             public static UInt64 Get(int pc, int sq)

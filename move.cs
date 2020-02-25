@@ -148,7 +148,7 @@ namespace MoleXiangqi
             MovePiece(mv);
             RECORD step;
             step.move = mv;
-            step.zobrist = stepList[stepList.Count - 1].zobrist ^ Zobrist.Get(mv.pcSrc, mv.sqSrc) ^ Zobrist.Get(mv.pcSrc, mv.sqDst);
+            step.zobrist = stepList[stepList.Count - 1].zobrist ^ Zobrist.Get(mv.pcSrc, mv.sqSrc) ^ Zobrist.Get(mv.pcSrc, mv.sqDst) ^ Zobrist.turn;
             step.checking = CheckedBy(sdPlayer);
             step.halfMoveClock = stepList[stepList.Count - 1].halfMoveClock + 1;
             if (mv.pcDst > 0)
