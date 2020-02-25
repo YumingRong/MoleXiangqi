@@ -38,41 +38,12 @@ namespace MoleXiangqi
         {
             UInt64 zob = 0;
             foreach (int sq in cboard90)
-                {
-                    int pc = pcSquares[sq];
-                    if (pc > 0)
-                        zob ^= Zobrist.Get(pc, sq);
-                }
-            return zob;
-        }
-
-        // 置换表结构，置换表信息夹在两个Zobrist校验锁中间，可以防止存取冲突
-        struct HashStruct
-        {
-            public UInt32 ZobristLock;
-            public UInt16 move;
-            public byte MinDepth,MaxDepth;
-            public Int16 alpha, beta;
-        }
-
-        Dictionary<UInt32, HashStruct> Trans;
-        // 存储置换表局面信息
-        void RecordHash(UInt64 key, int vl, int depth, MOVE mv)
-        {
-            Debug.Assert(vl < G.MATE && vl>-G.MATE);
-            if (vl > G.RULEWIN || vl < -G.RULEWIN)
-                return;
-            if (Trans.TryGetValue((UInt32)(key >> 16), out HashStruct entry))
             {
-                if ((UInt32)(key & 0xffff) == entry.ZobristLock)
-                {
-                    if (entry.MinDepth <depth || entry.alpha> vl)
-                    {
-                        entry.alpha = (Int16)vl;
-                        entry.MinDepth = (byte)depth;
-                    }
-                }
+                int pc = pcSquares[sq];
+                if (pc > 0)
+                    zob ^= Zobrist.Get(pc, sq);
             }
+            return zob;
         }
     }
 }
