@@ -8,5 +8,8 @@
         public const int MAX_PLY = 1024;
 
         public const bool UseDistancePruning = true;
+        public const int HASH_BETA = 1;
+        public const int HASH_ALPHA = 2;
+        public const int HASH_PV = HASH_ALPHA | HASH_BETA;
     }
 }

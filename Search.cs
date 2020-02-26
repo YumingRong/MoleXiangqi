@@ -45,6 +45,7 @@ namespace MoleXiangqi
         public STATISTIC stat;
         public List<MOVE> PVLine;
         public List<KeyValuePair<MOVE, int>> rootMoves;
+        TransipositionTable TT;
 
         internal Stopwatch stopwatch;
         internal int height = 0;
@@ -53,6 +54,7 @@ namespace MoleXiangqi
         {
             stopwatch = new Stopwatch();
             rootMoves = new List<KeyValuePair<MOVE, int>>();
+            TT = new TransipositionTable(128);
         }
 
         public MOVE SearchMain(int maxDepth)
@@ -256,8 +258,12 @@ namespace MoleXiangqi
                     pvs.AddRange(subpv);
                 }
             }
+            if (best > -G.MATE)
+            {
+                TT.WriteHash(Key, G.HASH_ALPHA, best, depth, mvBest);
+                SetBestMove(mvBest, best, depth);
+            }
 
-            SetBestMove(mvBest, best, depth);
             return best;
         }
 
@@ -297,6 +303,7 @@ namespace MoleXiangqi
                     mvBest = mv;
                     if (vl > beta)
                     {
+                        TT.WriteHash(Key, G.HASH_BETA, best, depth, mvBest);
                         if (mv.sqDst == 0)
                         {
                             played.Remove(mv);
@@ -309,7 +316,11 @@ namespace MoleXiangqi
                     }
                 }
             }
-            SetBestMove(mvBest, best, depth);
+            if (best > -G.WIN)
+            {
+                TT.WriteHash(Key, G.HASH_ALPHA, best, depth, mvBest);
+                SetBestMove(mvBest, best, depth);
+            }
             return best;
         }
 

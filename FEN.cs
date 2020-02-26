@@ -94,9 +94,10 @@ namespace MoleXiangqi
                 sdPlayer = 0;
 
             stepList.Clear();
+            Key = CalculateZobrist();
             RECORD step;
             step.move = new MOVE();
-            step.zobrist = CalculateZobrist();
+            step.zobrist = Key;
             step.checking = CheckedBy(sdPlayer);
             /*ElephantBoard向引擎传递局面时，<fen_string>总是最近一次吃过子的局面(或开始局面)，
              * 后面所有的着法都用moves选项来传递给引擎，这样就包含了判断自然限着和长打的历史信息，

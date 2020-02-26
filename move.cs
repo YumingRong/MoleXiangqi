@@ -146,16 +146,16 @@ namespace MoleXiangqi
         public void MakeMove(MOVE mv)
         {
             MovePiece(mv);
+            Key ^= Zobrist.Get(mv.pcSrc, mv.sqSrc) ^ Zobrist.Get(mv.pcSrc, mv.sqDst) ^ Zobrist.turn;
+            if (mv.pcDst > 0)
+                Key ^= Zobrist.Get(mv.pcDst, mv.sqDst);
             RECORD step;
             step.move = mv;
-            step.zobrist = stepList[stepList.Count - 1].zobrist ^ Zobrist.Get(mv.pcSrc, mv.sqSrc) ^ Zobrist.Get(mv.pcSrc, mv.sqDst) ^ Zobrist.turn;
+            step.zobrist = Key;
             step.checking = CheckedBy(sdPlayer);
             step.halfMoveClock = stepList[stepList.Count - 1].halfMoveClock + 1;
             if (mv.pcDst > 0)
-            {
-                step.zobrist ^= Zobrist.Get(mv.pcDst, mv.sqDst);
                 step.halfMoveClock = 0;
-            }
             stepList.Add(step);
         }
 

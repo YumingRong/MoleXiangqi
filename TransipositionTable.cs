@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MoleXiangqi
 {
@@ -10,23 +8,40 @@ namespace MoleXiangqi
     struct HashStruct
     {
         public UInt32 ZobristLock;
-        private byte sqSrc, sqDst;
-        public byte AlphaDepth, BetaDepth;
-        public short alpha, beta;
+        public int AlphaDepth
+        {
+            get { return (int)alphadepth; }
+            set { alphadepth = (byte)value; }
+        }
+        public int BetaDepth
+        {
+            get { return (int)betadepth; }
+            set { betadepth = (byte)value; }
+        }
+        public int Alpha
+        {
+            get { return (int)alpha; }
+            set { alpha = (byte)value; }
+        }
+        public int Beta
+        {
+            get { return (int)beta; }
+            set { beta = (byte)value; }
+        }
         public MOVE move
         {
             get { return new MOVE(sqSrc, sqDst, 0, 0); }
             set { sqSrc = (byte)( value.sqSrc); sqDst = (byte)(value.sqSrc); }
         }
+        byte sqSrc, sqDst;
+        byte alphadepth, betadepth;
+        short alpha, beta;
     }
 
     class TransipositionTable
     {
         public int nRead, nReadHit, nWrite, nWriteHit, nWriteCollision;
         // 置换表标志，只用在"RecordHash()"函数中
-        const int HASH_BETA = 1;
-        const int HASH_ALPHA = 2;
-        const int HASH_PV = HASH_ALPHA | HASH_BETA;
 
         public TransipositionTable(int capacity = 512)
         {
@@ -57,15 +72,15 @@ namespace MoleXiangqi
                     {
                         entry.move = mv;
                     }
-                    if ((flag & HASH_ALPHA) != 0 && (depth > entry.AlphaDepth || vl < entry.alpha))
+                    if ((flag & G.HASH_ALPHA) != 0 && (depth > entry.AlphaDepth || vl < entry.Alpha))
                     {
-                        entry.alpha = (short)vl;
-                        entry.BetaDepth = (byte)depth;
+                        entry.Alpha = vl;
+                        entry.BetaDepth = depth;
                     }
-                    if ((flag & HASH_BETA) != 0 && (depth > entry.BetaDepth || vl > entry.beta))
+                    if ((flag & G.HASH_BETA) != 0 && (depth > entry.BetaDepth || vl > entry.Beta))
                     {
-                        entry.beta = (short)vl;
-                        entry.BetaDepth = (byte)depth;
+                        entry.Beta = vl;
+                        entry.BetaDepth = depth;
                     }
                     Trans[key] = entry;
                     return;
@@ -77,17 +92,17 @@ namespace MoleXiangqi
             {
                 entry.ZobristLock = (UInt32)(key >> 16);
                 entry.move = mv;
-                entry.alpha = entry.beta = 0;
-                if ((flag & HASH_ALPHA) != 0)
+                entry.Alpha = entry.Beta = 0;
+                if ((flag & G.HASH_ALPHA) != 0)
                 {
-                    entry.AlphaDepth = (byte)depth;
-                    entry.alpha = (short)vl;
+                    entry.AlphaDepth = depth;
+                    entry.Alpha = vl;
 
                 }
-                if ((flag & HASH_BETA) != 0)
+                if ((flag & G.HASH_BETA) != 0)
                 {
-                    entry.BetaDepth = (byte)depth;
-                    entry.beta = (short)vl;
+                    entry.BetaDepth = depth;
+                    entry.Beta = vl;
                 }
                 Trans.Add(key, entry);
             }
