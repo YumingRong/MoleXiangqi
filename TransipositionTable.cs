@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace MoleXiangqi
@@ -7,7 +6,6 @@ namespace MoleXiangqi
     // 置换表结构，置换表信息夹在两个Zobrist校验锁中间，可以防止存取冲突
     struct HashStruct
     {
-        public uint ZobristLock; //to be removed later
         public int AlphaDepth
         {
             get { return alphadepth; }
@@ -40,7 +38,7 @@ namespace MoleXiangqi
 
     class TransipositionTable
     {
-        public int nRead, nReadHit, nWrite, nWriteHit, nWriteCollision;
+        public int nRead, nReadHit, nWrite, nWriteHit;
         // 置换表标志，只用在"RecordHash()"函数中
 
         public TransipositionTable(int capacity = 512)
@@ -51,48 +49,41 @@ namespace MoleXiangqi
         public void Reset()
         {
             Trans.Clear();
-            nRead = nReadHit = nWrite = nWriteHit = nWriteCollision = 0;
+            nRead = nReadHit = nWrite = nWriteHit = 0;
         }
 
-        Dictionary<ulong, HashStruct> Trans;
+        readonly Dictionary<ulong, HashStruct> Trans;
         // 存储置换表局面信息
         public void WriteHash(ulong key, int flag, int vl, int depth, MOVE mv)
         {
             Debug.Assert(vl < G.MATE && vl > -G.MATE);
             if (vl > G.WIN && vl <= G.RULEWIN || vl < -G.WIN && vl >= -G.RULEWIN)
                 return;
+            if (depth < 1)
+                return;
             nWrite++;
             if (Trans.TryGetValue(key, out HashStruct entry))
             {
                 nWriteHit++;
-                if ((uint)(key >> 16) == entry.ZobristLock)
+                if (mv.sqDst != 0)
                 {
-                    if (mv.sqDst != 0)
-                    {
-                        entry.Move = mv;
-                    }
-                    if ((flag & G.HASH_ALPHA) != 0 && (depth > entry.AlphaDepth))
-                    {
-                        entry.Alpha = vl;
-                        entry.BetaDepth = depth;
-                    }
-                    if ((flag & G.HASH_BETA) != 0 && (depth > entry.BetaDepth))
-                    {
-                        entry.Beta = vl;
-                        entry.BetaDepth = depth;
-                    }
-                    Trans[key] = entry;
-                    return;
+                    entry.Move = mv;
                 }
-                else
+                if ((flag & G.HASH_ALPHA) != 0 && (depth > entry.AlphaDepth))
                 {
-                    Debug.WriteLine("TT write collision!");
-                    nWriteCollision++;
+                    entry.Alpha = vl;
+                    entry.BetaDepth = depth;
                 }
+                if ((flag & G.HASH_BETA) != 0 && (depth > entry.BetaDepth))
+                {
+                    entry.Beta = vl;
+                    entry.BetaDepth = depth;
+                }
+                Trans[key] = entry;
+                return;
             }
             else
             {
-                entry.ZobristLock = (uint)(key >> 16);
                 entry.Move = mv;
                 entry.Alpha = G.MATE;
                 entry.Beta = -G.MATE;
@@ -113,16 +104,20 @@ namespace MoleXiangqi
 
         public HashStruct ReadHash(ulong key)
         {
+            Debug.Assert(key != 0);
             nRead++;
             if (Trans.TryGetValue(key, out HashStruct entry))
             {
-                if ((uint)(key >> 16) == entry.ZobristLock)
-                {
-                    nReadHit++;
-                    return entry;
-                }
+                nReadHit++;
+                return entry;
             }
             return new HashStruct();
+        }
+
+        public void PrintStatus()
+        {
+            Debug.WriteLine($"Write No. {nWrite}, hit {nWriteHit}.Dictionary items {Trans.Count}.");
+            Debug.WriteLine($"Read No. {nRead}, hit {nReadHit}.");
         }
     }
 }

@@ -49,8 +49,6 @@ namespace MoleXiangqi
                     foreach (int sq in cboard90)
                         History[pc, sq] /= 2;
             }
-            if (score > G.WIN)
-                MateKiller[height] = mv;
         }
 
         void HistoryGood(MOVE mv)
@@ -134,8 +132,8 @@ namespace MoleXiangqi
                     if (mv.pcDst == 0 && stepList.Count >= 2 && mv.sqSrc == stepList[stepList.Count - 2].checking)
                         scores[i] -= 5;
                 }
-                else if (mv.pcDst > 0 && !(cnPieceKinds[mv.pcDst] >= 5 && HOME_HALF[SIDE(mv.pcDst), mv.sqDst]))
-                {//吃子，不包括吃仕相和未过河的兵
+                else if (mv.pcDst > 0)
+                {
                     kinds[i] |= 2;
                 }
                 else if (wantAll)
@@ -156,6 +154,9 @@ namespace MoleXiangqi
             {
                 if ((kinds[i] & moveType) != 0)
                 {
+                    //Remove those will lose material if don't need all moves
+                    if ((moveType & 4) == 0 && scores[i] < BadScore)
+                        continue;
                     KeyValuePair<MOVE, int> t = new KeyValuePair<MOVE, int>(moves[i], scores[i]);
                     l.Add(t);
                 }

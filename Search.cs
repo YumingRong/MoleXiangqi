@@ -66,6 +66,7 @@ namespace MoleXiangqi
             Array.Clear(History, 0, 14 * 256);
             Array.Clear(HistHit, 0, 14 * 256);
             Array.Clear(HistTotal, 0, 14 * 256);
+            TT.Reset();
             rootMoves = InitRootMoves();
 
             int vl = 0;
@@ -103,8 +104,8 @@ namespace MoleXiangqi
 
         public int SearchRoot(int depth)
         {
-            int alpha = -G.WIN;
-            int beta = G.WIN;
+            int alpha = -G.MATE;
+            int beta = G.MATE;
             MOVE mvBest = new MOVE();
             List<MOVE> subpv = null;
             for (int i = 0; i < rootMoves.Count; i++)
@@ -115,7 +116,7 @@ namespace MoleXiangqi
                 MakeMove(mv);
                 int vl;
 
-                if (alpha == -G.WIN)
+                if (mvBest.sqSrc == 0)
                     vl = -SearchPV(-beta, -alpha, depth - 1, 1, out subpv);
                 else
                 {
@@ -159,9 +160,11 @@ namespace MoleXiangqi
                 rootMoves.RemoveAt(i);
             }
             Console.WriteLine("Root move\tScore");
+            TT.PrintStatus();
             foreach (KeyValuePair<MOVE, int> mv_vl in rootMoves)
                 Console.WriteLine($"{mv_vl.Key}\t{mv_vl.Value}");
             Console.WriteLine($"Best move {mvBest}, score {alpha}");
+            Console.WriteLine("PV:" + PopPVLine());
             return alpha;
         }
 
@@ -173,15 +176,7 @@ namespace MoleXiangqi
             if (rep != RepititionResult.NONE)
                 return (int)rep;
 
-            if (G.UseDistancePruning)
-            {
-                // lower bound
-                int vl = -G.MATE + height + 2;
-                if (vl > beta)
-                    return vl;
-            }
-
-            return -G.MATE;
+            return -G.MATE + height;
         }
 
         int SearchPV(int alpha, int beta, int depth, int height, out List<MOVE> pvs)
@@ -197,18 +192,20 @@ namespace MoleXiangqi
             }
 
             stat.PVNodes++;
-
             int best = HarmlessPruning(beta, height);
-            if (best > -G.MATE)
+            //distance pruning
+            if (best >= beta)
                 return best;
+
             MOVE mvBest = new MOVE();
             bool bResearch = false;
+            int hashFlag = 0;
             List<MOVE> subpv = null;
             List<MOVE> played = new List<MOVE>();
-            if (height < pvs.Count)
-                TransKiller = pvs[height];
+            if (height < PVLine.Count)
+                TransKiller = PVLine[height];
             else
-                TransKiller = new MOVE();
+                TransKiller.sqSrc = 0;
             IEnumerable<MOVE> moves = GetNextMove(7, height);
             foreach (MOVE mv in moves)
             {
@@ -216,7 +213,7 @@ namespace MoleXiangqi
                 Debug.WriteLine($"{mv} {alpha}, {beta}, {best}");
                 MakeMove(mv);
                 int vl;
-                if (best == -G.MATE)
+                if (mvBest.sqSrc == 0)
                     vl = -SearchPV(-beta, -alpha, depth - 1, height + 1, out subpv);
                 else
                 {
@@ -238,6 +235,7 @@ namespace MoleXiangqi
                     {
                         stat.Cutoffs++;
                         mvBest = mv;
+                        hashFlag = G.HASH_BETA;
                         if (mv.sqDst == 0)
                         {
                             played.Remove(mv);
@@ -251,6 +249,7 @@ namespace MoleXiangqi
                     {
                         alpha = vl;
                         mvBest = mv;
+                        hashFlag = G.HASH_ALPHA;
                         if (bResearch)
                             pvs.RemoveAt(pvs.Count - 1);
                     }
@@ -258,9 +257,9 @@ namespace MoleXiangqi
                     pvs.AddRange(subpv);
                 }
             }
-            if (G.UseHash && best > -G.MATE)
+            if (G.UseHash && best > -G.WIN)
             {
-                TT.WriteHash(Key, G.HASH_ALPHA, best, depth, mvBest);
+                TT.WriteHash(Key, hashFlag, best, depth, mvBest);
                 SetBestMove(mvBest, best, depth, height);
             }
 
@@ -280,7 +279,7 @@ namespace MoleXiangqi
 
             stat.CutNodes++;
             int best = HarmlessPruning(beta, height);
-            if (best > -G.MATE)
+            if (best > -G.WIN)
                 return best;
 
             if (G.UseHash)
@@ -348,6 +347,7 @@ namespace MoleXiangqi
             int best;
             IEnumerable<MOVE> moves;
             //偶数层是主动方，奇数层是被动方
+            TransKiller.sqSrc = 0;
             if (qdepth % 2 == 0)
             {
                 best = Simple_Evaluate();

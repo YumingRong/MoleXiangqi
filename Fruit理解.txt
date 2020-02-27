@@ -84,6 +84,18 @@ int full_root(list_t * list, board_t * board, int alpha, int beta, int depth, in
 	void trans_store(trans_t * trans, uint64 key, int move, int depth, int min_value, int max_value) 
 
 	5 void move_undo(board_t * board, int move, const undo_t * undo) 
+	设置SearchBest
+	6 void pv_cat(mv_t dst[], const mv_t src[], int move)
+		把move和src接到dst后面
+	7 void search_update_best() 
+	7.1 bool move_to_string(int move, char string[], int size) 
+		把move转换成字符串，放到string里
+	7.2 bool pv_to_string(const mv_t pv[], char string[], int size) 
+		把pv转换成字符串，放到string里
+		输出当前搜索信息
+void pv_fill(const mv_t pv[], board_t * board) 
+
+
 
 
 int full_quiescence(board_t * board, int alpha, int beta, int depth, int height, mv_t pv[]) 
