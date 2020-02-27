@@ -368,15 +368,15 @@ namespace MoleXiangqi
             engine.FromFEN(fen);
             PanelBoard.Refresh();
             Console.WriteLine("Check moves:");
-            foreach (MOVE mv in engine.GetNextMove(1))
+            foreach (MOVE mv in engine.GetNextMove(1, 0))
                 Console.WriteLine(mv);
             Console.WriteLine("--------------------------");
             Console.WriteLine("Capture moves:");
-            foreach (MOVE mv in engine.GetNextMove(2))
+            foreach (MOVE mv in engine.GetNextMove(2, 0))
                 Console.WriteLine(mv);
             Console.WriteLine("--------------------------");
             Console.WriteLine("Check + capture moves:");
-            foreach (MOVE mv in engine.GetNextMove(3))
+            foreach (MOVE mv in engine.GetNextMove(3, 0 ))
                 Console.WriteLine(mv);
         }
 
@@ -410,12 +410,12 @@ namespace MoleXiangqi
 
             pos.FromFEN(pgn.StartFEN);
             engine.FromFEN(pgn.StartFEN);
-            engine.SearchQuiesce(-5000, 5000, 10);
+            engine.SearchQuiesce(-5000, 5000, 10, 0);
             for (int i = 1; i < pgn.MoveList.Count; i++)
             {
                 MOVE step = pgn.MoveList[i];
                 engine.MakeMove(step);
-                int score = -engine.SearchQuiesce(-5000, 5000, 10);
+                int score = -engine.SearchQuiesce(-5000, 5000, 10, 0);
                 if (i % 2 == 1)
                     Console.Write("{0}. {1}  ", (i + 1) / 2, score);
                 else

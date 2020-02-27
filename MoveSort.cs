@@ -42,8 +42,8 @@ namespace MoleXiangqi
                 Killers[height, 1] = Killers[height, 0];
                 Killers[height, 0] = mv;
             }
-            History[cnPieceTypes[mv.pcSrc] - 17, mv.sqDst] += depth * depth;
-            if (History[cnPieceTypes[mv.pcSrc] - 17, mv.sqDst] > HistoryMax)
+            History[cnPieceHistIndex[mv.pcSrc], mv.sqDst] += depth * depth;
+            if (History[cnPieceHistIndex[mv.pcSrc], mv.sqDst] > HistoryMax)
             {
                 for (int pc = 0; pc < 14; pc++)
                     foreach (int sq in cboard90)
@@ -196,23 +196,30 @@ namespace MoleXiangqi
             return l;
         }
 
-        bool IsChecking(MOVE m)
+        bool IsChecking(MOVE mv)
         {
-            int side = SIDE(m.pcSrc);
-            
-            int sqOppking = sqPieces[OPP_SIDE_TAG(side) + KING_FROM];
-            if (IsLegalMove(m.sqDst, sqOppking))
-                return true;    //direct check
-            int discover;
-            if ((discover = DiscoverAttack[m.pcSrc]) > 0)
+            //discovered check
+            int discover = DiscoverAttack[mv.pcSrc];
+            if (discover > 0)
             {
                 if (discover == 3)
                     return true;
-                if (discover == 1 && !SAME_FILE(m.sqSrc, m.sqDst))
+                if (discover == 1 && !SAME_FILE(mv.sqSrc, mv.sqDst))
                     return true;
-                if (discover == 2 && !SAME_RANK(m.sqSrc, m.sqDst))
+                if (discover == 2 && !SAME_RANK(mv.sqSrc, mv.sqDst))
                     return true;
             }
+
+            //direct check
+            int side = SIDE(mv.pcSrc);
+            int sqOppking = sqPieces[OPP_SIDE_TAG(side) + KING_FROM];
+            MovePiece(mv);
+            if (IsLegalMove(mv.sqDst, sqOppking))
+            {
+                UndoMovePiece(mv);
+                return true;
+            }
+            UndoMovePiece(mv);
             return false;
         }
 

@@ -80,13 +80,15 @@ namespace MoleXiangqi
                     return pcCaptured > 0 && nPin == 1 || pcCaptured == 0 && nPin == 0;
 
                 // 8. 如果是兵(卒)，则按红方和黑方分情况讨论
-                default:
+                case PAWN:
                     if (sqDst == SQUARE_FORWARD(sqSrc, selfSide))
                         return true;
                     if (HOME_HALF[1 - selfSide, sqSrc] && (sqDst == sqSrc - 1 || sqDst == sqSrc + 1))
                         return true;
-                    else
-                        return false;
+                    return false;
+                default:
+                        Debug.Fail("Unknown piece type");
+                    return false;
             }
         }
 
