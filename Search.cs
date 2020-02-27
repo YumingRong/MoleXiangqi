@@ -160,11 +160,11 @@ namespace MoleXiangqi
                 rootMoves.RemoveAt(i);
             }
             Console.WriteLine("Root move\tScore");
-            TT.PrintStatus();
             foreach (KeyValuePair<MOVE, int> mv_vl in rootMoves)
                 Console.WriteLine($"{mv_vl.Key}\t{mv_vl.Value}");
             Console.WriteLine($"Best move {mvBest}, score {alpha}");
             Console.WriteLine("PV:" + PopPVLine());
+            TT.PrintStatus();
             return alpha;
         }
 
