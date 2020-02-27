@@ -7,31 +7,31 @@ namespace MoleXiangqi
     // 置换表结构，置换表信息夹在两个Zobrist校验锁中间，可以防止存取冲突
     struct HashStruct
     {
-        public UInt32 ZobristLock;
+        public uint ZobristLock;
         public int AlphaDepth
         {
-            get { return (int)alphadepth; }
+            get { return alphadepth; }
             set { alphadepth = (byte)value; }
         }
         public int BetaDepth
         {
-            get { return (int)betadepth; }
+            get { return betadepth; }
             set { betadepth = (byte)value; }
         }
         public int Alpha
         {
-            get { return (int)alpha; }
-            set { alpha = (byte)value; }
+            get { return alpha; }
+            set { alpha = (short)value; }
         }
         public int Beta
         {
-            get { return (int)beta; }
-            set { beta = (byte)value; }
+            get { return beta; }
+            set { beta = (short)value; }
         }
-        public MOVE move
+        public MOVE Move
         {
             get { return new MOVE(sqSrc, sqDst, 0, 0); }
-            set { sqSrc = (byte)( value.sqSrc); sqDst = (byte)(value.sqSrc); }
+            set { sqSrc = (byte)( value.sqSrc); sqDst = (byte)(value.sqDst); }
         }
         byte sqSrc, sqDst;
         byte alphadepth, betadepth;
@@ -45,7 +45,7 @@ namespace MoleXiangqi
 
         public TransipositionTable(int capacity = 512)
         {
-            Trans = new Dictionary<UInt64, HashStruct>(1024 * capacity);
+            Trans = new Dictionary<ulong, HashStruct>(1024 * capacity);
         }
 
         public void Reset()
@@ -54,30 +54,29 @@ namespace MoleXiangqi
             nRead = nReadHit = nWrite = nWriteHit = nWriteCollision = 0;
         }
 
-        Dictionary<UInt64, HashStruct> Trans;
+        Dictionary<ulong, HashStruct> Trans;
         // 存储置换表局面信息
-        public void WriteHash(UInt64 key, int flag, int vl, int depth, MOVE mv)
+        public void WriteHash(ulong key, int flag, int vl, int depth, MOVE mv)
         {
             Debug.Assert(vl < G.MATE && vl > -G.MATE);
-            if ((vl > G.WIN && vl <= G.RULEWIN || vl < -G.WIN && vl >= -G.RULEWIN) && mv.sqSrc == 0)
+            if (vl > G.WIN && vl <= G.RULEWIN || vl < -G.WIN && vl >= -G.RULEWIN)
                 return;
             nWrite++;
             if (Trans.TryGetValue(key, out HashStruct entry))
             {
                 nWriteHit++;
-                if ((UInt32)(key >> 16) == entry.ZobristLock)
+                if ((uint)(key >> 16) == entry.ZobristLock)
                 {
-                    // 最佳着法是始终覆盖的
                     if (mv.sqDst != 0)
                     {
-                        entry.move = mv;
+                        entry.Move = mv;
                     }
-                    if ((flag & G.HASH_ALPHA) != 0 && (depth > entry.AlphaDepth || vl < entry.Alpha))
+                    if ((flag & G.HASH_ALPHA) != 0 && (depth > entry.AlphaDepth))
                     {
                         entry.Alpha = vl;
                         entry.BetaDepth = depth;
                     }
-                    if ((flag & G.HASH_BETA) != 0 && (depth > entry.BetaDepth || vl > entry.Beta))
+                    if ((flag & G.HASH_BETA) != 0 && (depth > entry.BetaDepth))
                     {
                         entry.Beta = vl;
                         entry.BetaDepth = depth;
@@ -86,13 +85,17 @@ namespace MoleXiangqi
                     return;
                 }
                 else
+                {
+                    Debug.WriteLine("TT write collision!");
                     nWriteCollision++;
+                }
             }
             else
             {
-                entry.ZobristLock = (UInt32)(key >> 16);
-                entry.move = mv;
-                entry.Alpha = entry.Beta = 0;
+                entry.ZobristLock = (uint)(key >> 16);
+                entry.Move = mv;
+                entry.Alpha = G.MATE;
+                entry.Beta = -G.MATE;
                 if ((flag & G.HASH_ALPHA) != 0)
                 {
                     entry.AlphaDepth = depth;
@@ -108,18 +111,18 @@ namespace MoleXiangqi
             }
         }
 
-        public Nullable<HashStruct> ReadHash(UInt64 key)
+        public HashStruct ReadHash(ulong key)
         {
             nRead++;
             if (Trans.TryGetValue(key, out HashStruct entry))
             {
-                if ((UInt32)(key >> 16) == entry.ZobristLock)
+                if ((uint)(key >> 16) == entry.ZobristLock)
                 {
                     nReadHit++;
                     return entry;
                 }
             }
-            return null;
+            return new HashStruct();
         }
     }
 }

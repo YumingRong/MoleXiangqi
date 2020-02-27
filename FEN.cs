@@ -95,15 +95,16 @@ namespace MoleXiangqi
 
             stepList.Clear();
             Key = CalculateZobrist();
+            /*ElephantBoard向引擎传递局面时，<fen_string>总是最近一次吃过子的局面(或开始局面)，
+               * 后面所有的着法都用moves选项来传递给引擎，这样就包含了判断自然限着和长打的历史信息，
+               * 这些信息可由引擎来处理。
+               */
+            HalfMoveClock = 0;
             RECORD step;
             step.move = new MOVE();
             step.zobrist = Key;
             step.checking = CheckedBy(sdPlayer);
-            /*ElephantBoard向引擎传递局面时，<fen_string>总是最近一次吃过子的局面(或开始局面)，
-             * 后面所有的着法都用moves选项来传递给引擎，这样就包含了判断自然限着和长打的历史信息，
-             * 这些信息可由引擎来处理。
-             */
-            step.halfMoveClock = 0; //为简单起见
+            step.halfMoveClock = HalfMoveClock; 
             stepList.Add(step);
             return true;
         }
@@ -146,7 +147,7 @@ namespace MoleXiangqi
             lpFen[lpFen.Length - 1] = ' '; // 把最后一个'/'替换成' '
             lpFen.Append(sdPlayer == 0 ? 'r' : 'b');
             lpFen.Append(" - - ");
-            lpFen.Append(stepList[stepList.Count - 1].halfMoveClock);
+            lpFen.Append(HalfMoveClock);
             lpFen.Append(" ");
             lpFen.Append(stepList.Count - 1);
             return lpFen.ToString();

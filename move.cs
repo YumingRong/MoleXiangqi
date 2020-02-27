@@ -52,7 +52,7 @@ namespace MoleXiangqi
 
     public struct RECORD
     {
-        public UInt64 zobrist;
+        public ulong zobrist;
         public int checking;
         public MOVE move;
         public int halfMoveClock;  //120步不吃子作和的自然限招
@@ -148,14 +148,17 @@ namespace MoleXiangqi
             MovePiece(mv);
             Key ^= Zobrist.Get(mv.pcSrc, mv.sqSrc) ^ Zobrist.Get(mv.pcSrc, mv.sqDst) ^ Zobrist.turn;
             if (mv.pcDst > 0)
+            {
                 Key ^= Zobrist.Get(mv.pcDst, mv.sqDst);
+                HalfMoveClock = 0;
+            }
+            else
+                HalfMoveClock++;
             RECORD step;
             step.move = mv;
             step.zobrist = Key;
             step.checking = CheckedBy(sdPlayer);
-            step.halfMoveClock = stepList[stepList.Count - 1].halfMoveClock + 1;
-            if (mv.pcDst > 0)
-                step.halfMoveClock = 0;
+            step.halfMoveClock = HalfMoveClock;
             stepList.Add(step);
         }
 
@@ -164,6 +167,8 @@ namespace MoleXiangqi
             MOVE mv = stepList[stepList.Count - 1].move;
             UndoMovePiece(mv);
             stepList.RemoveAt(stepList.Count - 1);
+            Key = stepList[stepList.Count - 1].zobrist;
+            HalfMoveClock = stepList[stepList.Count - 1].halfMoveClock;
         }
 
     }

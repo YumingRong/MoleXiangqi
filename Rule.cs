@@ -14,7 +14,7 @@ namespace MoleXiangqi
             int repStart = -1;
             int nstep = stepList.Count - 1;
             // 1. 首先检测历史局面中是否有当前局面，如果没有，就用不着判断了
-            for (int i = nstep - 4; i > nstep - stepList[nstep].halfMoveClock; i -= 2)
+            for (int i = nstep - 4; i > nstep - HalfMoveClock; i -= 2)
             {
                 if (stepList[i].zobrist == Key)
                 {

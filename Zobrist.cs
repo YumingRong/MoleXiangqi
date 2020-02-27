@@ -17,26 +17,26 @@ namespace MoleXiangqi
               5, 6, 6, 7, 7, 8, 8, 5, 5, 5, 5, 5, 4, 4, 4, 4
             };
 
-            readonly static UInt64[,] table = new UInt64[9, 256];
-            public readonly static UInt64 turn;
+            readonly static ulong[,] table = new ulong[9, 256];
+            public readonly static ulong turn;
             static Zobrist()
             {
                 Random rnd = new Random(20200115);
                 for (int i = 0; i < 9; i++)
                     for (int j = 0; j < 256; j++)
-                        table[i, j] = (UInt64)(rnd.NextDouble() * UInt64.MaxValue);
-                turn = (UInt64)(rnd.NextDouble() * UInt64.MaxValue);
+                        table[i, j] = (ulong)(rnd.NextDouble() * ulong.MaxValue);
+                turn = (ulong)(rnd.NextDouble() * ulong.MaxValue);
             }
 
-            public static UInt64 Get(int pc, int sq)
+            public static ulong Get(int pc, int sq)
             {
                 return table[ZobristTypes[pc], sq];
             }
         };
 
-        UInt64 CalculateZobrist()
+        ulong CalculateZobrist()
         {
-            UInt64 zob = 0;
+            ulong zob = 0;
             foreach (int sq in cboard90)
             {
                 int pc = pcSquares[sq];

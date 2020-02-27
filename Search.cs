@@ -48,13 +48,13 @@ namespace MoleXiangqi
         TransipositionTable TT;
 
         internal Stopwatch stopwatch;
-        internal int height = 0;
+        internal int height;
 
         public void InitSearch()
         {
+            TT = new TransipositionTable(128);
             stopwatch = new Stopwatch();
             rootMoves = new List<KeyValuePair<MOVE, int>>();
-            TT = new TransipositionTable(128);
         }
 
         public MOVE SearchMain(int maxDepth)
@@ -62,18 +62,21 @@ namespace MoleXiangqi
             Debug.Assert(maxDepth > 0);
             stat = new STATISTIC();
             PVLine = new List<MOVE>();
-            MateKiller = new MOVE[G.MAX_PLY];
-            Killers = new MOVE[G.MAX_PLY, 2];
-            History = new int[40, 256];
+            Array.Clear(MateKiller, 0, G.MAX_PLY);
+            Array.Clear(Killers, 0, G.MAX_PLY * 2);
+            Array.Clear(History, 0, 40 * 256);
+            Array.Clear(HistHit, 0, 40 * 256);
+            Array.Clear(HistTotal, 0, 40 * 256);
             rootMoves = InitRootMoves();
 
             int vl = 0;
-
+            
             // 6. 做迭代加深搜索
             for (int depth = 1; depth <= maxDepth; depth++)
             {
                 Debug.WriteLine("---------------------------");
                 Console.WriteLine("info depth {0}", depth);
+                height = 0;
 
                 stopwatch.Start();
                 vl = SearchRoot(depth);
@@ -169,7 +172,7 @@ namespace MoleXiangqi
 
         int HarmlessPruning(int beta)
         {
-            if (stepList[stepList.Count - 1].halfMoveClock >= 120)
+            if (HalfMoveClock >= 120)
                 return 0;
             RepititionResult rep = Repitition();
             if (rep != RepititionResult.NONE)
@@ -205,6 +208,7 @@ namespace MoleXiangqi
                 return best;
             MOVE mvBest = new MOVE();
             bool bResearch = false;
+
             List<MOVE> subpv = null;
             List<MOVE> played = new List<MOVE>();
             IEnumerable<MOVE> moves = GetNextMove(7);
@@ -258,7 +262,7 @@ namespace MoleXiangqi
                     pvs.AddRange(subpv);
                 }
             }
-            if (best > -G.MATE)
+            if (G.UseHash && best > -G.MATE)
             {
                 TT.WriteHash(Key, G.HASH_ALPHA, best, depth, mvBest);
                 SetBestMove(mvBest, best, depth);
@@ -283,6 +287,24 @@ namespace MoleXiangqi
             if (best > -G.MATE)
                 return best;
 
+            if (G.UseHash)
+            {
+                HashStruct t = TT.ReadHash(Key);
+                if (t.AlphaDepth >= depth)
+                {
+                    if (t.Alpha < beta)
+                        return t.Alpha;
+                }
+                if (t.BetaDepth >= depth)
+                {
+                    if (t.Beta >= beta)
+                        return t.Beta;
+                }
+                TransKiller = t.Move;
+                TransKiller.pcSrc = pcSquares[TransKiller.sqSrc];
+                TransKiller.pcDst = pcSquares[TransKiller.sqDst];
+            }
+
             IEnumerable<MOVE> moves = GetNextMove(7);
             MOVE mvBest = new MOVE();
             List<MOVE> played = new List<MOVE>();
@@ -303,7 +325,8 @@ namespace MoleXiangqi
                     mvBest = mv;
                     if (vl > beta)
                     {
-                        TT.WriteHash(Key, G.HASH_BETA, best, depth, mvBest);
+                        if (G.UseHash)
+                            TT.WriteHash(Key, G.HASH_BETA, best, depth, mvBest);
                         if (mv.sqDst == 0)
                         {
                             played.Remove(mv);
@@ -316,7 +339,7 @@ namespace MoleXiangqi
                     }
                 }
             }
-            if (best > -G.WIN)
+            if (G.UseHash && best > -G.WIN)
             {
                 TT.WriteHash(Key, G.HASH_ALPHA, best, depth, mvBest);
                 SetBestMove(mvBest, best, depth);

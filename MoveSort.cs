@@ -11,6 +11,7 @@ namespace MoleXiangqi
         internal int[,] HistTotal = new int[14, 256];
         internal int[,] HistHit = new int[14, 256];
         internal MOVE[] MateKiller;
+        MOVE TransKiller;
 
         const int HistoryMax = 0x4000;
 
@@ -78,6 +79,11 @@ namespace MoleXiangqi
             bool wantCapture = (moveType & 0x02) > 0;
             bool wantAll = moveType == 7;
 
+            if (G.UseHash && TransKiller.sqSrc != 0)
+            {
+                Debug.Assert(IsLegalMove(TransKiller.sqSrc, TransKiller.sqDst));
+                yield return TransKiller;
+            }
             MOVE killer = MateKiller[height];
             if (killer.pcSrc == pcSquares[killer.sqSrc] && killer.pcDst == pcSquares[killer.sqDst]
                 && IsLegalMove(killer.sqSrc, killer.sqDst))
@@ -189,10 +195,22 @@ namespace MoleXiangqi
 
         bool IsChecking(MOVE m)
         {
-            MovePiece(m);
-            int sqchecking = CheckedBy(sdPlayer);
-            UndoMovePiece(m);
-            return sqchecking > 0;
+            int side = SIDE(m.pcSrc);
+            
+            int sqOppking = sqPieces[OPP_SIDE_TAG(side) + KING_FROM];
+            if (IsLegalMove(m.sqDst, sqOppking))
+                return true;    //direct check
+            int discover;
+            if ((discover = DiscoverAttack[m.pcSrc]) > 0)
+            {
+                if (discover == 3)
+                    return true;
+                if (discover == 1 && !SAME_FILE(m.sqSrc, m.sqDst))
+                    return true;
+                if (discover == 2 && !SAME_RANK(m.sqSrc, m.sqDst))
+                    return true;
+            }
+            return false;
         }
 
         public void GenMoveTest()

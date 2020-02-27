@@ -76,7 +76,8 @@ namespace MoleXiangqi
         };
 
         public readonly static int[] cboard90 = new int[90];
-        public UInt64 Key;
+        ulong Key;
+        int HalfMoveClock;
 
         //Interface to graphic board. x, y is 0~9
         public int UI_GetPiece(int x, int y)

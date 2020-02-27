@@ -184,140 +184,147 @@ namespace MoleXiangqi
 
         //在形如红马-黑车-黑将的棋型中，黑车是可以吃红马的. Record from and to square
         List<Tuple<int, int>> pinexception = new List<Tuple<int, int>>();
-        bool[,] bannedGrids;
+        bool[,] bannedGrids = new bool[2,256];
+        int[] DiscoverAttack = new int[48];   //store discover attack direction for each piece
         //Record <sqFrom, sqPinned, sqTo>
         List<Tuple<int, int, int>> AbsolutePins = new List<Tuple<int, int, int>>();
         //发现己方被绝对牵制
         //0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
         //输出<被牵制的方向，实施牵制的对方棋子位置>
-        int[] FindAbsolutePin(int side)
+        int[] FindAbsolutePin()
         {
             //举例：当头炮与对方的帅之间隔了自己的马和对方的相，
             //自己的马就放在DiscoveredAttack里，对方的相就在PinnedPieces里
-            Debug.Assert(side == 0 || side == 1);
-
             int[] PinnedPieces = new int[48];
+            Array.Clear(bannedGrids, 0, 256*2);
+            Array.Clear(DiscoverAttack, 0, 48);
             pinexception.Clear();
             AbsolutePins.Clear();
-            bannedGrids = new bool[2, 256];
-            int sqSrc, pcDst, delta;
-            int oppside = 1 - side;
 
-            int bas, sqKing;
-            //find absolute pin. 0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
-            bas = OPP_SIDE_TAG(side);
-            sqKing = sqPieces[SIDE_TAG(side) + KING_FROM];
-
-            //对阻挡将军的子进行判断
-            void CheckBlocker(int pcBlocker, int direction)
+            for (int side = 0; side < 2; side++)
             {
-                if (SIDE(pcBlocker) == side)
-                    PinnedPieces[pcBlocker] |= direction;
-                //AbsolutePins.Add(new Tuple<int, int, int>(sqSrc, sqPieces[pcBlocker], sqKing));
-            }
+                int sqSrc, pcDst, delta;
+                int oppside = 1 - side;
 
-            for (int pc = bas + ROOK_FROM; pc <= bas + ROOK_TO; pc++)
-            {
-                sqSrc = sqPieces[pc];
-                if (SAME_FILE(sqSrc, sqKing))
+                int bas, sqKing;
+                //find absolute pin. 0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
+                bas = OPP_SIDE_TAG(side);
+                sqKing = sqPieces[SIDE_TAG(side) + KING_FROM];
+
+                //对阻挡将军的子进行判断
+                void CheckBlocker(int pcBlocker, int direction)
                 {
-                    delta = Math.Sign(sqKing - sqSrc) * 16;
-                    int pcBlocker = 0, nblock = 0;
-                    for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
+                    if (SIDE(pcBlocker) == side)
+                        PinnedPieces[pcBlocker] |= direction;
+                    else
+                        DiscoverAttack[pcBlocker] |= direction;
+                    //AbsolutePins.Add(new Tuple<int, int, int>(sqSrc, sqPieces[pcBlocker], sqKing));
+                }
+
+                for (int pc = bas + ROOK_FROM; pc <= bas + ROOK_TO; pc++)
+                {
+                    sqSrc = sqPieces[pc];
+                    if (SAME_FILE(sqSrc, sqKing))
                     {
-                        if (pcSquares[sq] != 0)
+                        delta = Math.Sign(sqKing - sqSrc) * 16;
+                        int pcBlocker = 0, nblock = 0;
+                        for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
                         {
-                            pcBlocker = pcSquares[sq];
-                            nblock++;
+                            if (pcSquares[sq] != 0)
+                            {
+                                pcBlocker = pcSquares[sq];
+                                nblock++;
+                            }
+                        }
+                        if (nblock == 1)
+                            CheckBlocker(pcBlocker, 1);
+                    }
+
+                    if (SAME_RANK(sqSrc, sqKing))
+                    {
+                        delta = Math.Sign(sqKing - sqSrc);
+                        int pcBlocker = 0, nblock = 0;
+                        for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
+                        {
+                            if (pcSquares[sq] != 0)
+                            {
+                                pcBlocker = pcSquares[sq];
+                                nblock++;
+                            }
+                        }
+                        if (nblock == 1)
+                            CheckBlocker(pcBlocker, 2);
+                    }
+                }
+
+                for (int pc = bas + CANNON_FROM; pc <= bas + CANNON_TO; pc++)
+                {
+                    sqSrc = sqPieces[pc];
+                    delta = 0;
+                    if (SAME_FILE(sqSrc, sqKing))
+                        delta = Math.Sign(sqKing - sqSrc) * 16;
+                    if (SAME_RANK(sqSrc, sqKing))
+                        delta = Math.Sign(sqKing - sqSrc);
+                    if (delta != 0)
+                    {
+                        int nblock = 0;
+                        for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
+                        {
+                            if (pcSquares[sq] != 0)
+                                nblock++;
+                        }
+                        if (nblock == 2)
+                        {
+                            for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
+                                if (pcSquares[sq] > 0)
+                                    CheckBlocker(pcSquares[sq], 2);
+                        }
+                        else if (nblock == 0)
+                        {
+                            for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
+                                bannedGrids[oppside, sq] = true;
                         }
                     }
+                }
+
+                // 3. 判断将是否被马威胁(以仕/士的步长当作马腿)
+                for (int i = 0; i < 4; i++)
+                {
+                    int sqBlocker = sqKing + ccGuardDelta[i];
+                    int pcBlocker = pcSquares[sqBlocker];
+                    if (pcBlocker != 0)
+                        for (int j = 0; j < 2; j++)
+                        {
+                            int sqKnight = sqKing + ccKnightCheckDelta[i, j];
+                            pcDst = pcSquares[sqKnight];
+                            if (cnPieceTypes[pcDst] == bas + KNIGHT && SIDE(pcBlocker) == oppside)
+                            {
+                                PinnedPieces[pcBlocker] |= 3;
+                                //在形如红马-黑车-黑将的棋型中，黑车是可以吃红马的
+                                if (IsLegalMove(sqBlocker, sqKnight))
+                                    pinexception.Add(new Tuple<int, int>(sqBlocker, sqKnight));
+                            }
+                        }
+                }
+
+                //4. Is there king face to face risk?
+                sqSrc = sqPieces[32 + KING_FROM];
+                int sqDst = sqPieces[16 + KING_FROM];
+                if (SAME_FILE(sqSrc, sqDst))
+                {
+                    int pcBlocker = 0, nblock = 0;
+                    for (int i = sqSrc + 16; i < sqDst; i += 16)
+                        if (pcSquares[i] > 0)
+                        {
+                            pcBlocker = pcSquares[i];
+                            nblock++;
+                        }
                     if (nblock == 1)
                         CheckBlocker(pcBlocker, 1);
                 }
 
-                if (SAME_RANK(sqSrc, sqKing))
-                {
-                    delta = Math.Sign(sqKing - sqSrc);
-                    int pcBlocker = 0, nblock = 0;
-                    for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
-                    {
-                        if (pcSquares[sq] != 0)
-                        {
-                            pcBlocker = pcSquares[sq];
-                            nblock++;
-                        }
-                    }
-                    if (nblock == 1)
-                        CheckBlocker(pcBlocker, 2);
-                }
-            }
 
-            for (int pc = bas + CANNON_FROM; pc <= bas + CANNON_TO; pc++)
-            {
-                sqSrc = sqPieces[pc];
-                delta = 0;
-                if (SAME_FILE(sqSrc, sqKing))
-                    delta = Math.Sign(sqKing - sqSrc) * 16;
-                if (SAME_RANK(sqSrc, sqKing))
-                    delta = Math.Sign(sqKing - sqSrc);
-                if (delta != 0)
-                {
-                    int nblock = 0;
-                    for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
-                    {
-                        if (pcSquares[sq] != 0)
-                            nblock++;
-                    }
-                    if (nblock == 2)
-                    {
-                        for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
-                            if (pcSquares[sq] > 0)
-                                CheckBlocker(pcSquares[sq], 2);
-                    }
-                    else if (nblock == 0)
-                    {
-                        for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
-                            bannedGrids[1 - side, sq] = true;
-                    }
-                }
             }
-
-            // 3. 判断将是否被马威胁(以仕/士的步长当作马腿)
-            for (int i = 0; i < 4; i++)
-            {
-                int sqBlocker = sqKing + ccGuardDelta[i];
-                int pcBlocker = pcSquares[sqBlocker];
-                if (pcBlocker != 0)
-                    for (int j = 0; j < 2; j++)
-                    {
-                        int sqKnight = sqKing + ccKnightCheckDelta[i, j];
-                        pcDst = pcSquares[sqKnight];
-                        if (cnPieceTypes[pcDst] == bas + KNIGHT && SIDE(pcBlocker) == oppside)
-                        {
-                            PinnedPieces[pcBlocker] |= 3;
-                            //在形如红马-黑车-黑将的棋型中，黑车是可以吃红马的
-                            if (IsLegalMove(sqBlocker, sqKnight))
-                                pinexception.Add(new Tuple<int, int>(sqBlocker, sqKnight));
-                        }
-                    }
-            }
-
-            //4. Is there king face to face risk?
-            sqSrc = sqPieces[32 + KING_FROM];
-            int sqDst = sqPieces[16 + KING_FROM];
-            if (SAME_FILE(sqSrc, sqDst))
-            {
-                int pcBlocker = 0, nblock = 0;
-                for (int i = sqSrc + 16; i < sqDst; i += 16)
-                    if (pcSquares[i] > 0)
-                    {
-                        pcBlocker = pcSquares[i];
-                        nblock++;
-                    }
-                if (nblock == 1)
-                    CheckBlocker(pcBlocker, 1);
-            }
-
             return PinnedPieces;
         }
 
@@ -328,8 +335,7 @@ namespace MoleXiangqi
             int myBase, oppBase;
             int delta;
             List<MOVE> mvs = new List<MOVE>();
-            int[] pins = FindAbsolutePin(sdPlayer);
-            FindAbsolutePin(1 - sdPlayer);
+            int[] pins = FindAbsolutePin();
 
             myBase = SIDE_TAG(sdPlayer);
             oppBase = OPP_SIDE_TAG(sdPlayer);
@@ -537,6 +543,7 @@ namespace MoleXiangqi
         List<int>[,] attackMap = new List<int>[2, 256];
         void GenAttackMap()
         {
+            int[] PinnedPieces = FindAbsolutePin();
             int sqSrc, sqDst, pcDst, delta;
             for (int side = 0; side < 2; side++)
             {
@@ -545,7 +552,6 @@ namespace MoleXiangqi
                 //find absolute pin. 0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
                 //Generate enemy attack map, from most valuable piece to cheap piece
 
-                int[] PinnedPieces = FindAbsolutePin(side);
                 int bas = SIDE_TAG(side);
                 for (int pc = bas + 15; pc >= bas; pc--)
                 {
