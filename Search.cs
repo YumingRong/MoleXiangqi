@@ -48,7 +48,6 @@ namespace MoleXiangqi
         TransipositionTable TT;
 
         internal Stopwatch stopwatch;
-        internal int height;
 
         public void InitSearch()
         {
@@ -76,7 +75,6 @@ namespace MoleXiangqi
             {
                 Debug.WriteLine("---------------------------");
                 Console.WriteLine("info depth {0}", depth);
-                height = 0;
 
                 stopwatch.Start();
                 vl = SearchRoot(depth);
@@ -113,27 +111,24 @@ namespace MoleXiangqi
             {
                 MOVE mv = rootMoves[i].Key;
                 //Console.WriteLine($"info currmove {mv}, currmovenumber {i}");
-                Debug.Write(new string('\t', height));
                 Debug.WriteLine($"{mv} {alpha}, {beta}");
                 MakeMove(mv);
-                height++;
                 int vl;
 
                 if (alpha == -G.WIN)
-                    vl = -SearchPV(-beta, -alpha, depth - 1, out subpv);
+                    vl = -SearchPV(-beta, -alpha, depth - 1, 1, out subpv);
                 else
                 {
                     if (depth > 2)
-                        vl = -SearchCut(-alpha, depth - 2);
+                        vl = -SearchCut(-alpha, depth - 2, 1);
                     else
-                        vl = -SearchCut(-alpha, depth - 1);
+                        vl = -SearchCut(-alpha, depth - 1, 1);
                     if (vl > alpha)
                     {
                         stat.PVChanged++;
-                        vl = -SearchPV(-beta, -alpha, depth - 1, out subpv);
+                        vl = -SearchPV(-beta, -alpha, depth - 1, 1, out subpv);
                     }
                 }
-                height--;
                 UnmakeMove();
 
                 rootMoves[i] = new KeyValuePair<MOVE, int>(mv, vl);
@@ -170,7 +165,7 @@ namespace MoleXiangqi
             return alpha;
         }
 
-        int HarmlessPruning(int beta)
+        int HarmlessPruning(int beta, int height)
         {
             if (HalfMoveClock >= 120)
                 return 0;
@@ -189,7 +184,7 @@ namespace MoleXiangqi
             return -G.MATE;
         }
 
-        int SearchPV(int alpha, int beta, int depth, out List<MOVE> pvs)
+        int SearchPV(int alpha, int beta, int depth, int height, out List<MOVE> pvs)
         {
             pvs = new List<MOVE>();
             if (depth <= 0)
@@ -198,20 +193,20 @@ namespace MoleXiangqi
                     //被照将时，推迟进入静态搜索
                     depth++;
                 else
-                    return SearchQuiesce(alpha, beta, 0);
+                    return SearchQuiesce(alpha, beta, 0, height + 1);
             }
 
             stat.PVNodes++;
 
-            int best = HarmlessPruning(beta);
+            int best = HarmlessPruning(beta, height);
             if (best > -G.MATE)
                 return best;
             MOVE mvBest = new MOVE();
             bool bResearch = false;
-
             List<MOVE> subpv = null;
             List<MOVE> played = new List<MOVE>();
-            IEnumerable<MOVE> moves = GetNextMove(7);
+            TransKiller = pvs[height];
+            IEnumerable<MOVE> moves = GetNextMove(7, height);
             foreach (MOVE mv in moves)
             {
                 Debug.Write(new string('\t', height));
@@ -220,14 +215,14 @@ namespace MoleXiangqi
                 height++;
                 int vl;
                 if (best == -G.MATE)
-                    vl = -SearchPV(-beta, -alpha, depth - 1, out subpv);
+                    vl = -SearchPV(-beta, -alpha, depth - 1, height+1, out subpv);
                 else
                 {
-                    vl = -SearchCut(-alpha, depth - 1);
+                    vl = -SearchCut(-alpha, depth - 1, height + 1);
                     if (vl > alpha && vl < beta)
                     {
                         Debug.WriteLine("Re-search");
-                        vl = -SearchPV(-beta, -alpha, depth - 1, out subpv);
+                        vl = -SearchPV(-beta, -alpha, depth - 1, height+ 1, out subpv);
                         stat.PVChanged++;
                         bResearch = true;
                     }
@@ -265,13 +260,13 @@ namespace MoleXiangqi
             if (G.UseHash && best > -G.MATE)
             {
                 TT.WriteHash(Key, G.HASH_ALPHA, best, depth, mvBest);
-                SetBestMove(mvBest, best, depth);
+                SetBestMove(mvBest, best, depth, height);
             }
 
             return best;
         }
 
-        int SearchCut(int beta, int depth)
+        int SearchCut(int beta, int depth, int height)
         {
             if (depth <= 0)
             {
@@ -279,11 +274,11 @@ namespace MoleXiangqi
                     //被照将时，推迟进入静态搜索
                     depth++;
                 else
-                    return SearchQuiesce(beta - 1, beta, 0);
+                    return SearchQuiesce(beta - 1, beta, 0, height + 1);
             }
 
             stat.CutNodes++;
-            int best = HarmlessPruning(beta);
+            int best = HarmlessPruning(beta, height);
             if (best > -G.MATE)
                 return best;
 
@@ -305,7 +300,7 @@ namespace MoleXiangqi
                 TransKiller.pcDst = pcSquares[TransKiller.sqDst];
             }
 
-            IEnumerable<MOVE> moves = GetNextMove(7);
+            IEnumerable<MOVE> moves = GetNextMove(7, height);
             MOVE mvBest = new MOVE();
             List<MOVE> played = new List<MOVE>();
             foreach (MOVE mv in moves)
@@ -314,7 +309,7 @@ namespace MoleXiangqi
                 Debug.WriteLine($"{mv} {beta - 1}, {beta}, {best}");
                 MakeMove(mv);
                 height++;
-                int vl = -SearchCut(1 - beta, depth - 1);
+                int vl = -SearchCut(1 - beta, depth - 1, height + 1);
                 height--;
                 UnmakeMove();
                 played.Add(mv);
@@ -342,12 +337,12 @@ namespace MoleXiangqi
             if (G.UseHash && best > -G.WIN)
             {
                 TT.WriteHash(Key, G.HASH_ALPHA, best, depth, mvBest);
-                SetBestMove(mvBest, best, depth);
+                SetBestMove(mvBest, best, depth, height);
             }
             return best;
         }
 
-        public int SearchQuiesce(int alpha, int beta, int qdepth)
+        public int SearchQuiesce(int alpha, int beta, int qdepth, int height)
         {
             stat.QuiesceNodes++;
             int sqCheck = stepList[stepList.Count - 1].checking;
@@ -370,15 +365,15 @@ namespace MoleXiangqi
                     bool continuousCheck = stepList.Count >= 2 && stepList[stepList.Count - 2].checking > 0;
                     //check extension only when in continuous check
                     if (continuousCheck)
-                        moves = GetNextMove(3);
+                        moves = GetNextMove(3, height);
                     //capture extension only when recapture
                     else if (stepList[stepList.Count - 1].move.pcDst > 0)
-                        moves = GetNextMove(2);
+                        moves = GetNextMove(2, height);
                     else
                         return best;
                 }
                 else
-                    moves = GetNextMove(7);
+                    moves = GetNextMove(7, height);
             }
             else
             {
@@ -402,9 +397,9 @@ namespace MoleXiangqi
                 }
                 //only extend evade and re-capture
                 if (sqCheck > 0)
-                    moves = GetNextMove(7);
+                    moves = GetNextMove(7, height);
                 else
-                    moves = GetNextMove(2);
+                    moves = GetNextMove(2, height);
             }
             foreach (MOVE mv in moves)
             {
@@ -419,7 +414,7 @@ namespace MoleXiangqi
                         stat.CaptureExtensions++;
                 }
                 height++;
-                int vl = -SearchQuiesce(-beta, -alpha, qdepth + 1);
+                int vl = -SearchQuiesce(-beta, -alpha, qdepth + 1, height + 1);
                 height--;
                 UnmakeMove();
                 if (vl > beta)

@@ -10,7 +10,7 @@ namespace MoleXiangqi
         internal int[,] History = new int[14, 256]; //there are 7 kinds of pieces in each side
         internal int[,] HistTotal = new int[14, 256];
         internal int[,] HistHit = new int[14, 256];
-        internal MOVE[] MateKiller;
+        internal MOVE[] MateKiller = new MOVE[G.MAX_PLY];
         MOVE TransKiller;
 
         const int HistoryMax = 0x4000;
@@ -27,13 +27,16 @@ namespace MoleXiangqi
           7, 8, 8, 9, 9,10,10,11,11,11,11,11,12,12,13,13
         };
 
-        void SetBestMove(MOVE mv, int score, int depth)
+        void SetBestMove(MOVE mv, int score,int depth, int height)
         {
             Debug.Assert(mv.sqSrc != 0);
             Debug.Assert(score > -G.MATE && score < G.MATE);
             Debug.Assert(depth >= 0);
+
             if (mv.pcDst > 0)
                 return;
+            if (score > G.RULEWIN)
+                MateKiller[height] = mv;
             if (Killers[height, 0] != mv)
             {
                 Killers[height, 1] = Killers[height, 0];
@@ -73,7 +76,7 @@ namespace MoleXiangqi
          * 3 - 生成所有照将和吃子
          * 7 - 生成所有合法着法
         */
-        public IEnumerable<MOVE> GetNextMove(int moveType)
+        public IEnumerable<MOVE> GetNextMove(int moveType, int height)
         {
             bool wantCheck = (moveType & 0x01) > 0;
             bool wantCapture = (moveType & 0x02) > 0;

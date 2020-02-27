@@ -83,6 +83,7 @@ int full_root(list_t * list, board_t * board, int alpha, int beta, int depth, in
 	4.11 int value_to_trans(int value, int height) 如果胜负已分，value = MATE-height
 	void trans_store(trans_t * trans, uint64 key, int move, int depth, int min_value, int max_value) 
 
+	5 void move_undo(board_t * board, int move, const undo_t * undo) 
 
 
 int full_quiescence(board_t * board, int alpha, int beta, int depth, int height, mv_t pv[]) 

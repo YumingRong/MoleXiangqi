@@ -7,7 +7,7 @@ namespace MoleXiangqi
     // 置换表结构，置换表信息夹在两个Zobrist校验锁中间，可以防止存取冲突
     struct HashStruct
     {
-        public uint ZobristLock;
+        public uint ZobristLock; //to be removed later
         public int AlphaDepth
         {
             get { return alphadepth; }
