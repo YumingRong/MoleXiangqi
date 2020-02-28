@@ -107,17 +107,17 @@ namespace MoleXiangqi
                 Debug.Assert(IN_BOARD[sq]);
                 int sd = SIDE(pc);
                 int sdOpp = 1 - sd;
-                if (attackMap[sdOpp, sq].Count == 0)
+                if (AttackMap[sdOpp, sq].Count == 0)
                     return false;  //没有捉子，排除
                 if (cnPieceKinds[pc] == PAWN && HOME_HALF[sd, sq])
                     return false;                     //可以长捉未过河的兵
-                int pcOpp = attackMap[sdOpp, sq][0];
+                int pcOpp = AttackMap[sdOpp, sq][0];
                 if (cnPieceKinds[pcOpp] == PAWN || cnPieceKinds[pcOpp] == KING)
                     return false;  //兵和将允许长捉其它子
                 int sqOpp = sqPieces[pcOpp];
-                if (attackMap[sd, sqOpp].Contains(pc))
+                if (AttackMap[sd, sqOpp].Contains(pc))
                     return false;   //两子互捉，算成兑子，作和
-                if (rulePieceValue[pc] <= rulePieceValue[pcOpp] && attackMap[sd, sq].Count > 0)
+                if (rulePieceValue[pc] <= rulePieceValue[pcOpp] && AttackMap[sd, sq].Count > 0)
                     return false;   //攻击有根子不算捉，除非被攻击子价值更大
                                     //如果吃子导致被将军，则该棋子被牵制中，不算捉子
                 MOVE mv = new MOVE(sqOpp, sq, pcOpp, pc);

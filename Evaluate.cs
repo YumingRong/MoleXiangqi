@@ -98,7 +98,7 @@ namespace MoleXiangqi
         //以下数组都是Complex_Evaluate的输出
         public int[,] ivpc; //统计每一步各个棋子的位置分 300 * 48，供调试用
         public int[,] connectivityMap; //供统计调试用
-        //public int[,] attackMap;
+        //public int[,] AttackMap;
         /*Complex_evaluate可以顺便创建吃子走法并打分，虽然可能不全，比如两个子同时攻击同一个格子
          但是这种情况较少，且一般情况下总是优先用低价值的棋子去吃对方。
          而且调用captureMoves的静态搜素并不需要严格考虑所用局面。          */
@@ -111,7 +111,7 @@ namespace MoleXiangqi
             int[] PinnedPieces = new int[48];   //0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
             bool[,] BannedGrids = new bool[2, 256]; //空头炮与将之间不能走子
             int sqSrc, sqDst, pcDst, delta;
-            int[,] attackMap;
+            int[,] AttackMap;
 
             int[] cDiscoveredAttack = { 0, 1, 25, 20, 20, 7, 3, 3 };
             //对阻挡将军的子进行判断
@@ -132,12 +132,12 @@ namespace MoleXiangqi
                     PinnedPieces[pcBlocker] |= direction;
                     //在形如红炮-黑车-红兵-黑将的棋型中，黑车是可以吃红炮的
                     if (IsLegalMove(sqPieces[pcBlocker], sqPinner))
-                        attackMap[sdBlocker, sqPinner] = pcBlocker;
+                        AttackMap[sdBlocker, sqPinner] = pcBlocker;
 
                 }
             }
 
-            attackMap = new int[2, 256];    //保存攻击该格的价值最低的棋子
+            AttackMap = new int[2, 256];    //保存攻击该格的价值最低的棋子
             //find absolute pin. 0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
             for (int sd = 0; sd < 2; sd++)
             {
@@ -289,7 +289,7 @@ namespace MoleXiangqi
                             {
                                 sqDst = sqSrc + ccKingDelta[i];
                                 if (IN_FORT[sqDst])
-                                    attackMap[sd, sqDst] = pc;
+                                    AttackMap[sd, sqDst] = pc;
                             }
                             positionValue[sd] += cKingPawnValue[sqSrcMirror];
                             break;
@@ -302,7 +302,7 @@ namespace MoleXiangqi
                                 for (sqDst = sqSrc + delta; IN_BOARD[sqDst]; sqDst += delta)
                                 {
                                     pcDst = pcSquares[sqDst];
-                                    attackMap[sd, sqDst] = pc;
+                                    AttackMap[sd, sqDst] = pc;
                                     if (pcDst != 0)
                                         break;
                                 }
@@ -321,7 +321,7 @@ namespace MoleXiangqi
                                     {
                                         for (sqDst += nDelta; IN_BOARD[sqDst]; sqDst += nDelta)
                                         {
-                                            attackMap[sd, sqDst] = pc;
+                                            AttackMap[sd, sqDst] = pc;
                                             if (pcSquares[sqDst] != 0) //直瞄点
                                                 goto NextFor;
                                         }
@@ -339,20 +339,20 @@ namespace MoleXiangqi
                             {
                                 if (pcSquares[sqSrc + ccKingDelta[j]] == 0)
                                 {
-                                    attackMap[sd, sqSrc + ccKnightDelta[j, 0]] = pc;
-                                    attackMap[sd, sqSrc + ccKnightDelta[j, 1]] = pc;
+                                    AttackMap[sd, sqSrc + ccKnightDelta[j, 0]] = pc;
+                                    AttackMap[sd, sqSrc + ccKnightDelta[j, 1]] = pc;
                                 }
                             }
                             positionValue[sd] += cKnightValue[sqSrcMirror];
                             break;
                         case PAWN:
                             if ((pin & 1) == 0)
-                                attackMap[sd, SQUARE_FORWARD(sqSrc, sd)] = pc;
+                                AttackMap[sd, SQUARE_FORWARD(sqSrc, sd)] = pc;
                             if ((pin & 2) == 0)
                                 if (HOME_HALF[1 - sd, sqSrc])
                                 {
-                                    attackMap[sd, sqSrc + 1] = pc;
-                                    attackMap[sd, sqSrc - 1] = pc;
+                                    AttackMap[sd, sqSrc + 1] = pc;
+                                    AttackMap[sd, sqSrc - 1] = pc;
                                 }
                             positionValue[sd] += cKingPawnValue[sqSrcMirror];
                             break;
@@ -363,7 +363,7 @@ namespace MoleXiangqi
                             {
                                 sqDst = sqSrc + ccGuardDelta[j];
                                 if (HOME_HALF[sd, sqDst] && pcSquares[sqDst] == 0)
-                                    attackMap[sd, sqDst + ccGuardDelta[j]] = pc;
+                                    AttackMap[sd, sqDst + ccGuardDelta[j]] = pc;
                             }
                             positionValue[sd] += cBishopGuardValue[sqSrcMirror];
                             break;
@@ -374,7 +374,7 @@ namespace MoleXiangqi
                             {
                                 sqDst = sqSrc + ccGuardDelta[j];
                                 if (IN_FORT[sqDst])
-                                    attackMap[sd, sqDst] = pc;
+                                    AttackMap[sd, sqDst] = pc;
                             }
                             positionValue[sd] += cBishopGuardValue[sqSrcMirror];
                             break;
@@ -385,7 +385,7 @@ namespace MoleXiangqi
                     //ivpc[nStep, pc] = positionValue[sd] - posv0;
                 }
                 //帅所在的格没有保护
-                attackMap[sd, sqPieces[bas + KING_FROM]] = 0;
+                AttackMap[sd, sqPieces[bas + KING_FROM]] = 0;
             }
 
             int[] pair = new int[2];
@@ -421,8 +421,8 @@ namespace MoleXiangqi
                 int sd = SIDE(pcDst);
                 if (sd != -1)
                 {
-                    int attack = attackMap[1 - sd, sqDst];
-                    int protect = attackMap[sd, sqDst];
+                    int attack = AttackMap[1 - sd, sqDst];
+                    int protect = AttackMap[sd, sqDst];
                     if (attack > 0)
                     {
                         int[] cnAttackScore = { 0, 20, 12, 8, 8, 4, 6, 6 };
@@ -461,9 +461,9 @@ namespace MoleXiangqi
                 {
                     for (sd = 0; sd < 2; sd++)
                         if (BannedGrids[sd, sqDst])
-                            tacticValue[1 ^ sd] += attackMap[1 - sd, sqDst] > 0 ? cDiscoveredAttack[cnPieceKinds[attackMap[1 - sd, sqDst]]] : 2;
+                            tacticValue[1 ^ sd] += AttackMap[1 - sd, sqDst] > 0 ? cDiscoveredAttack[cnPieceKinds[AttackMap[1 - sd, sqDst]]] : 2;
                         //机动性, 不考虑炮的空射，因为炮的射界与活动范围不同，且炮架可能是对方的车、炮或兵、帅
-                        else if (attackMap[sd, sqDst] > 0 && cnPieceKinds[attackMap[sd, sqDst]] != CANNON && attackMap[1 - sd, sqDst] == 0)
+                        else if (AttackMap[sd, sqDst] > 0 && cnPieceKinds[AttackMap[sd, sqDst]] != CANNON && AttackMap[1 - sd, sqDst] == 0)
                             connectivity[sd] += 2;
                 }
                 connectivityMap[0, sqDst] = connectivity[0] - conn00;

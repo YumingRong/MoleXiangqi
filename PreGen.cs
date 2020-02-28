@@ -192,7 +192,7 @@ namespace MoleXiangqi
 
             for (n = 0; n < 2; n++)
                 foreach (int sq in cboard90)
-                    attackMap[n, sq] = new List<int>(8);
+                    AttackMap[n, sq] = new List<int>(8);
 
             // 接下来生成着法预生成数组，连同将军预判数组
             for (sqSrc = 0; sqSrc < 256; sqSrc++)

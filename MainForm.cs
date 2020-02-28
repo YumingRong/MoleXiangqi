@@ -398,7 +398,7 @@ namespace MoleXiangqi
             //NewGameAsync();
             //int score = engine.SearchQuiesce(-5000, 4998, 10);
             //MessageBox.Show("静态搜索分数" + score + ",搜索节点" + engine.stat.QuiesceNodes);
-            //WriteMap2Csv(pos.attackMap, @"G:\xqtest\attack.csv");
+            //WriteMap2Csv(pos.AttackMap, @"G:\xqtest\attack.csv");
             //WriteMap2Csv(pos.connectivityMap, @"G:\xqtest\connectivity.csv");
         }
 

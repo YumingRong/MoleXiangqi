@@ -79,9 +79,11 @@ namespace MoleXiangqi
             bool wantCapture = (moveType & 0x02) > 0;
             bool wantAll = moveType == 7;
 
-            if (G.UseHash && !(TransKiller is null) && TransKiller.sqDst!= 0)
+            List<MOVE> movesDone = new List<MOVE>();
+            if (G.UseHash && !(TransKiller is null) && TransKiller.sqDst != 0)
             {
                 Debug.Assert(IsLegalMove(TransKiller.sqSrc, TransKiller.sqDst));
+                movesDone.Add(TransKiller);
                 yield return TransKiller;
             }
 
@@ -95,15 +97,18 @@ namespace MoleXiangqi
                 if (notChecked)
                     if (wantAll || wantCheck && IsChecking(killer) || wantCapture && killer.pcDst > 0)
                     {
+                        movesDone.Add(killer);
                         yield return killer;
                     }
             }
 
-            List<MOVE> moves = GenerateMoves();
-            GenAttackMap();
+            List<MOVE> moves = GenerateMoves(false);
+            GenAttackMap(true);
 
             if (!wantAll && wantCapture)
                 moves.RemoveAll(x => x.pcDst == 0);
+            foreach (MOVE mv in movesDone)
+                moves.Remove(mv);
             for (int i = 0; i < moves.Count; i++)
             {
                 MOVE mv = moves[i];
@@ -124,7 +129,7 @@ namespace MoleXiangqi
                 moves.RemoveAll(x => x.checking == false);
 
             //assign killer bonus
-            if (!(Killers[sdPlayer,0] is null) && Killers[sdPlayer, 0].sqSrc > 0)
+            if (!(Killers[sdPlayer, 0] is null) && Killers[sdPlayer, 0].sqSrc > 0)
             {
                 killer = moves.Find(x => x == Killers[sdPlayer, 0]);
                 if (killer.sqSrc > 0)
@@ -139,7 +144,7 @@ namespace MoleXiangqi
             for (int i = 0; i < moves.Count; i++)
             {
                 MOVE mv = moves[i];
-                int s = SEE(mv, attackMap[sdPlayer, mv.sqDst], attackMap[1 - sdPlayer, mv.sqDst]);
+                int s = SEE(mv, AttackMap[sdPlayer, mv.sqDst], AttackMap[1 - sdPlayer, mv.sqDst]);
                 mv.score += s;
                 if (s > 0)
                     mv.score += GoodScore;
@@ -215,7 +220,7 @@ namespace MoleXiangqi
             bool potentialHideSlider = attKind == PAWN || attKind == ROOK || attKind == KING;
             if (potentialHideSlider)
             {
-                foreach (int pc in attackMap[sdPlayer, mv.sqSrc])
+                foreach (int pc in AttackMap[sdPlayer, mv.sqSrc])
                 {
                     int d = cnPieceKinds[pc];
                     if (d == CANNON || d == ROOK)
@@ -245,7 +250,7 @@ namespace MoleXiangqi
                 atts.Remove(mv.pcSrc);
             if (potentialHideSlider)
             {
-                foreach (int pc in attackMap[SIDE(mv.pcSrc), mv.sqSrc])
+                foreach (int pc in AttackMap[SIDE(mv.pcSrc), mv.sqSrc])
                 {
                     int d = cnPieceKinds[pc];
                     if (d == CANNON || d == ROOK)
@@ -295,7 +300,7 @@ namespace MoleXiangqi
             bool potentialHideSlider = attKind == PAWN || attKind == ROOK || attKind == KING;
             if (potentialHideSlider)
             {
-                foreach (int pc in attackMap[sdPlayer, mv.sqSrc])
+                foreach (int pc in AttackMap[sdPlayer, mv.sqSrc])
                 {
                     int d = cnPieceKinds[pc];
                     if (d == CANNON || d == ROOK)
@@ -324,7 +329,7 @@ namespace MoleXiangqi
             atts.Remove(mv.pcSrc);
             if (potentialHideSlider)
             {
-                foreach (int pc in attackMap[SIDE(mv.pcSrc), mv.sqSrc])
+                foreach (int pc in AttackMap[SIDE(mv.pcSrc), mv.sqSrc])
                 {
                     int d = cnPieceKinds[pc];
                     if (d == CANNON || d == ROOK)
