@@ -94,7 +94,7 @@ int full_root(list_t * list, board_t * board, int alpha, int beta, int depth, in
 		把pv转换成字符串，放到string里
 		输出当前搜索信息
 void pv_fill(const mv_t pv[], board_t * board) 
-
+	递归调用pv_fill，把pv储存到哈希表中，没有深度和上下限
 
 
 

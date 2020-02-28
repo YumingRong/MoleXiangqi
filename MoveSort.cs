@@ -116,12 +116,12 @@ namespace MoleXiangqi
                 if (mv.checking)
                 {
                     //encourage continuous check
-                    if (stepList.Count >= 2 && stepList[stepList.Count - 2].checking > 0)
+                    if (stepList.Count >= 2 && stepList[stepList.Count - 2].move.checking)
                         mv.score += 30;
                     else
                         mv.score += 10;
                     //Avoid repeating check by the same piece 
-                    if (mv.pcDst == 0 && stepList.Count >= 2 && mv.sqSrc == stepList[stepList.Count - 2].checking)
+                    if (mv.pcDst == 0 && stepList.Count >= 2 && mv.sqSrc == stepList[stepList.Count - 2].move.sqDst)
                         mv.score -= 5;
                 }
             }
@@ -159,11 +159,11 @@ namespace MoleXiangqi
             moves.Sort(Large2Small);
             foreach (var mv in moves)
                 yield return mv;
+        }
 
-            int Large2Small(MOVE a, MOVE b)
-            {
-                return b.score.CompareTo(a.score);
-            }
+        int Large2Small(MOVE a, MOVE b)
+        {
+            return b.score.CompareTo(a.score);
         }
 
         bool IsChecking(MOVE mv)

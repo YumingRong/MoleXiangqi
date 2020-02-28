@@ -184,7 +184,7 @@ namespace MoleXiangqi
             pvs = new List<MOVE>();
             if (depth <= 0)
             {
-                if (stepList[stepList.Count - 1].checking > 0)
+                if (stepList[stepList.Count - 1].move.checking)
                     //被照将时，推迟进入静态搜索
                     depth++;
                 else
@@ -270,7 +270,7 @@ namespace MoleXiangqi
         {
             if (depth <= 0)
             {
-                if (stepList[stepList.Count - 1].checking > 0)
+                if (stepList[stepList.Count - 1].move.checking)
                     //被照将时，推迟进入静态搜索
                     depth++;
                 else
@@ -348,7 +348,7 @@ namespace MoleXiangqi
         public int SearchQuiesce(int alpha, int beta, int qdepth, int height)
         {
             stat.QuiesceNodes++;
-            int sqCheck = stepList[stepList.Count - 1].checking;
+            bool isChecked = stepList[stepList.Count - 1].move.checking;
             int best;
             IEnumerable<MOVE> moves;
             //偶数层是主动方，奇数层是被动方
@@ -363,10 +363,12 @@ namespace MoleXiangqi
                 }
                 if (best > alpha)
                     alpha = best;
-                //only extend check and capture
-                if (sqCheck == 0)
+                if (isChecked)
+                    moves = GetNextMove(7, height);
+                else
                 {
-                    bool continuousCheck = stepList.Count >= 2 && stepList[stepList.Count - 2].checking > 0;
+                    //only extend check and capture
+                    bool continuousCheck = stepList.Count >= 2 && stepList[stepList.Count - 2].move.checking;
                     //check extension only when in continuous check
                     if (continuousCheck)
                         moves = GetNextMove(3, height);
@@ -376,12 +378,10 @@ namespace MoleXiangqi
                     else
                         return best;
                 }
-                else
-                    moves = GetNextMove(7, height);
             }
             else
             {
-                if (sqCheck > 0)    //避免长照
+                if (isChecked)    //避免长照
                 {
                     RepititionResult rep = Repitition();
                     if (rep != RepititionResult.NONE)
@@ -400,7 +400,7 @@ namespace MoleXiangqi
                         alpha = best;
                 }
                 //only extend evade and re-capture
-                if (sqCheck > 0)
+                if (isChecked)
                     moves = GetNextMove(7, height);
                 else
                     moves = GetNextMove(2, height);
@@ -412,7 +412,7 @@ namespace MoleXiangqi
                 MakeMove(mv);
                 if (qdepth % 2 == 0)
                 {
-                    if (stepList[stepList.Count - 1].checking > 0)
+                    if (stepList[stepList.Count - 1].move.checking)
                         stat.CheckExtesions++;
                     else
                         stat.CaptureExtensions++;

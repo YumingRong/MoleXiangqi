@@ -344,13 +344,12 @@ namespace MoleXiangqi
                 int mySide = sdPlayer;
                 if (PinnedPieces[pcSrc] == 0)
                 {
-                    int sqCheck = stepList[stepList.Count - 1].checking;
                     //如果被照将，先试试走棋后，照将着法是否仍然成立
-                    if (sqCheck > 0)
+                    if (stepList[stepList.Count - 1].move.checking)
                     {
                         MovePiece(mv);
                         int sqKing = sqPieces[SIDE_TAG(mySide) + KING_FROM];
-                        if (!IsLegalMove(sqCheck, sqKing))
+                        if (!IsLegalMove(stepList[stepList.Count - 1].move.sqDst, sqKing))
                         {
                             if (CheckedBy(mySide) == 0)
                                 mvs.Add(mv);

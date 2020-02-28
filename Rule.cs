@@ -28,7 +28,7 @@ namespace MoleXiangqi
             bool bOppPerpCheck = true;
             for (int i = nstep; i >= repStart; i -= 2)
             {
-                if (stepList[i].checking == 0)
+                if (!stepList[i].move.checking)
                 {
                     bOppPerpCheck = false;
                     break;
@@ -37,7 +37,7 @@ namespace MoleXiangqi
             bool bSelfPerpCheck = true;
             for (int i = nstep - 1; i >= repStart; i -= 2)
             {
-                if (stepList[i].checking == 0)
+                if (!stepList[i].move.checking)
                 {
                     bSelfPerpCheck = false;
                     break;

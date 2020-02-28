@@ -10,7 +10,7 @@ namespace MoleXiangqi
         public int score;
         public bool checking;
 
-        public MOVE(int sqFrom=0, int sqTo=0, int pcFrom=0, int pcTo=0)
+        public MOVE(int sqFrom = 0, int sqTo = 0, int pcFrom = 0, int pcTo = 0)
         {
             sqSrc = sqFrom;
             sqDst = sqTo;
@@ -63,7 +63,6 @@ namespace MoleXiangqi
     public struct RECORD
     {
         public ulong zobrist;
-        public int checking;
         public MOVE move;
         public int halfMoveClock;  //120步不吃子作和的自然限招
     }
@@ -169,7 +168,7 @@ namespace MoleXiangqi
             RECORD step;
             step.move = mv;
             step.zobrist = Key;
-            step.checking = CheckedBy(sdPlayer);
+            //step.checking = mv.checking ? mv.sqDst : 0;
             step.halfMoveClock = HalfMoveClock;
             stepList.Add(step);
         }
