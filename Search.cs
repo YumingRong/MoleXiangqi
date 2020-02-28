@@ -120,10 +120,7 @@ namespace MoleXiangqi
                     vl = -SearchPV(-beta, -alpha, depth - 1, 1, out subpv);
                 else
                 {
-                    if (depth > 2)
-                        vl = -SearchCut(-alpha, depth - 2, 1);
-                    else
-                        vl = -SearchCut(-alpha, depth - 1, 1);
+                    vl = -SearchCut(-alpha, depth - 1, 1);
                     if (vl > alpha)
                     {
                         stat.PVChanged++;
@@ -196,7 +193,6 @@ namespace MoleXiangqi
             //distance pruning
             if (best >= beta)
                 return best;
-
             MOVE mvBest = new MOVE();
             bool bResearch = false;
             int hashFlag = 0;
@@ -211,17 +207,21 @@ namespace MoleXiangqi
             {
                 Debug.Write(new string('\t', height));
                 Debug.WriteLine($"{mv} {alpha}, {beta}, {best}");
-                MakeMove(mv,false);
+                int new_depth = depth - 1;
+                if (mv.sqDst == stepList[stepList.Count - 1].move.sqDst && mv.score > 0
+                    || mv.checking)
+                    new_depth++;
+                MakeMove(mv, false);
                 int vl;
                 if (mvBest.sqSrc == 0)
-                    vl = -SearchPV(-beta, -alpha, depth - 1, height + 1, out subpv);
+                    vl = -SearchPV(-beta, -alpha, new_depth, height + 1, out subpv);
                 else
                 {
-                    vl = -SearchCut(-alpha, depth - 1, height + 1);
+                    vl = -SearchCut(-alpha, new_depth, height + 1);
                     if (vl > alpha && vl < beta)
                     {
                         Debug.WriteLine("Re-search");
-                        vl = -SearchPV(-beta, -alpha, depth - 1, height + 1, out subpv);
+                        vl = -SearchPV(-beta, -alpha, new_depth, height + 1, out subpv);
                         stat.PVChanged++;
                         bResearch = true;
                     }
@@ -312,8 +312,19 @@ namespace MoleXiangqi
             {
                 Debug.Write(new string('\t', height));
                 Debug.WriteLine($"{mv} {beta - 1}, {beta}, {best}");
-                MakeMove(mv,false);
-                int vl = -SearchCut(1 - beta, depth - 1, height + 1);
+                int new_depth = depth - 1;
+                if (mv.sqDst == stepList[stepList.Count - 1].move.sqDst && mv.score > 0)
+                    new_depth++;
+                //if (G.UseFutilityPruning && depth == 1)
+                //{
+                //    if (!stepList[stepList.Count -1].move.checking && new_depth == 0 && mv.pcSrc == 0)
+                //    {
+                //        int opt_value = Simple_Evaluate()
+                //    }
+                //}
+
+                MakeMove(mv, false);
+                int vl = -SearchCut(1 - beta, new_depth, height + 1);
                 UnmakeMove();
                 played.Add(mv);
 
@@ -409,7 +420,7 @@ namespace MoleXiangqi
             {
                 Debug.Write(new string('\t', height));
                 Debug.WriteLine($"{mv} {alpha}, {beta}, {best}, {height}");
-                MakeMove(mv,false);
+                MakeMove(mv, false);
                 if (qdepth % 2 == 0)
                 {
                     if (stepList[stepList.Count - 1].move.checking)

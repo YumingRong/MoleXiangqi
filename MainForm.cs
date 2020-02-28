@@ -87,7 +87,7 @@ namespace MoleXiangqi
             //相当于go depth指令和bestmove反馈
             while (pos.sdPlayer == 1 && MenuAIBlack.Checked || pos.sdPlayer == 0 && MenuAIRed.Checked)
             {
-                Task<MOVE> GetBestMove = Task<MOVE>.Run(() => engine.SearchMain(4));
+                Task<MOVE> GetBestMove = Task<MOVE>.Run(() => engine.SearchMain(2));
                 MOVE bestmove = await GetBestMove;
                 MakeMove(bestmove.sqSrc, bestmove.sqDst);
             }
@@ -543,7 +543,7 @@ namespace MoleXiangqi
         private void MenuGenMoves_Click(object sender, EventArgs e)
         {
             App_inGame = false;
-            string fen = @"2b1ka3/1R2aR3/4b1n2/9/9/C8/9/4r4/4A1p1r/4KA3 w - - 0 1";
+            string fen = @"2b2k3/1R2a4/4b4/8n/9/5C3/9/4r4/4A1p1r/4KA3 b - - 0 3";
             pos.FromFEN(fen);
             engine.FromFEN(fen);
             PanelBoard.Refresh();

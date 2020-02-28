@@ -141,6 +141,27 @@ int full_quiescence(board_t * board, int alpha, int beta, int depth, int height,
 	撤销走子
 	alpha-beta裁剪
 
+int eval(const board_t * board) 
+	1 void material_get_info(material_info_t * info, const board_t * board) 
+		先查找Material Hash表，有分数直接返回
+		1.1 void material_comp_info(material_info_t * info, const board_t * board) 
+			统计棋子种类和数量
+			识别残局基本类型 recog
+			识别典型和棋 flag
+			其它局面估计大致获胜可能性 mul
+			根据子力数量（不包括兵）计算局面进展（开局0， 残局256）phase
+			根据开局和残局的兵种分数，计算该兵力在开局和残局的总分 opening, endgame
+			双相优势
+			返回info
+		存储info到Material Hash表
+	2 void pawn_get_info(pawn_info_t * info, const board_t * board) 
+		2.1 void pawn_comp_info(pawn_info_t * info, const board_t * board) {
+	3 void eval_draw(const board_t * board, const material_info_t * mat_info, const pawn_info_t * pawn_info, int mul[2]) {
+		3.1 void draw_init_list(int list[], const board_t * board, int pawn_colour) {
+
+
+
+
 
 static int full_no_null(board_t * board, int alpha, int beta, int depth, int height, mv_t pv[], int node_type, int trans_move, int * best_move) {
 

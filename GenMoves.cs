@@ -280,7 +280,7 @@ namespace MoleXiangqi
                         else if (nblock == 0)
                         {
                             for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
-                                bannedGrids[oppside, sq] = true;
+                                bannedGrids[side, sq] = true;
                         }
                     }
                 }
