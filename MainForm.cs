@@ -376,7 +376,7 @@ namespace MoleXiangqi
                 Console.WriteLine(mv);
             Console.WriteLine("--------------------------");
             Console.WriteLine("Check + capture moves:");
-            foreach (MOVE mv in engine.GetNextMove(3, 0 ))
+            foreach (MOVE mv in engine.GetNextMove(3, 0))
                 Console.WriteLine(mv);
         }
 
@@ -473,11 +473,7 @@ namespace MoleXiangqi
             if (pos.IsLegalMove(sqFrom, sqTo))
             {
                 int pcCaptured = pos.pcSquares[sqTo];
-                MOVE step;
-                step.sqSrc = sqFrom;
-                step.sqDst = sqTo;
-                step.pcSrc = pos.pcSquares[sqFrom];
-                step.pcDst = pcCaptured;
+                MOVE step = new MOVE(sqFrom, sqTo, pos.pcSquares[sqFrom], pcCaptured);
                 pos.MakeMove(step);
                 if (pos.CheckedBy(1 - pos.sdPlayer) > 0)
                 {

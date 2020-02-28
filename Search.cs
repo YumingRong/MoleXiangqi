@@ -44,7 +44,7 @@ namespace MoleXiangqi
 
         public STATISTIC stat;
         public List<MOVE> PVLine;
-        public List<KeyValuePair<MOVE, int>> rootMoves;
+        public List<MOVE> rootMoves;
         TransipositionTable TT;
 
         internal Stopwatch stopwatch;
@@ -53,7 +53,7 @@ namespace MoleXiangqi
         {
             TT = new TransipositionTable(128);
             stopwatch = new Stopwatch();
-            rootMoves = new List<KeyValuePair<MOVE, int>>();
+            rootMoves = new List<MOVE>();
         }
 
         public MOVE SearchMain(int maxDepth)
@@ -67,7 +67,7 @@ namespace MoleXiangqi
             Array.Clear(HistHit, 0, 14 * 256);
             Array.Clear(HistTotal, 0, 14 * 256);
             TT.Reset();
-            rootMoves = InitRootMoves();
+            rootMoves = new List<MOVE>(GetNextMove(7, 0));
 
             int vl = 0;
 
@@ -110,7 +110,7 @@ namespace MoleXiangqi
             List<MOVE> subpv = null;
             for (int i = 0; i < rootMoves.Count; i++)
             {
-                MOVE mv = rootMoves[i].Key;
+                MOVE mv = rootMoves[i];
                 //Console.WriteLine($"info currmove {mv}, currmovenumber {i}");
                 Debug.WriteLine($"{mv} {alpha}, {beta}");
                 MakeMove(mv);
@@ -132,7 +132,7 @@ namespace MoleXiangqi
                 }
                 UnmakeMove();
 
-                rootMoves[i] = new KeyValuePair<MOVE, int>(mv, vl);
+                mv.score = vl;
 
                 if (vl > alpha)
                 {
@@ -149,19 +149,19 @@ namespace MoleXiangqi
                     }
                 }
             }
-            rootMoves.RemoveAll(x => x.Value < -G.WIN);
+            rootMoves.RemoveAll(x => x.score < -G.WIN);
             rootMoves.Sort(SortLarge2Small);
 
             //late move reduction
-            for (int i = rootMoves.Count - 1; alpha - rootMoves[i].Value > FUTILITY_MARGIN; i--)
+            for (int i = rootMoves.Count - 1; alpha - rootMoves[i].score > FUTILITY_MARGIN; i--)
             {
                 //lose a cannon/knight for nothing
-                Console.WriteLine($"Prune move: {rootMoves[i].Key}, score {rootMoves[i].Value}");
+                Console.WriteLine($"Prune move: {rootMoves[i]}, score {rootMoves[i].score}");
                 rootMoves.RemoveAt(i);
             }
             Console.WriteLine("Root move\tScore");
-            foreach (KeyValuePair<MOVE, int> mv_vl in rootMoves)
-                Console.WriteLine($"{mv_vl.Key}\t{mv_vl.Value}");
+            foreach (MOVE mv in rootMoves)
+                Console.WriteLine($"{mv}\t{mv.score}");
             Console.WriteLine($"Best move {mvBest}, score {alpha}");
             Console.WriteLine("PV:" + PopPVLine());
             TT.PrintStatus();
@@ -441,9 +441,5 @@ namespace MoleXiangqi
             return sb.ToString();
         }
 
-        int SortLarge2Small(KeyValuePair<MOVE, int> a, KeyValuePair<MOVE, int> b)
-        {
-            return b.Value.CompareTo(a.Value);
-        }
     }
 }

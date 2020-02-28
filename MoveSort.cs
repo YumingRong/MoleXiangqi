@@ -107,14 +107,13 @@ namespace MoleXiangqi
             //assign killer bonus
             if (Killers[sdPlayer, 0].sqSrc > 0)
             {
-                int j = moves.FindIndex(x => x == Killers[sdPlayer, 0]);
-                if (j > -1)
-                    scores[j] += KillerScore;
-                if (Killers[sdPlayer, 0].sqSrc > 0)
+                killer = moves.Find(x => x == Killers[sdPlayer, 0]);
+                if (killer.sqSrc > 0)
                 {
-                    j = moves.FindIndex(x => x == Killers[sdPlayer, 1]);
-                    if (j > -1)
-                        scores[j] += KillerScore - 1;
+                    killer.score += KillerScore;
+                    killer = moves.Find(x => x == Killers[sdPlayer, 1]);
+                    if (killer.sqSrc > 0)
+                        killer.score += KillerScore - 1;
                 }
             }
             for (int i = 0; i < moves.Count; i++)
@@ -125,12 +124,12 @@ namespace MoleXiangqi
                     kinds[i] |= 1;
                     //encourage continuous check
                     if (stepList.Count >= 2 && stepList[stepList.Count - 2].checking > 0)
-                        scores[i] += 30;
+                        mv.score += 30;
                     else
-                        scores[i] += 10;
+                        mv.score += 10;
                     //Avoid repeating check by the same piece 
                     if (mv.pcDst == 0 && stepList.Count >= 2 && mv.sqSrc == stepList[stepList.Count - 2].checking)
-                        scores[i] -= 5;
+                        mv.score -= 5;
                 }
                 else if (mv.pcDst > 0)
                 {
@@ -141,60 +140,17 @@ namespace MoleXiangqi
                     kinds[i] |= 4;
                 }
                 int s = SEE(mv, attackMap[sdPlayer, mv.sqDst], attackMap[1 - sdPlayer, mv.sqDst]);
-                scores[i] += s;
+                mv.score += s;
                 if (s > 0)
-                    scores[i] += GoodScore;
+                    mv.score += GoodScore;
                 else if (s == 0)
-                    scores[i] += HistHit[cnPieceHistIndex[mv.pcSrc], mv.sqDst] * HistoryMax / (HistTotal[cnPieceHistIndex[mv.pcSrc], mv.sqDst] + 1) + HistoryScore;
+                    mv.score += HistHit[cnPieceHistIndex[mv.pcSrc], mv.sqDst] * HistoryMax / (HistTotal[cnPieceHistIndex[mv.pcSrc], mv.sqDst] + 1) + HistoryScore;
                 else
-                    scores[i] += BadScore;
+                    mv.score += BadScore;
             }
-            List<KeyValuePair<MOVE, int>> l = new List<KeyValuePair<MOVE, int>>();
-            for (int i = 0; i < moves.Count; i++)
-            {
-                if ((kinds[i] & moveType) != 0)
-                {
-                    //Remove those will lose material if don't need all moves
-                    if ((moveType & 4) == 0 && scores[i] < BadScore)
-                        continue;
-                    KeyValuePair<MOVE, int> t = new KeyValuePair<MOVE, int>(moves[i], scores[i]);
-                    l.Add(t);
-                }
-            }
-            l.Sort(SortLarge2Small);
-            foreach (var t in l)
-                yield return t.Key;
-        }
-
-        public List<KeyValuePair<MOVE, int>> InitRootMoves()
-        {
-            List<MOVE> moves = GenerateMoves();
-            GenAttackMap();
-            int[] scores = new int[moves.Count];
-            for (int i = 0; i < moves.Count; i++)
-            {
-                MOVE mv = moves[i];
-                if (IsChecking(mv))
-                {
-                    //encourage continuous check
-                    if (stepList.Count >= 2 && stepList[stepList.Count - 2].checking > 0)
-                        scores[i] += 30;
-                    else
-                        scores[i] += 10;
-                    //Avoid repeating check by the same piece 
-                    if (mv.pcDst == 0 && stepList.Count >= 2 && mv.sqSrc == stepList[stepList.Count - 2].checking)
-                        scores[i] -= 5;
-                }
-                scores[i] += SEE(mv, attackMap[sdPlayer, mv.sqDst], attackMap[1 - sdPlayer, mv.sqDst]);
-            }
-            List<KeyValuePair<MOVE, int>> l = new List<KeyValuePair<MOVE, int>>();
-            for (int i = 0; i < moves.Count; i++)
-            {
-                KeyValuePair<MOVE, int> t = new KeyValuePair<MOVE, int>(moves[i], scores[i]);
-                l.Add(t);
-            }
-            l.Sort(SortLarge2Small);
-            return l;
+            moves.Sort(SortLarge2Small);
+            foreach (var mv in moves)
+                yield return mv;
         }
 
         bool IsChecking(MOVE mv)
@@ -226,8 +182,8 @@ namespace MoleXiangqi
 
         public void GenMoveTest()
         {
-            foreach (var mv in InitRootMoves())
-                Console.WriteLine(mv.Key);
+            foreach (var mv in GetNextMove(7, 0))
+                Console.WriteLine(mv);
             Console.WriteLine("End of moves");
         }
 
@@ -390,5 +346,9 @@ namespace MoleXiangqi
             return Math.Max(0, vlDst + score);
         }
 
+        int SortLarge2Small(MOVE a, MOVE b)
+        {
+            return b.score.CompareTo(a.score);
+        }
     }
 }

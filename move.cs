@@ -3,10 +3,12 @@ using System.Diagnostics;
 
 namespace MoleXiangqi
 {
-    public struct MOVE
+    public struct MOVE : IEquatable<MOVE>
     {
         public int sqSrc, sqDst;      // 起始格和目标格
         public int pcSrc, pcDst;
+        public int score;
+        public bool checking;
 
         public MOVE(int sqFrom, int sqTo, int pcFrom, int pcTo)
         {
@@ -14,6 +16,8 @@ namespace MoleXiangqi
             sqDst = sqTo;
             pcSrc = pcFrom;
             pcDst = pcTo;
+            score = 0;
+            checking = false;
         }
 
         public override string ToString()
