@@ -176,7 +176,7 @@ namespace MoleXiangqi
                             comment = null;
                             //phase++;
                         }
-                        else if (s.Length ==5)
+                        else if (s.Length == 5)
                         {// is a ICCS format move
                             Tuple<int, int> coord = ICCS2Move(s);
                             MOVE mv = new MOVE(coord.Item1, coord.Item2, pcSquares[coord.Item1], pcSquares[coord.Item2]);
@@ -375,7 +375,7 @@ namespace MoleXiangqi
                 using (StreamWriter sw = new StreamWriter(fs, Encoding.Default))
                 {
                     sw.AutoFlush = false;
-                    for(int sd = 0;sd<2;sd++)
+                    for (int sd = 0; sd < 2; sd++)
                     {
                         for (int y = RANK_TOP; y <= RANK_BOTTOM; y++)//<--row
                         {

@@ -657,7 +657,7 @@ namespace MoleXiangqi
                         }
                     }
 
-                    MakeMove(step);
+                    MakeMove(step,true);
                     Console.WriteLine("-------------------");
                 }
                 for (int i = 1; i < nSteps; i += 2)

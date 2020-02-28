@@ -154,9 +154,13 @@ namespace MoleXiangqi
             sdPlayer ^= 1;
         }
 
-        public void MakeMove(MOVE mv)
+        public void MakeMove(MOVE mv, bool needCheckTest = true)
         {
             MovePiece(mv);
+            if (needCheckTest)
+                mv.checking = CheckedBy(sdPlayer) > 0;
+            else
+                Debug.Assert(mv.checking == CheckedBy(sdPlayer) > 0);
             Key ^= Zobrist.Get(mv.pcSrc, mv.sqSrc) ^ Zobrist.Get(mv.pcSrc, mv.sqDst) ^ Zobrist.turn;
             if (mv.pcDst > 0)
             {

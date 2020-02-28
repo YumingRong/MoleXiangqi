@@ -113,7 +113,7 @@ namespace MoleXiangqi
                 MOVE mv = rootMoves[i];
                 //Console.WriteLine($"info currmove {mv}, currmovenumber {i}");
                 Debug.WriteLine($"{mv} {alpha}, {beta}");
-                MakeMove(mv);
+                MakeMove(mv, false);
                 int vl;
 
                 if (mvBest.sqSrc == 0)
@@ -211,7 +211,7 @@ namespace MoleXiangqi
             {
                 Debug.Write(new string('\t', height));
                 Debug.WriteLine($"{mv} {alpha}, {beta}, {best}");
-                MakeMove(mv);
+                MakeMove(mv,false);
                 int vl;
                 if (mvBest.sqSrc == 0)
                     vl = -SearchPV(-beta, -alpha, depth - 1, height + 1, out subpv);
@@ -312,7 +312,7 @@ namespace MoleXiangqi
             {
                 Debug.Write(new string('\t', height));
                 Debug.WriteLine($"{mv} {beta - 1}, {beta}, {best}");
-                MakeMove(mv);
+                MakeMove(mv,false);
                 int vl = -SearchCut(1 - beta, depth - 1, height + 1);
                 UnmakeMove();
                 played.Add(mv);
@@ -409,7 +409,7 @@ namespace MoleXiangqi
             {
                 Debug.Write(new string('\t', height));
                 Debug.WriteLine($"{mv} {alpha}, {beta}, {best}, {height}");
-                MakeMove(mv);
+                MakeMove(mv,false);
                 if (qdepth % 2 == 0)
                 {
                     if (stepList[stepList.Count - 1].move.checking)

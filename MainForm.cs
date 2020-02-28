@@ -355,8 +355,11 @@ namespace MoleXiangqi
                     pos.UnmakeMove();
             }
             FENStep = ListboxMove.SelectedIndex;
-            ptLastFrom = POSITION.UI_Coord2XY(MoveList[ListboxMove.SelectedIndex].sqSrc, bFlipped);
-            ptLastTo = POSITION.UI_Coord2XY(MoveList[ListboxMove.SelectedIndex].sqDst, bFlipped);
+            if (FENStep > 0)
+            {
+                ptLastFrom = POSITION.UI_Coord2XY(MoveList[ListboxMove.SelectedIndex].sqSrc, bFlipped);
+                ptLastTo = POSITION.UI_Coord2XY(MoveList[ListboxMove.SelectedIndex].sqDst, bFlipped);
+            }
             PanelBoard.Refresh();
         }
 
@@ -464,7 +467,7 @@ namespace MoleXiangqi
 
         private void MenuRuleTest_Click(object sender, EventArgs e)
         {
-            pos.RuleTest(@"J:\C#\MoleXiangqi\TestPGN\不可长捉受牵制1.PGN");
+            pos.RuleTest(@"J:\C#\MoleXiangqi\TestPGN\长照作负1.PGN");
         }
 
         void MakeMove(int sqFrom, int sqTo)

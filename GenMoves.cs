@@ -295,9 +295,9 @@ namespace MoleXiangqi
                         {
                             int sqKnight = sqKing + ccKnightCheckDelta[i, j];
                             pcDst = pcSquares[sqKnight];
-                            if (cnPieceTypes[pcDst] == bas + KNIGHT && SIDE(pcBlocker) == oppside)
+                            if (cnPieceTypes[pcDst] == bas + KNIGHT)
                             {
-                                PinnedPieces[pcBlocker] |= 3;
+                                CheckBlocker(pcBlocker, 3);
                                 //在形如红马-黑车-黑将的棋型中，黑车是可以吃红马的
                                 if (IsLegalMove(sqBlocker, sqKnight))
                                     pinexception.Add(new Tuple<int, int>(sqBlocker, sqKnight));

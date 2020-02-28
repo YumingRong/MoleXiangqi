@@ -119,13 +119,7 @@ namespace MoleXiangqi
                     return false;   //两子互捉，算成兑子，作和
                 if (rulePieceValue[pc] <= rulePieceValue[pcOpp] && AttackMap[sd, sq].Count > 0)
                     return false;   //攻击有根子不算捉，除非被攻击子价值更大
-                                    //如果吃子导致被将军，则该棋子被牵制中，不算捉子
-                MOVE mv = new MOVE(sqOpp, sq, pcOpp, pc);
-                MovePiece(mv);
-                int suicide = CheckedBy(sdOpp);
-                UndoMovePiece(mv);
-                if (suicide > 0)
-                    return false;
+                //如果吃子导致被将军，则该棋子被牵制中，不算捉子。AttackMap已经考虑过这种情况了。
                 return true;
             }
         }
@@ -139,7 +133,7 @@ namespace MoleXiangqi
             foreach (MOVE mv in pgn.MoveList)
             {
                 Console.WriteLine(mv);
-                MakeMove(mv);
+                MakeMove(mv,true);
                 RepititionResult rep = Repitition();
                 switch (rep)
                 {
