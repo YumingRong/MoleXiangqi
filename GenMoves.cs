@@ -188,11 +188,8 @@ namespace MoleXiangqi
         List<Tuple<int, int>> pinexception = new List<Tuple<int, int>>();
         bool[,] bannedGrids = new bool[2,256];
         int[] DiscoverAttack = new int[48];   //store discover attack direction for each piece
-        //Record <sqFrom, sqPinned, sqTo>
-        List<Tuple<int, int, int>> AbsolutePins = new List<Tuple<int, int, int>>();
-        //发现己方被绝对牵制
+
         //0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
-        //输出<被牵制的方向，实施牵制的对方棋子位置>
         int[] FindAbsolutePin()
         {
             //举例：当头炮与对方的帅之间隔了自己的马和对方的相，
@@ -201,7 +198,6 @@ namespace MoleXiangqi
             Array.Clear(bannedGrids, 0, 256*2);
             Array.Clear(DiscoverAttack, 0, 48);
             pinexception.Clear();
-            AbsolutePins.Clear();
 
             for (int side = 0; side < 2; side++)
             {
@@ -220,7 +216,6 @@ namespace MoleXiangqi
                         PinnedPieces[pcBlocker] |= direction;
                     else
                         DiscoverAttack[pcBlocker] |= direction;
-                    //AbsolutePins.Add(new Tuple<int, int, int>(sqSrc, sqPieces[pcBlocker], sqKing));
                 }
 
                 for (int pc = bas + ROOK_FROM; pc <= bas + ROOK_TO; pc++)

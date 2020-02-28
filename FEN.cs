@@ -101,7 +101,7 @@ namespace MoleXiangqi
                */
             HalfMoveClock = 0;
             RECORD step;
-            step.move = new MOVE();
+            step.move = new MOVE(0,0,0,0);
             step.zobrist = Key;
             step.checking = CheckedBy(sdPlayer);
             step.halfMoveClock = HalfMoveClock; 

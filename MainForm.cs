@@ -540,7 +540,7 @@ namespace MoleXiangqi
         private void MenuGenMoves_Click(object sender, EventArgs e)
         {
             App_inGame = false;
-            string fen = @"2bCka3/1R3R3/4b1n2/9/9/9/9/9/4r1p2/3K1A2r w - - 0 4";
+            string fen = @"2b1ka3/1R2aR3/4b1n2/9/9/C8/9/4r4/4A1p1r/4KA3 w - - 0 1";
             pos.FromFEN(fen);
             engine.FromFEN(fen);
             PanelBoard.Refresh();

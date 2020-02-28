@@ -78,7 +78,6 @@
     <None Include="TestPGN\长照作负3.PGN" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
     <Compile Include="Evaluate.cs" />
     <Compile Include="FEN.cs" />
     <Compile Include="GenMoves.cs" />

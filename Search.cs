@@ -168,7 +168,7 @@ namespace MoleXiangqi
             return alpha;
         }
 
-        int HarmlessPruning(int beta, int height)
+        int HarmlessPruning(int height)
         {
             if (HalfMoveClock >= 120)
                 return 0;
@@ -192,7 +192,7 @@ namespace MoleXiangqi
             }
 
             stat.PVNodes++;
-            int best = HarmlessPruning(beta, height);
+            int best = HarmlessPruning(height);
             //distance pruning
             if (best >= beta)
                 return best;
@@ -205,7 +205,7 @@ namespace MoleXiangqi
             if (height < PVLine.Count)
                 TransKiller = PVLine[height];
             else
-                TransKiller.sqSrc = 0;
+                TransKiller = null;
             IEnumerable<MOVE> moves = GetNextMove(7, height);
             foreach (MOVE mv in moves)
             {
@@ -278,7 +278,7 @@ namespace MoleXiangqi
             }
 
             stat.CutNodes++;
-            int best = HarmlessPruning(beta, height);
+            int best = HarmlessPruning(height);
             if (best > -G.WIN)
                 return best;
 
@@ -347,7 +347,7 @@ namespace MoleXiangqi
             int best;
             IEnumerable<MOVE> moves;
             //偶数层是主动方，奇数层是被动方
-            TransKiller.sqSrc = 0;
+            TransKiller = null;
             if (qdepth % 2 == 0)
             {
                 best = Simple_Evaluate();

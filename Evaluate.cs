@@ -102,7 +102,7 @@ namespace MoleXiangqi
         /*Complex_evaluate可以顺便创建吃子走法并打分，虽然可能不全，比如两个子同时攻击同一个格子
          但是这种情况较少，且一般情况下总是优先用低价值的棋子去吃对方。
          而且调用captureMoves的静态搜素并不需要严格考虑所用局面。          */
-        public List<KeyValuePair<MOVE, int>> captureMoves;
+        public List<MOVE> captureMoves;
         public int Complex_Evaluate()
         {
             //举例：当头炮与对方的帅之间隔了自己的马和对方的相，
@@ -412,61 +412,63 @@ namespace MoleXiangqi
             }
 
             int[] connectivity = new int[2];
-            captureMoves = new List<KeyValuePair<MOVE, int>>();
+            captureMoves = new List<MOVE>();
             foreach (int sq in cboard90)
+            {
+                int conn00 = connectivity[0], conn01 = connectivity[1];
+                sqDst = sq;
+                pcDst = pcSquares[sqDst];
+                int sd = SIDE(pcDst);
+                if (sd != -1)
                 {
-                    int conn00 = connectivity[0], conn01 = connectivity[1];
-                    sqDst = sq;
-                    pcDst = pcSquares[sqDst];
-                    int sd = SIDE(pcDst);
-                    if (sd != -1)
+                    int attack = attackMap[1 - sd, sqDst];
+                    int protect = attackMap[sd, sqDst];
+                    if (attack > 0)
                     {
-                        int attack = attackMap[1 - sd, sqDst];
-                        int protect = attackMap[sd, sqDst];
-                        if (attack > 0)
+                        int[] cnAttackScore = { 0, 20, 12, 8, 8, 4, 6, 6 };
+                        if (protect > 0)
                         {
-                            int[] cnAttackScore = { 0, 20, 12, 8, 8, 4, 6, 6 };
-                            if (protect > 0)
-                            {
-                                if (sd == sdPlayer)
-                                    if (cnPieceValue[pcDst] > cnPieceValue[attack])
-                                        connectivity[1 - sd] += cnAttackScore[cnPieceKinds[pcDst]];
-                                    else
-                                        connectivity[1 - sd] += 5;
+                            if (sd == sdPlayer)
+                                if (cnPieceValue[pcDst] > cnPieceValue[attack])
+                                    connectivity[1 - sd] += cnAttackScore[cnPieceKinds[pcDst]];
                                 else
-                                {
-                                    connectivity[1 - sd] += Math.Max(cnPieceValue[pcDst] - cnPieceValue[attack], 5);
-                                    MOVE mv = new MOVE(sqPieces[attack], sqDst, attack, pcDst);
-                                    captureMoves.Add(new KeyValuePair<MOVE, int>(mv, cnPieceValue[pcDst] - cnPieceValue[attack]));
-                                }
-                            }
+                                    connectivity[1 - sd] += 5;
                             else
                             {
-                                if (sd == sdPlayer)
-                                    connectivity[1 - sd] += cnAttackScore[cnPieceKinds[pcDst]];
-                                else  //如果轮到对方走棋，可以直接吃无根子
-                                {
-                                    connectivity[1 - sd] += cnPieceValue[pcDst] * 3 / 4;
-                                    MOVE mv = new MOVE(sqPieces[attack], sqDst, attack, pcDst);
-                                    captureMoves.Add(new KeyValuePair<MOVE, int>(mv, cnPieceValue[pcDst]));
-                                }
+                                connectivity[1 - sd] += Math.Max(cnPieceValue[pcDst] - cnPieceValue[attack], 5);
+                                MOVE mv = new MOVE(sqPieces[attack], sqDst, attack, pcDst);
+                                mv.score = cnPieceValue[pcDst] - cnPieceValue[attack];
+                                captureMoves.Add(mv);
                             }
                         }
-                        else if (protect > 0)
-                            connectivity[sd] += 2;
+                        else
+                        {
+                            if (sd == sdPlayer)
+                                connectivity[1 - sd] += cnAttackScore[cnPieceKinds[pcDst]];
+                            else  //如果轮到对方走棋，可以直接吃无根子
+                            {
+                                connectivity[1 - sd] += cnPieceValue[pcDst] * 3 / 4;
+                                MOVE mv = new MOVE(sqPieces[attack], sqDst, attack, pcDst);
+                                mv.score = cnPieceValue[pcDst];
+                                captureMoves.Add(mv);
+                            }
+                        }
                     }
-                    else
-                    {
-                        for (sd = 0; sd < 2; sd++)
-                            if (BannedGrids[sd, sqDst])
-                                tacticValue[1 ^ sd] += attackMap[1 - sd, sqDst] > 0 ? cDiscoveredAttack[cnPieceKinds[attackMap[1 - sd, sqDst]]] : 2;
-                            //机动性, 不考虑炮的空射，因为炮的射界与活动范围不同，且炮架可能是对方的车、炮或兵、帅
-                            else if (attackMap[sd, sqDst] > 0 && cnPieceKinds[attackMap[sd, sqDst]] != CANNON && attackMap[1 - sd, sqDst] == 0)
-                                connectivity[sd] += 2;
-                    }
-                    connectivityMap[0, sqDst] = connectivity[0] - conn00;
-                    connectivityMap[1, sqDst] = connectivity[1] - conn01;
+                    else if (protect > 0)
+                        connectivity[sd] += 2;
                 }
+                else
+                {
+                    for (sd = 0; sd < 2; sd++)
+                        if (BannedGrids[sd, sqDst])
+                            tacticValue[1 ^ sd] += attackMap[1 - sd, sqDst] > 0 ? cDiscoveredAttack[cnPieceKinds[attackMap[1 - sd, sqDst]]] : 2;
+                        //机动性, 不考虑炮的空射，因为炮的射界与活动范围不同，且炮架可能是对方的车、炮或兵、帅
+                        else if (attackMap[sd, sqDst] > 0 && cnPieceKinds[attackMap[sd, sqDst]] != CANNON && attackMap[1 - sd, sqDst] == 0)
+                            connectivity[sd] += 2;
+                }
+                connectivityMap[0, sqDst] = connectivity[0] - conn00;
+                connectivityMap[1, sqDst] = connectivity[1] - conn01;
+            }
 
             int scoreRed = materialValue[0] + positionValue[0] + pair[0] + connectivity[0] + tacticValue[0];
             int scoreBlack = materialValue[1] + positionValue[1] + pair[1] + connectivity[1] + tacticValue[1];

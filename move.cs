@@ -3,14 +3,14 @@ using System.Diagnostics;
 
 namespace MoleXiangqi
 {
-    public struct MOVE : IEquatable<MOVE>
+    public class MOVE : IEquatable<MOVE>
     {
         public int sqSrc, sqDst;      // 起始格和目标格
         public int pcSrc, pcDst;
         public int score;
         public bool checking;
 
-        public MOVE(int sqFrom, int sqTo, int pcFrom, int pcTo)
+        public MOVE(int sqFrom=0, int sqTo=0, int pcFrom=0, int pcTo=0)
         {
             sqSrc = sqFrom;
             sqDst = sqTo;
@@ -34,6 +34,8 @@ namespace MoleXiangqi
 
         public bool Equals(MOVE other)
         {
+            if (other is null)
+                return false;
             //比较着法只发生在同一个局面下不同算法（将军、捉子）生成的着法，所以只需要比较起讫位置
             return sqSrc == other.sqSrc && sqDst == other.sqDst;
         }
@@ -45,11 +47,15 @@ namespace MoleXiangqi
 
         public static bool operator ==(MOVE left, MOVE right)
         {
+            if (left is null || right is null)
+                return Object.Equals(left, right);
             return left.Equals(right);
         }
 
         public static bool operator !=(MOVE left, MOVE right)
         {
+            if (left is null || right is null)
+                return Object.Equals(left, right);
             return !left.Equals(right);
         }
     }
@@ -125,6 +131,7 @@ namespace MoleXiangqi
 
         public void MovePiece(MOVE mv)
         {
+            Debug.Assert(!(mv is null));
             Debug.Assert(IN_BOARD[mv.sqSrc] && IN_BOARD[mv.sqDst]);
             Debug.Assert(mv.pcSrc > 0);
 
@@ -137,6 +144,7 @@ namespace MoleXiangqi
 
         public void UndoMovePiece(MOVE mv)
         {
+            Debug.Assert(!(mv is null));
             Debug.Assert(IN_BOARD[mv.sqSrc] && IN_BOARD[mv.sqDst]);
             Debug.Assert(mv.pcSrc > 0);
 

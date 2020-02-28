@@ -207,7 +207,7 @@ namespace MoleXiangqi
             {//Normal case 炮八平五
                 file0 = FindFile(word[1]);
                 Tuple<int, int> t = FindPiece(pcType, file0);
-                if (t == null)
+                if (t is null)
                     return mv;
                 mv.pcSrc = t.Item1;
                 mv.sqSrc = t.Item2;
