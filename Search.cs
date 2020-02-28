@@ -285,19 +285,24 @@ namespace MoleXiangqi
             if (G.UseHash)
             {
                 HashStruct t = TT.ReadHash(Key);
-                if (t.AlphaDepth >= depth)
+                if (t.Move.sqSrc == 0)
+                    TransKiller = null;
+                else
                 {
-                    if (t.Alpha < beta)
-                        return t.Alpha;
+                    if (t.AlphaDepth >= depth)
+                    {
+                        if (t.Alpha < beta)
+                            return t.Alpha;
+                    }
+                    if (t.BetaDepth >= depth)
+                    {
+                        if (t.Beta >= beta)
+                            return t.Beta;
+                    }
+                    TransKiller = t.Move;
+                    TransKiller.pcSrc = pcSquares[TransKiller.sqSrc];
+                    TransKiller.pcDst = pcSquares[TransKiller.sqDst];
                 }
-                if (t.BetaDepth >= depth)
-                {
-                    if (t.Beta >= beta)
-                        return t.Beta;
-                }
-                TransKiller = t.Move;
-                TransKiller.pcSrc = pcSquares[TransKiller.sqSrc];
-                TransKiller.pcDst = pcSquares[TransKiller.sqDst];
             }
 
             IEnumerable<MOVE> moves = GetNextMove(7, height);

@@ -79,7 +79,7 @@ namespace MoleXiangqi
             bool wantCapture = (moveType & 0x02) > 0;
             bool wantAll = moveType == 7;
 
-            if (G.UseHash && !(TransKiller is null))
+            if (G.UseHash && !(TransKiller is null) && TransKiller.sqDst!= 0)
             {
                 Debug.Assert(IsLegalMove(TransKiller.sqSrc, TransKiller.sqDst));
                 yield return TransKiller;
