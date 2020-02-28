@@ -156,9 +156,14 @@ namespace MoleXiangqi
             //don't extend bad capture in quiescence search
             if (!wantAll)
                 moves.RemoveAll(x => x.score < BadScore);
-            moves.Sort(SortLarge2Small);
+            moves.Sort(Large2Small);
             foreach (var mv in moves)
                 yield return mv;
+
+            int Large2Small(MOVE a, MOVE b)
+            {
+                return b.score.CompareTo(a.score);
+            }
         }
 
         bool IsChecking(MOVE mv)
@@ -355,11 +360,6 @@ namespace MoleXiangqi
             int score = -SubSEE(dmv, defs, atts);
             UndoMovePiece(mv);
             return Math.Max(0, vlDst + score);
-        }
-
-        int SortLarge2Small(MOVE a, MOVE b)
-        {
-            return b.score.CompareTo(a.score);
         }
     }
 }

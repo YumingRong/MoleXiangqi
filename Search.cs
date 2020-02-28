@@ -150,7 +150,7 @@ namespace MoleXiangqi
                 }
             }
             rootMoves.RemoveAll(x => x.score < -G.WIN);
-            rootMoves.Sort(SortLarge2Small);
+            rootMoves.Sort(Large2Small);
 
             //late move reduction
             for (int i = rootMoves.Count - 1; alpha - rootMoves[i].score > FUTILITY_MARGIN; i--)

@@ -324,7 +324,7 @@ namespace MoleXiangqi
         }
 
         //The move generated are after check test. So they are already legal. 
-        //if FindAbsolutePin has been done right before GenerateMoves, pinDone is true
+        //if FindAbsolutePin has been done right before GenerateMoves, set pinDone true
         List<MOVE> GenerateMoves(bool pinDone = false)
         {
             int sqSrc, sqDst, pcSrc, pcDst;
@@ -533,9 +533,7 @@ namespace MoleXiangqi
             return mvs;
         }
 
-        //该函数类似于于Evaluate的内部函数，只是去掉位置数组，并单边赋值，以提高速度，并减少耦合
-        //如发现任何bug，须一同修改
-        //调用前须先运行FindAbsolutePin(side)来生成绝对牵制信息
+        //If FindAbsolutePin has been done right before GenerateMoves, set pinDone true
         List<int>[,] AttackMap = new List<int>[2, 256];
         void GenAttackMap(bool pinDone = false)
         {
