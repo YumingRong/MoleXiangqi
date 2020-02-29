@@ -202,8 +202,7 @@ namespace MoleXiangqi
 
             for (int side = 0; side < 2; side++)
             {
-                int sqSrc, pcDst, delta;
-                int oppside = 1 - side;
+                int sqSrc, pcDst, delta, pindir;
 
                 int bas, sqKing;
                 //find absolute pin. 0没有牵制，1纵向牵制，2横向牵制，3纵横牵制
@@ -221,26 +220,21 @@ namespace MoleXiangqi
 
                 for (int pc = bas + ROOK_FROM; pc <= bas + ROOK_TO; pc++)
                 {
+                    delta = pindir = 0;
                     sqSrc = sqPieces[pc];
                     if (SAME_FILE(sqSrc, sqKing))
                     {
                         delta = Math.Sign(sqKing - sqSrc) * 16;
-                        int pcBlocker = 0, nblock = 0;
-                        for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
-                        {
-                            if (pcSquares[sq] != 0)
-                            {
-                                pcBlocker = pcSquares[sq];
-                                nblock++;
-                            }
-                        }
-                        if (nblock == 1)
-                            CheckBlocker(pcBlocker, 1);
+                        pindir = 1;
                     }
 
                     if (SAME_RANK(sqSrc, sqKing))
                     {
                         delta = Math.Sign(sqKing - sqSrc);
+                        pindir = 2;
+                    }
+                    if (delta != 0)
+                    {
                         int pcBlocker = 0, nblock = 0;
                         for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
                         {
@@ -250,19 +244,26 @@ namespace MoleXiangqi
                                 nblock++;
                             }
                         }
+                        Debug.Assert(pindir != 0);
                         if (nblock == 1)
-                            CheckBlocker(pcBlocker, 2);
+                            CheckBlocker(pcBlocker, pindir);
                     }
                 }
 
                 for (int pc = bas + CANNON_FROM; pc <= bas + CANNON_TO; pc++)
                 {
+                    delta = pindir = 0;
                     sqSrc = sqPieces[pc];
-                    delta = 0;
                     if (SAME_FILE(sqSrc, sqKing))
+                    {
                         delta = Math.Sign(sqKing - sqSrc) * 16;
+                        pindir = 1;
+                    }
                     if (SAME_RANK(sqSrc, sqKing))
+                    {
                         delta = Math.Sign(sqKing - sqSrc);
+                        pindir = 2;
+                    }
                     if (delta != 0)
                     {
                         int nblock = 0;
@@ -275,7 +276,10 @@ namespace MoleXiangqi
                         {
                             for (int sq = sqSrc + delta; sq != sqKing; sq += delta)
                                 if (pcSquares[sq] > 0)
-                                    CheckBlocker(pcSquares[sq], 2);
+                                {
+                                    Debug.Assert(pindir != 0);
+                                    CheckBlocker(pcSquares[sq], pindir);
+                                }
                         }
                         else if (nblock == 0)
                         {

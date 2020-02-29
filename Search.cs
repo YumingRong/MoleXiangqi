@@ -104,8 +104,8 @@ namespace MoleXiangqi
 
         public int SearchRoot(int depth)
         {
-            int alpha = -G.MATE;
-            int beta = G.MATE;
+            int alpha = -G.MATE + 1;
+            int beta = G.MATE - 1;
             MOVE mvBest = new MOVE();
             List<MOVE> subpv = null;
             for (int i = 0; i < rootMoves.Count; i++)
@@ -141,7 +141,7 @@ namespace MoleXiangqi
                     PVLine.Add(mvBest);
                     PVLine.AddRange(subpv);
                     Console.WriteLine("PV:" + PopPVLine());
-                    if (vl > beta)
+                    if (vl >= beta)
                     {
                         stat.Cutoffs++;
                         break;
@@ -196,7 +196,6 @@ namespace MoleXiangqi
             if (best >= beta)
                 return best;
             MOVE mvBest = new MOVE();
-            bool bResearch = false;
             int hashFlag = 0;
             List<MOVE> subpv = null;
             List<MOVE> played = new List<MOVE>();
@@ -224,7 +223,6 @@ namespace MoleXiangqi
                         Debug.WriteLine($"{mv} {alpha}, {beta}, {best}");
                         vl = -SearchPV(-beta, -alpha, new_depth, height + 1, out subpv);
                         stat.PVChanged++;
-                        bResearch = true;
                     }
                 }
                 UnmakeMove();
@@ -232,7 +230,7 @@ namespace MoleXiangqi
                 if (vl > best)
                 {
                     best = vl;
-                    if (vl > beta)
+                    if (vl >= beta)
                     {
                         stat.Cutoffs++;
                         mvBest = mv;
@@ -318,7 +316,7 @@ namespace MoleXiangqi
                 {
                     if (!stepList[stepList.Count - 1].move.checking && new_depth == 0 && mv.pcSrc == 0)
                     {
-                        if (opt_value==G.MATE)
+                        if (opt_value == G.MATE)
                             opt_value = Simple_Evaluate() + G.FutilityMargin;
                         if (opt_value < beta)
                             continue;
@@ -334,7 +332,7 @@ namespace MoleXiangqi
                 {
                     best = vl;
                     mvBest = mv;
-                    if (vl > beta)
+                    if (vl >= beta)
                     {
                         if (G.UseHash)
                             TT.WriteHash(Key, G.HASH_BETA, best, depth, mvBest);
@@ -438,7 +436,7 @@ namespace MoleXiangqi
                     stat.Cutoffs++;
                     return vl;
                 }
-                if (vl > best)
+                if (vl >= best)
                 {
                     best = vl;
                     alpha = Math.Max(alpha, vl);
