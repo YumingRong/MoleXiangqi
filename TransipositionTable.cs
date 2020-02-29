@@ -28,12 +28,22 @@ namespace MoleXiangqi
         }
         public MOVE Move
         {
-            get { return new MOVE(sqSrc, sqDst, 0, 0); }
-            set { sqSrc = (byte)( value.sqSrc); sqDst = (byte)(value.sqDst); }
+            get 
+            { 
+                MOVE mv = new MOVE(sqSrc, sqDst, 0, 0);
+                mv.checking = checking;
+                return mv;
+            }
+            set { 
+                sqSrc = (byte)( value.sqSrc); 
+                sqDst = (byte)(value.sqDst);
+                checking = value.checking;
+            }
         }
         byte sqSrc, sqDst;
         byte alphadepth, betadepth;
         short alpha, beta;
+        bool checking;
     }
 
     class TransipositionTable

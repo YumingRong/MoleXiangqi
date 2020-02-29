@@ -250,12 +250,10 @@ namespace MoleXiangqi
                     {
                         alpha = vl;
                         mvBest = mv;
-                        hashFlag = G.HASH_ALPHA;
-                        if (bResearch)
-                            pvs.RemoveAt(pvs.Count - 1);
+                        hashFlag = G.HASH_PV;
+                        pvs.Add(mv);
+                        pvs.AddRange(subpv);
                     }
-                    pvs.Add(mv);
-                    pvs.AddRange(subpv);
                 }
             }
             if (G.UseHash && best > -G.WIN)
