@@ -380,16 +380,17 @@ namespace MoleXiangqi
                     moves = GetNextMove(7, height);
                 else
                 {
-                    //only extend check and capture
-                    bool continuousCheck = stepList.Count >= 2 && stepList[stepList.Count - 2].move.checking;
-                    //check extension only when in continuous check
-                    if (continuousCheck)
-                        moves = GetNextMove(3, height);
-                    //capture extension only when recapture
-                    else if (stepList[stepList.Count - 1].move.pcDst > 0)
-                        moves = GetNextMove(2, height);
-                    else
-                        return best;
+                    moves = GetNextMove(3, height);
+                    ////only extend check and capture
+                    //bool continuousCheck = stepList.Count >= 2 && stepList[stepList.Count - 2].move.checking;
+                    ////check extension only when in continuous check
+                    //if (continuousCheck)
+                    //    moves = GetNextMove(3, height);
+                    ////capture extension only when recapture
+                    //else if (stepList[stepList.Count - 1].move.pcDst > 0)
+                    //    moves = GetNextMove(2, height);
+                    //else
+                    //    return best;
                 }
             }
             else
