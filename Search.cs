@@ -251,6 +251,7 @@ namespace MoleXiangqi
                         alpha = vl;
                         mvBest = mv;
                         hashFlag = G.HASH_PV;
+                        pvs.Clear();
                         pvs.Add(mv);
                         pvs.AddRange(subpv);
                     }
