@@ -157,7 +157,7 @@ namespace MoleXiangqi
         public void MakeMove(MOVE mv, bool needCheckTest = true)
         {
             MovePiece(mv);
-            if (needCheckTest)
+            if (needCheckTest || mv == TransKiller)
                 mv.checking = CheckedBy(sdPlayer) > 0;
             else
                 Debug.Assert(mv.checking == CheckedBy(sdPlayer) > 0);

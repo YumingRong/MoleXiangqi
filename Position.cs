@@ -179,6 +179,17 @@ namespace MoleXiangqi
             Array.Clear(pcSquares, 0, 256);
             Array.Clear(sqPieces, 0, 48);
         }
+
+        bool BoardIsOK()
+        {
+            for (int pc = 16; pc < 48; pc++)
+            {
+                int sq = sqPieces[pc];
+                if (sq > 0 && pcSquares[sq] != pc)
+                    return false;
+            }
+            return true;
+        }
     }
 };
 

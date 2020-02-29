@@ -124,6 +124,8 @@ namespace MoleXiangqi
                     if (vl > alpha)
                     {
                         stat.PVChanged++;
+                        Debug.WriteLine("Root re-search");
+                        Debug.WriteLine($"{mv} {alpha}, {beta}");
                         vl = -SearchPV(-beta, -alpha, depth - 1, 1, out subpv);
                     }
                 }
@@ -198,10 +200,7 @@ namespace MoleXiangqi
             int hashFlag = 0;
             List<MOVE> subpv = null;
             List<MOVE> played = new List<MOVE>();
-            if (height < PVLine.Count)
-                TransKiller = PVLine[height];
-            else
-                TransKiller = null;
+            TransKiller = null;
             IEnumerable<MOVE> moves = GetNextMove(7, height);
             foreach (MOVE mv in moves)
             {
@@ -221,6 +220,8 @@ namespace MoleXiangqi
                     if (vl > alpha && vl < beta)
                     {
                         Debug.WriteLine("Re-search");
+                        Debug.Write(new string('\t', height));
+                        Debug.WriteLine($"{mv} {alpha}, {beta}, {best}");
                         vl = -SearchPV(-beta, -alpha, new_depth, height + 1, out subpv);
                         stat.PVChanged++;
                         bResearch = true;
@@ -308,20 +309,22 @@ namespace MoleXiangqi
             IEnumerable<MOVE> moves = GetNextMove(7, height);
             MOVE mvBest = new MOVE();
             List<MOVE> played = new List<MOVE>();
+            int opt_value = G.MATE;
             foreach (MOVE mv in moves)
             {
                 Debug.Write(new string('\t', height));
                 Debug.WriteLine($"{mv} {beta - 1}, {beta}, {best}");
                 int new_depth = depth - 1;
-                if (mv.sqDst == stepList[stepList.Count - 1].move.sqDst && mv.score > 0)
-                    new_depth++;
-                //if (G.UseFutilityPruning && depth == 1)
-                //{
-                //    if (!stepList[stepList.Count -1].move.checking && new_depth == 0 && mv.pcSrc == 0)
-                //    {
-                //        int opt_value = Simple_Evaluate()
-                //    }
-                //}
+                if (G.UseFutilityPruning && depth == 1)
+                {
+                    if (!stepList[stepList.Count - 1].move.checking && new_depth == 0 && mv.pcSrc == 0)
+                    {
+                        if (opt_value==G.MATE)
+                            opt_value = Simple_Evaluate() + G.FutilityMargin;
+                        if (opt_value < beta)
+                            continue;
+                    }
+                }
 
                 MakeMove(mv, false);
                 int vl = -SearchCut(1 - beta, new_depth, height + 1);

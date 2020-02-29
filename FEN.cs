@@ -63,7 +63,7 @@ namespace MoleXiangqi
             ClearBoard();
 
             // 2. 读取棋盘上的棋子
-            for (int  y = 0; y < 10; y++)
+            for (int y = 0; y < 10; y++)
             {
                 int x = 0;
                 foreach (char c in rows[y])
@@ -101,10 +101,10 @@ namespace MoleXiangqi
                */
             HalfMoveClock = 0;
             RECORD step;
-            step.move = new MOVE(0,0,0,0);
+            step.move = new MOVE(0, 0, 0, 0);
             step.zobrist = Key;
             //step.checking = CheckedBy(sdPlayer);
-            step.halfMoveClock = HalfMoveClock; 
+            step.halfMoveClock = HalfMoveClock;
             stepList.Add(step);
             return true;
         }
@@ -153,14 +153,17 @@ namespace MoleXiangqi
             return lpFen.ToString();
         }
 
+        // 把着法转换成ICCS字符串
         public static string MOVE2ICCS(int from, int to)
-        {      // 把着法转换成ICCS字符串
-            char[] ret = new char[5];
-            ret[0] = Convert.ToChar(FILE_X(from) - FILE_LEFT + 'A');
-            ret[1] = Convert.ToChar('9' - RANK_Y(from) + RANK_TOP);
-            ret[2] = '-';
-            ret[3] = Convert.ToChar(FILE_X(to) - FILE_LEFT + 'A');
-            ret[4] = Convert.ToChar('9' - RANK_Y(to) + RANK_TOP);
+        {
+            return Coord2ICCS(from) + "-" + Coord2ICCS(to);
+        }
+
+        public static string Coord2ICCS(int sq)
+        {
+            char[] ret = new char[2];
+            ret[0] = Convert.ToChar(FILE_X(sq) - FILE_LEFT + 'A');
+            ret[1] = Convert.ToChar('9' - RANK_Y(sq) + RANK_TOP);
             return new string(ret);
         }
 

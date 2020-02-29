@@ -82,6 +82,8 @@ namespace MoleXiangqi
             List<MOVE> movesDone = new List<MOVE>();
             if (G.UseHash && !(TransKiller is null) && TransKiller.sqDst != 0)
             {
+                Debug.Assert(TransKiller.pcSrc == pcSquares[TransKiller.sqSrc]);
+                Debug.Assert(TransKiller.pcDst == pcSquares[TransKiller.sqDst]);
                 Debug.Assert(IsLegalMove(TransKiller.sqSrc, TransKiller.sqDst));
                 movesDone.Add(TransKiller);
                 yield return TransKiller;

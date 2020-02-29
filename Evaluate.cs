@@ -576,6 +576,11 @@ namespace MoleXiangqi
             int scoreBlack = materialValue[1] + positionValue[1] + pair[1];
 
             int total = scoreRed - scoreBlack;
+            //assume turn value to be a pawn
+            if (sdPlayer == 0)
+                total += 10;
+            else
+                total -= 10;
             //ivpc[nStep, 0] = nStep;
             //ivpc[nStep, 1] = total;
             //ivpc[nStep, 2] = scoreRed;
