@@ -67,6 +67,7 @@ namespace MoleXiangqi
             Array.Clear(HistHit, 0, 14 * 256);
             Array.Clear(HistTotal, 0, 14 * 256);
             TT.Reset();
+            TransKiller = null;
             rootMoves = new List<MOVE>(GetNextMove(7, 0));
 
             int vl = 0;
@@ -175,7 +176,7 @@ namespace MoleXiangqi
             if (rep != RepititionResult.NONE)
                 return (int)rep;
 
-            return -G.MATE + height;
+            return -G.MATE + height + 1;
         }
 
         int SearchPV(int alpha, int beta, int depth, int height, out List<MOVE> pvs)

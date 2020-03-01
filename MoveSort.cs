@@ -95,6 +95,7 @@ namespace MoleXiangqi
             {
                 MovePiece(killer);
                 bool notChecked = (CheckedBy(1 - sdPlayer) == 0);
+                killer.checking = CheckedBy(sdPlayer) > 0;
                 UndoMovePiece(killer);
                 if (notChecked)
                     if (wantAll || wantCheck && IsChecking(killer) || wantCapture && killer.pcDst > 0)

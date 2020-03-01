@@ -227,8 +227,7 @@ namespace MoleXiangqi
                         delta = Math.Sign(sqKing - sqSrc) * 16;
                         pindir = 1;
                     }
-
-                    if (SAME_RANK(sqSrc, sqKing))
+                    else if (SAME_RANK(sqSrc, sqKing))
                     {
                         delta = Math.Sign(sqKing - sqSrc);
                         pindir = 2;
@@ -259,7 +258,7 @@ namespace MoleXiangqi
                         delta = Math.Sign(sqKing - sqSrc) * 16;
                         pindir = 1;
                     }
-                    if (SAME_RANK(sqSrc, sqKing))
+                    else if (SAME_RANK(sqSrc, sqKing))
                     {
                         delta = Math.Sign(sqKing - sqSrc);
                         pindir = 2;
