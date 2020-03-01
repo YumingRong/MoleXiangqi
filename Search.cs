@@ -61,11 +61,11 @@ namespace MoleXiangqi
             Debug.Assert(maxDepth > 0);
             stat = new STATISTIC();
             PVLine = new List<MOVE>();
-            Array.Clear(MateKiller, 0, G.MAX_PLY);
+            Array.Clear(MateKiller, 0, 2);
             Array.Clear(Killers, 0, G.MAX_PLY * 2);
-            Array.Clear(History, 0, 14 * 256);
-            Array.Clear(HistHit, 0, 14 * 256);
-            Array.Clear(HistTotal, 0, 14 * 256);
+            Array.Clear(History, 0, 14 * 90);
+            Array.Clear(HistHit, 0, 14 * 90);
+            Array.Clear(HistTotal, 0, 14 * 90);
             TT.Reset();
             TransKiller = null;
             rootMoves = new List<MOVE>(GetNextMove(7, 0));
@@ -199,7 +199,6 @@ namespace MoleXiangqi
             MOVE mvBest = new MOVE();
             int hashFlag = 0;
             List<MOVE> subpv = null;
-            List<MOVE> played = new List<MOVE>();
             TransKiller = null;
             IEnumerable<MOVE> moves = GetNextMove(7, height);
             foreach (MOVE mv in moves)
@@ -227,7 +226,6 @@ namespace MoleXiangqi
                     }
                 }
                 UnmakeMove();
-                played.Add(mv);
                 if (vl > best)
                 {
                     best = vl;
@@ -236,13 +234,6 @@ namespace MoleXiangqi
                         stat.Cutoffs++;
                         mvBest = mv;
                         hashFlag = G.HASH_BETA;
-                        if (mv.sqDst == 0)
-                        {
-                            played.Remove(mv);
-                            foreach (MOVE m in played)
-                                HistoryBad(m);
-                            HistoryGood(mv);
-                        }
                         break;
                     }
                     if (vl > alpha)
@@ -255,6 +246,8 @@ namespace MoleXiangqi
                         pvs.AddRange(subpv);
                     }
                 }
+                else
+                    HistoryBad(mv);
             }
             if (G.UseHash && best > -G.WIN)
             {
@@ -337,17 +330,12 @@ namespace MoleXiangqi
                     {
                         if (G.UseHash)
                             TT.WriteHash(Key, G.HASH_BETA, best, depth, mvBest);
-                        if (mv.sqDst == 0)
-                        {
-                            played.Remove(mv);
-                            foreach (MOVE m in played)
-                                HistoryBad(m);
-                            HistoryGood(mv);
-                        }
                         stat.Cutoffs++;
                         return vl;
                     }
                 }
+                else
+                    HistoryBad(mv);
             }
             if (G.UseHash && best > -G.WIN)
             {

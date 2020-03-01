@@ -75,7 +75,6 @@ namespace MoleXiangqi
           1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 5, 5, 6, 6, 7, 7,
         };
 
-        public readonly static int[] cboard90 = new int[90];
         ulong Key;
         int HalfMoveClock;
 

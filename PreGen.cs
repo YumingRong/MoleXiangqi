@@ -179,6 +179,9 @@ namespace MoleXiangqi
         static readonly int[,] csqKnightMoves = new int[256, 9];
         static readonly int[,] csqKnightPins = new int[256, 9];
 
+        public readonly static int[] cboard90 = new int[90];
+        readonly static int[] cboard256 = new int[256];
+
         void InitPreGen()
         {
             int i, n, sqSrc, sqDst;
@@ -187,7 +190,9 @@ namespace MoleXiangqi
                 for (int y = RANK_TOP; y <= RANK_BOTTOM; y++)
                 {
                     int sq = XY2Coord(x, y);
-                    cboard90[n++] = sq;
+                    cboard90[n] = sq;
+                    cboard256[sq] = n;
+                    n++;
                 }
 
             for (n = 0; n < 2; n++)

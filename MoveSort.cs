@@ -7,10 +7,10 @@ namespace MoleXiangqi
     partial class POSITION
     {
         internal MOVE[,] Killers = new MOVE[G.MAX_PLY, 2];
-        internal int[,] History = new int[14, 256]; //there are 7 kinds of pieces in each side
-        internal int[,] HistTotal = new int[14, 256];
-        internal int[,] HistHit = new int[14, 256];
-        internal MOVE[] MateKiller = new MOVE[G.MAX_PLY];
+        internal int[] History = new int[14 * 90]; //there are 7 kinds of pieces in each side
+        internal int[] HistTotal = new int[14 * 90];
+        internal int[] HistHit = new int[14 * 90];
+        internal MOVE[] MateKiller = new MOVE[2];
         MOVE TransKiller;
 
         const int HistoryMax = 0x4000;
@@ -27,6 +27,11 @@ namespace MoleXiangqi
           7, 8, 8, 9, 9,10,10,11,11,11,11,11,12,12,13,13
         };
 
+        static int GetHistoryIndex(MOVE mv)
+        {
+            return cnPieceHistIndex[mv.pcSrc] * 90 + cboard256[mv.sqDst];
+        }
+
         void SetBestMove(MOVE mv, int score, int depth, int height)
         {
             Debug.Assert(mv.sqSrc != 0);
@@ -36,34 +41,33 @@ namespace MoleXiangqi
             if (mv.pcDst > 0)
                 return;
             if (score > G.RULEWIN)
-                MateKiller[height] = mv;
+                MateKiller[SIDE(mv.pcSrc)] = mv;
             if (Killers[height, 0] != mv)
             {
                 Killers[height, 1] = Killers[height, 0];
                 Killers[height, 0] = mv;
             }
-            History[cnPieceHistIndex[mv.pcSrc], mv.sqDst] += depth * depth;
-            if (History[cnPieceHistIndex[mv.pcSrc], mv.sqDst] > HistoryMax)
-            {
-                for (int pc = 0; pc < 14; pc++)
-                    foreach (int sq in cboard90)
-                        History[pc, sq] /= 2;
-            }
+            HistoryGood(mv, depth);
         }
 
-        void HistoryGood(MOVE mv)
+        void HistoryGood(MOVE mv, int depth)
         {
-            if (mv.pcDst > 0)
-                return;
-            HistHit[cnPieceHistIndex[mv.pcSrc], mv.sqDst]++;
-            HistTotal[cnPieceHistIndex[mv.pcSrc], mv.sqDst]++;
+            int sq = GetHistoryIndex(mv);
+            HistHit[sq]++;
+            HistTotal[sq]++;
+
+            History[sq] += depth * depth;
+            if (History[sq] > HistoryMax)
+            {
+                for (int i = 0; i < 14 * 90; i++)
+                    History[i] /= 2;
+            }
         }
 
         void HistoryBad(MOVE mv)
         {
-            if (mv.pcDst > 0)
-                return;
-            HistTotal[cnPieceHistIndex[mv.pcSrc], mv.sqDst]++;
+            int sq = GetHistoryIndex(mv);
+            HistTotal[sq]++;
         }
 
         /*该函数首先返回matekiller，其次返回killer move，然后生成所有着法，过滤不需要的着法后SEE，排序
@@ -75,6 +79,8 @@ namespace MoleXiangqi
         */
         public IEnumerable<MOVE> GetNextMove(int moveType, int height)
         {
+            Debug.Assert(moveType < 8);
+            Debug.Assert(height >= 0);
             bool wantCheck = (moveType & 0x01) > 0;
             bool wantCapture = (moveType & 0x02) > 0;
             bool wantAll = moveType == 7;
@@ -89,7 +95,7 @@ namespace MoleXiangqi
                 yield return TransKiller;
             }
 
-            MOVE killer = MateKiller[height];
+            MOVE killer = MateKiller[sdPlayer];
             if (!(killer is null) && killer.pcSrc == pcSquares[killer.sqSrc] && killer.pcDst == pcSquares[killer.sqDst]
                 && IsLegalMove(killer.sqSrc, killer.sqDst))
             {
@@ -108,10 +114,11 @@ namespace MoleXiangqi
             List<MOVE> moves = GenerateMoves(false);
             GenAttackMap(true);
 
-            if (!wantAll && wantCapture)
-                moves.RemoveAll(x => x.pcDst == 0);
             foreach (MOVE mv in movesDone)
                 moves.Remove(mv);
+            if (moveType==2)
+                moves.RemoveAll(x => x.pcDst == 0);
+
             for (int i = 0; i < moves.Count; i++)
             {
                 MOVE mv = moves[i];
@@ -128,17 +135,31 @@ namespace MoleXiangqi
                         mv.score -= 5;
                 }
             }
-            if (!wantAll && wantCheck)
-                moves.RemoveAll(x => x.checking == false);
+
+            //usually, moveType is either 3 or 7
+            switch(moveType)
+            {
+                case 1:
+                    moves.RemoveAll(x => x.checking == false);
+                    break;
+                case 2:
+                    moves.RemoveAll(x => x.pcDst == 0);
+                    break;
+                case 3:
+                    moves.RemoveAll(x => x.checking == false && x.pcDst == 0);
+                    break;
+                default:
+                    break;
+            }
 
             //assign killer bonus
-            if (!(Killers[sdPlayer, 0] is null) && Killers[sdPlayer, 0].sqSrc > 0)
+            if (!(Killers[height, 0] is null) && Killers[height, 0].sqSrc > 0)
             {
-                killer = moves.Find(x => x == Killers[sdPlayer, 0]);
+                killer = moves.Find(x => x == Killers[height, 0]);
                 if (killer.sqSrc > 0)
                 {
                     killer.score += KillerScore;
-                    killer = moves.Find(x => x == Killers[sdPlayer, 1]);
+                    killer = moves.Find(x => x == Killers[height, 1]);
                     if (killer.sqSrc > 0)
                         killer.score += KillerScore - 1;
                 }
@@ -152,9 +173,17 @@ namespace MoleXiangqi
                 if (s > 0)
                     mv.score += GoodScore;
                 else if (s == 0)
-                    mv.score += HistHit[cnPieceHistIndex[mv.pcSrc], mv.sqDst] * HistoryMax / (HistTotal[cnPieceHistIndex[mv.pcSrc], mv.sqDst] + 1) + HistoryScore;
+                {
+                    int sqHist = GetHistoryIndex(mv);
+                    Debug.Assert(HistHit[sqHist] <= HistTotal[sqHist]);
+                    mv.score += HistHit[sqHist] * History[sqHist] / (HistTotal[sqHist] + 1) + HistoryScore;
+                    Debug.Assert(mv.score < 0);
+                }
                 else
+                {
                     mv.score += BadScore;
+                    Debug.Assert(mv.score < HistoryScore);
+                }
             }
             //don't extend bad capture in quiescence search
             if (!wantAll)
