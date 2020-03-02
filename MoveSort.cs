@@ -22,7 +22,7 @@ namespace MoleXiangqi
         const int BadScore = -28000;
 
         public readonly static int[] cnPieceHistIndex = {
-          -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+          -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
           0, 1, 1, 2, 2, 3, 3, 4, 4, 4, 4, 4, 5, 5, 6, 6,
           7, 8, 8, 9, 9,10,10,11,11,11,11,11,12,12,13,13
         };
@@ -38,6 +38,7 @@ namespace MoleXiangqi
             Debug.Assert(score > -G.MATE && score < G.MATE);
             Debug.Assert(depth >= 0);
 
+            //吃送吃的子没有必要记录，简单起见，所有吃子都不记入History
             if (mv.pcDst > 0)
                 return;
             if (score > G.RULEWIN)
@@ -116,7 +117,7 @@ namespace MoleXiangqi
 
             foreach (MOVE mv in movesDone)
                 moves.Remove(mv);
-            if (moveType==2)
+            if (moveType == 2)
                 moves.RemoveAll(x => x.pcDst == 0);
 
             for (int i = 0; i < moves.Count; i++)
@@ -137,7 +138,7 @@ namespace MoleXiangqi
             }
 
             //usually, moveType is either 3 or 7
-            switch(moveType)
+            switch (moveType)
             {
                 case 1:
                     moves.RemoveAll(x => x.checking == false);
@@ -156,11 +157,11 @@ namespace MoleXiangqi
             if (!(Killers[height, 0] is null) && Killers[height, 0].sqSrc > 0)
             {
                 killer = moves.Find(x => x == Killers[height, 0]);
-                if (killer.sqSrc > 0)
+                if (!(killer is null))
                 {
                     killer.score += KillerScore;
                     killer = moves.Find(x => x == Killers[height, 1]);
-                    if (killer.sqSrc > 0)
+                    if (!(killer is null))
                         killer.score += KillerScore - 1;
                 }
             }

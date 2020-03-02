@@ -69,8 +69,6 @@ namespace MoleXiangqi
             Debug.Assert(vl < G.MATE && vl > -G.MATE);
             if (vl > G.WIN && vl <= G.RULEWIN || vl < -G.WIN && vl >= -G.RULEWIN)
                 return;
-            if (depth < 1)
-                return;
             nWrite++;
             if (Trans.TryGetValue(key, out HashStruct entry))
             {

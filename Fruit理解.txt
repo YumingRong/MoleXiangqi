@@ -211,3 +211,12 @@ void search()
 
 search()->search_full_root()->full_root()->full_search()
 full_new_depth调用SEE，其SEE比较繁琐，是否值得存疑。但它是在search前调用，好的预排序或许可以减少调用SEE的次数。
+History的用法很奇怪，似乎depth^2只用来预排序。到了SEE阶段又用了relative history。
+TransDepth = 1没有实质性作用。
+接受送吃的着法似乎没必要记入Tranposition。
+
+关于空着裁剪，普遍的做法是只在占优势时才走空着，以实现beta裁剪。我的思路是随时都可以使用beta裁剪，如果对方连走两步（SEE>=0)，分数没有显著上升，
+那么就可以认为对方的第一步是废棋。后续要么裁剪，要么减少搜索深度。
+还有一点就是，beta剪枝时，由于深度优先，往往没有找到最佳着法就fail high了。但在迭代加深搜索时，反复搜索次优着法到fail high花的层数比最优着法更深。
+所以可以先走空着，看对方最厉害的杀手是什么，然后以这着作为对方的killer move，来检验己方能否有效应对。
+空着裁剪不适合用在底层。顶层的要求是尽量裁剪，减少搜索量。底层的要求是准确评分。

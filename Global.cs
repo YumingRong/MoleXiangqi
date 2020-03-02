@@ -10,8 +10,12 @@
 
         public const bool UseHash = true;
         public const bool UseFutilityPruning = true;
-
+        public const bool UseNullMovePruning = false;
+        public const bool UseNullVerification = true;
         public const int FutilityMargin = 10;
+        public const int NullOKMargin = 20;
+        public const int NullSafeMargin = 40;
+        public const int NullDepth = 2;    // 空着裁剪的深度
 
         public const int HASH_BETA = 1;
         public const int HASH_ALPHA = 2;

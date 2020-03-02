@@ -48,14 +48,24 @@ namespace MoleXiangqi
         public static bool operator ==(MOVE left, MOVE right)
         {
             if (left is null || right is null)
-                return Object.Equals(left, right);
+            {
+                if (left is null && right is null)
+                    return true;
+                else
+                    return false;
+            }
             return left.Equals(right);
         }
 
         public static bool operator !=(MOVE left, MOVE right)
         {
             if (left is null || right is null)
-                return Object.Equals(left, right);
+            {
+                if (left is null && right is null)
+                    return false;
+                else
+                    return true;
+            }
             return !left.Equals(right);
         }
     }
@@ -172,7 +182,6 @@ namespace MoleXiangqi
             RECORD step;
             step.move = mv;
             step.zobrist = Key;
-            //step.checking = mv.checking ? mv.sqDst : 0;
             step.halfMoveClock = HalfMoveClock;
             stepList.Add(step);
         }
@@ -185,6 +194,26 @@ namespace MoleXiangqi
             Key = stepList[stepList.Count - 1].zobrist;
             HalfMoveClock = stepList[stepList.Count - 1].halfMoveClock;
         }
+
+        public void MakeNullMove()
+        {
+            sdPlayer ^= 1;
+            Key ^= Zobrist.turn;
+            RECORD step;
+            step.move = new MOVE();
+            step.zobrist = Key;
+            step.halfMoveClock = HalfMoveClock;
+            stepList.Add(step);
+        }
+
+        public void UnmakeNullMove()
+        {
+            sdPlayer ^= 1;
+            Key ^= Zobrist.turn;
+            stepList.RemoveAt(stepList.Count - 1);
+            Key = stepList[stepList.Count - 1].zobrist;
+        }
+
 
     }
 }

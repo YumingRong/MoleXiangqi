@@ -234,6 +234,7 @@ namespace MoleXiangqi
                         stat.Cutoffs++;
                         mvBest = mv;
                         hashFlag = G.HASH_BETA;
+                        Debug.WriteLine("Beta cut off");
                         break;
                     }
                     if (vl > alpha)
@@ -258,7 +259,7 @@ namespace MoleXiangqi
             return best;
         }
 
-        int SearchCut(int beta, int depth, int height)
+        int SearchCut(int beta, int depth, int height, bool allowNull = true)
         {
             if (depth <= 0)
             {
@@ -297,9 +298,30 @@ namespace MoleXiangqi
                 }
             }
 
+            if(G.UseNullMovePruning && allowNull && depth >= G.NullDepth)
+                if (!stepList[stepList.Count-1].move.checking && beta < G.WIN)
+                {
+                    MakeNullMove();
+                    int vl = SearchCut(1 - beta, depth - G.NullDepth - 1, height + 1, false);
+                    UnmakeNullMove();
+
+                    if (vl>= beta)
+                    {
+                        if (Simple_Evaluate() > G.NullSafeMargin)
+                        {
+                            TT.WriteHash(Key, G.HASH_BETA, vl, depth - G.NullDepth, new MOVE());
+                            return vl;
+                        }
+                        else if (SearchCut(beta, depth - G.NullDepth, height+1, false)>=beta)
+                        {
+                            TT.WriteHash(Key, G.HASH_BETA, vl, depth, new MOVE());
+                            return vl;
+                        }
+                    }
+                }
+
             IEnumerable<MOVE> moves = GetNextMove(7, height);
             MOVE mvBest = new MOVE();
-            List<MOVE> played = new List<MOVE>();
             int opt_value = G.MATE;
             foreach (MOVE mv in moves)
             {
@@ -320,7 +342,6 @@ namespace MoleXiangqi
                 MakeMove(mv, false);
                 int vl = -SearchCut(1 - beta, new_depth, height + 1);
                 UnmakeMove();
-                played.Add(mv);
 
                 if (vl > best)
                 {
@@ -328,6 +349,7 @@ namespace MoleXiangqi
                     mvBest = mv;
                     if (vl >= beta)
                     {
+                        SetBestMove(mvBest, best, depth, height);
                         if (G.UseHash)
                             TT.WriteHash(Key, G.HASH_BETA, best, depth, mvBest);
                         stat.Cutoffs++;
@@ -337,11 +359,8 @@ namespace MoleXiangqi
                 else
                     HistoryBad(mv);
             }
-            if (G.UseHash && best > -G.WIN)
-            {
+            if (G.UseHash)
                 TT.WriteHash(Key, G.HASH_ALPHA, best, depth, mvBest);
-                SetBestMove(mvBest, best, depth, height);
-            }
             return best;
         }
 
@@ -359,6 +378,7 @@ namespace MoleXiangqi
                 if (best > beta)
                 {
                     stat.Cutoffs++;
+                    Debug.WriteLine("Beta cut off");
                     return best;
                 }
                 if (best > alpha)
@@ -423,6 +443,7 @@ namespace MoleXiangqi
                 if (vl > beta)
                 {
                     stat.Cutoffs++;
+                    Debug.WriteLine("Beta cut off");
                     return vl;
                 }
                 if (vl >= best)
