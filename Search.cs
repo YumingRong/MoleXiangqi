@@ -204,7 +204,7 @@ namespace MoleXiangqi
             foreach (MOVE mv in moves)
             {
                 Debug.Write(new string('\t', height));
-                Debug.WriteLine($"{mv} {alpha}, {beta}, {best}");
+                Debug.WriteLine($"{mv} {alpha}, {beta}, {best},{mv.PrintKiller()}");
                 int new_depth = depth - 1;
                 if (mv.sqDst == stepList[stepList.Count - 1].move.sqDst && mv.score > 0
                     || mv.checking)
@@ -326,7 +326,7 @@ namespace MoleXiangqi
             foreach (MOVE mv in moves)
             {
                 Debug.Write(new string('\t', height));
-                Debug.WriteLine($"{mv} {beta - 1}, {beta}, {best}");
+                Debug.WriteLine($"{mv} {beta - 1}, {beta}, {best} {mv.PrintKiller()}");
                 int new_depth = depth - 1;
                 if (G.UseFutilityPruning && depth == 1)
                 {

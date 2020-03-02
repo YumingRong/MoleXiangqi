@@ -9,6 +9,26 @@ namespace MoleXiangqi
         public int pcSrc, pcDst;
         public int score;
         public bool checking;
+        public int killer;
+        public string PrintKiller()
+        {
+            switch(killer)
+            {
+                case 0:
+                    return "normal";
+                case 1:
+                    return "trans";
+                case 2:
+                    return "mate";
+                case 3:
+                    return "killer1";
+                case 4:
+                    return "killer2";
+                default:
+                    return "";
+            }
+        }
+
 
         public MOVE(int sqFrom = 0, int sqTo = 0, int pcFrom = 0, int pcTo = 0)
         {
@@ -18,6 +38,7 @@ namespace MoleXiangqi
             pcDst = pcTo;
             score = 0;
             checking = false;
+            killer = 0;
         }
 
         public override string ToString()

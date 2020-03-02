@@ -10,7 +10,7 @@
 
         public const bool UseHash = true;
         public const bool UseFutilityPruning = true;
-        public const bool UseNullMovePruning = false;
+        public const bool UseNullMovePruning = true;
         public const bool UseNullVerification = true;
         public const int FutilityMargin = 10;
         public const int NullOKMargin = 20;

@@ -43,7 +43,7 @@ namespace MoleXiangqi
                 return;
             if (score > G.RULEWIN)
                 MateKiller[SIDE(mv.pcSrc)] = mv;
-            if (Killers[height, 0] != mv)
+            else if (Killers[height, 0] != mv)
             {
                 Killers[height, 1] = Killers[height, 0];
                 Killers[height, 0] = mv;
@@ -92,13 +92,14 @@ namespace MoleXiangqi
                 Debug.Assert(TransKiller.pcSrc == pcSquares[TransKiller.sqSrc]);
                 Debug.Assert(TransKiller.pcDst == pcSquares[TransKiller.sqDst]);
                 Debug.Assert(IsLegalMove(TransKiller.sqSrc, TransKiller.sqDst));
+                TransKiller.killer = 1;
                 movesDone.Add(TransKiller);
                 yield return TransKiller;
             }
 
             MOVE killer = MateKiller[sdPlayer];
             if (!(killer is null) && killer.pcSrc == pcSquares[killer.sqSrc] && killer.pcDst == pcSquares[killer.sqDst]
-                && IsLegalMove(killer.sqSrc, killer.sqDst))
+&& IsLegalMove(killer.sqSrc, killer.sqDst))
             {
                 MovePiece(killer);
                 bool notChecked = (CheckedBy(1 - sdPlayer) == 0);
@@ -108,6 +109,7 @@ namespace MoleXiangqi
                     if (wantAll || wantCheck && IsChecking(killer) || wantCapture && killer.pcDst > 0)
                     {
                         movesDone.Add(killer);
+                        killer.killer = 2;
                         yield return killer;
                     }
             }
@@ -153,16 +155,20 @@ namespace MoleXiangqi
                     break;
             }
 
-            //assign killer bonus
+            //assign killer bonus 目前来看，MateKiller在生成着法之前跑命中率比较高，而普通Killer则不是
             if (!(Killers[height, 0] is null) && Killers[height, 0].sqSrc > 0)
             {
                 killer = moves.Find(x => x == Killers[height, 0]);
                 if (!(killer is null))
                 {
                     killer.score += KillerScore;
+                    killer.killer = 3;
                     killer = moves.Find(x => x == Killers[height, 1]);
                     if (!(killer is null))
+                    {
+                        killer.killer = 4;
                         killer.score += KillerScore - 1;
+                    }
                 }
             }
 
