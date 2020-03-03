@@ -33,8 +33,19 @@
 
 
 下一步测试双车胁仕2和钓鱼马2。
-
-
-着法和打分要不要分阶段生成
 Quiesce延伸条件
-zobristkey ^ turn
+
+int SearchRoot(int depth)
+{
+	foreach(move in rootmoves)
+	{
+		MakeMove(move)
+		vl = -SearchPV(-beta, -alpha, depth - 1)
+		UnmakeMove(move)
+	}
+	update alpha, beta
+
+	make_null_move()
+	vl = -SearchPV(-beta, -alpha, depth - 1)
+	unmake_null_move()
+}

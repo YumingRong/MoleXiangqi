@@ -1,7 +1,7 @@
-﻿#define NULL_MOVE
+﻿#undef NULL_MOVE
 #define FUTILITY_PRUNING
 #define NULL_VERIFICATION
-#define LATE_MOVE_REDUCTION
+#undef LATE_MOVE_REDUCTION
 
 using System;
 using System.Collections.Generic;
@@ -45,14 +45,13 @@ namespace MoleXiangqi
 
     partial class POSITION
     {
-        const int FUTILITY_MARGIN = 50;
-
         public STATISTIC stat;
-        public List<MOVE> PVLine;
+        List<MOVE> PVLine;
         public List<MOVE> rootMoves;
         TransipositionTable TT;
 
         internal Stopwatch stopwatch;
+        int RootDepth;
 
         public void InitSearch()
         {
@@ -75,16 +74,17 @@ namespace MoleXiangqi
             TransKiller = null;
             rootMoves = new List<MOVE>(GetNextMove(7, 0));
 
-            int vl = 0;
 
+            int vl = 0;
+            int vlOpp = 0;
             // 6. 做迭代加深搜索
-            for (int depth = 1; depth <= maxDepth; depth++)
+            for (RootDepth = 1; RootDepth <= maxDepth; RootDepth++)
             {
                 Debug.WriteLine("---------------------------");
-                Console.WriteLine("info depth {0}", depth);
+                Console.WriteLine("info depth {0}", RootDepth);
 
                 stopwatch.Start();
-                vl = SearchRoot(depth);
+                vl = SearchRoot(RootDepth);
                 stopwatch.Stop();
 
                 stat.ElapsedTime += stopwatch.ElapsedMilliseconds;
@@ -97,8 +97,17 @@ namespace MoleXiangqi
                 }
 
                 // 10. 搜索到杀棋则终止搜索
-                if (vl < -G.WIN || vl > G.WIN)
+                if (Math.Abs(vl) > G.WIN)
                     break;
+
+                if (Math.Abs(vlOpp) < G.WIN)
+                {
+                    Debug.WriteLine("Null move start-----------------");
+                    MakeNullMove();
+                    vlOpp = -SearchQuiesce(-G.MATE + 2, G.MATE - 2, 0, 1, RootDepth);
+                    UnmakeNullMove();
+                    Debug.WriteLine("Null move end-------------------");
+                }
             }
             if (vl < -G.WIN)
                 Console.WriteLine("Resign");
@@ -110,8 +119,8 @@ namespace MoleXiangqi
 
         public int SearchRoot(int depth)
         {
-            int alpha = -G.MATE + 1;
-            int beta = G.MATE - 1;
+            int alpha = -G.MATE + 2;
+            int beta = G.MATE - 2;
             MOVE mvBest = new MOVE();
             List<MOVE> subpv = null;
             for (int i = 0; i < rootMoves.Count; i++)
@@ -183,11 +192,12 @@ namespace MoleXiangqi
             if (rep != RepititionResult.NONE)
                 return (int)rep;
 
-            return -G.MATE + height + 1;
+            return - G.MATE + height + 1;
         }
 
         int SearchPV(int alpha, int beta, int depth, int height, out List<MOVE> pvs)
         {
+            beta = Math.Min(beta, G.MATE - height - 2);
             pvs = new List<MOVE>();
             if (depth <= 0)
             {
@@ -195,7 +205,7 @@ namespace MoleXiangqi
                     //被照将时，推迟进入静态搜索
                     depth++;
                 else
-                    return SearchQuiesce(alpha, beta, 0, height);
+                    return SearchQuiesce(alpha, beta, 0, height, RootDepth);
             }
 
             stat.PVNodes++;
@@ -219,7 +229,7 @@ namespace MoleXiangqi
                 MakeMove(mv, false);
                 int vl;
                 if (mvBest.sqSrc == 0)
-                    vl = -SearchPV(-beta, -alpha, new_depth, height + 1, out subpv);
+                    vl = -SearchPV(Math.Max(-beta, height +2 - G.MATE), Math.Min(-alpha, G.MATE-height -2), new_depth, height + 1, out subpv);
                 else
                 {
                     vl = -SearchCut(-alpha, new_depth, height + 1);
@@ -269,13 +279,14 @@ namespace MoleXiangqi
 
         int SearchCut(int beta, int depth, int height, bool allowNull = true)
         {
+            beta = Math.Min(beta, G.MATE - height - 2);
             if (depth <= 0)
             {
                 if (stepList[stepList.Count - 1].move.checking)
                     //被照将时，推迟进入静态搜索
                     depth++;
                 else
-                    return SearchQuiesce(beta - 1, beta, 0, height);
+                    return SearchQuiesce(beta - 1, beta, 0, height, RootDepth);
             }
 
             stat.CutNodes++;
@@ -378,15 +389,18 @@ namespace MoleXiangqi
             return best;
         }
 
-        public int SearchQuiesce(int alpha, int beta, int qdepth, int height)
+        public int SearchQuiesce(int alpha, int beta, int qheight, int height, int depth)
         {
+            beta = Math.Min(beta, G.MATE - height - 2);
             stat.QuiesceNodes++;
             bool isChecked = stepList[stepList.Count - 1].move.checking;
+            if (qheight > G.MAX_QUEISCE_DEPTH)
+                return Simple_Evaluate();
             int best;
             IEnumerable<MOVE> moves;
             //偶数层是主动方，奇数层是被动方
             TransKiller = null;
-            if (qdepth % 2 == 0)
+            if (qheight % 2 == 0)
             {
                 best = Simple_Evaluate();
                 if (best > beta)
@@ -402,16 +416,6 @@ namespace MoleXiangqi
                 else
                 {
                     moves = GetNextMove(3, height);
-                    ////only extend check and capture
-                    //bool continuousCheck = stepList.Count >= 2 && stepList[stepList.Count - 2].move.checking;
-                    ////check extension only when in continuous check
-                    //if (continuousCheck)
-                    //    moves = GetNextMove(3, height);
-                    ////capture extension only when recapture
-                    //else if (stepList[stepList.Count - 1].move.pcDst > 0)
-                    //    moves = GetNextMove(2, height);
-                    //else
-                    //    return best;
                 }
             }
             else
@@ -440,24 +444,35 @@ namespace MoleXiangqi
                 else
                     moves = GetNextMove(2, height);
             }
+            bool first_move = true;
+            int vl;
             foreach (MOVE mv in moves)
             {
+                if (!isChecked && depth <= 0 && mv.pcDst == 0)
+                    continue;
                 Debug.Write(new string('\t', height));
                 Debug.WriteLine($"{mv} {alpha}, {beta}, {best}, {height}");
                 MakeMove(mv, false);
-                if (qdepth % 2 == 0)
+                if (qheight % 2 == 0)
                 {
                     if (stepList[stepList.Count - 1].move.checking)
                         stat.CheckExtesions++;
                     else
                         stat.CaptureExtensions++;
                 }
-                int vl = -SearchQuiesce(-beta, -alpha, qdepth + 1, height + 1);
+                if (first_move)
+                {
+                    vl = -SearchQuiesce(-beta, -alpha, qheight + 1, height + 1, depth);
+                    first_move = false;
+                }
+                else
+                    vl = -SearchQuiesce(-beta, -alpha, qheight + 1, height + 1, depth - 1);
                 UnmakeMove();
-                if (vl > beta)
+                if (vl >= beta)
                 {
                     stat.Cutoffs++;
                     Debug.WriteLine("Beta cut off");
+                    SetBestMove(mv, vl, 0, height);
                     return vl;
                 }
                 if (vl >= best)

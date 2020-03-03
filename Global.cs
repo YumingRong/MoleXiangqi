@@ -6,7 +6,8 @@
         public const int RULEWIN = MATE - 120;
         public const int WIN = MATE - 200;
         public const int MAX_PLY = 1024;
-        public const int MAX_Depth = 3;
+        public const int MAX_Depth = 4;
+        public const int MAX_QUEISCE_DEPTH = 30;
 
         public const int FutilityMargin = 10;
         public const int NullOKMargin = 20;

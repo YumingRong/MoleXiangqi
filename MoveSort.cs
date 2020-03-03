@@ -99,21 +99,25 @@ namespace MoleXiangqi
                 yield return TransKiller;
             }
 #endif
-            MOVE killer = MateKiller[sdPlayer];
-            if (!(killer is null) && killer.pcSrc == pcSquares[killer.sqSrc] && killer.pcDst == pcSquares[killer.sqDst]
-&& IsLegalMove(killer.sqSrc, killer.sqDst))
+            MOVE killer;
+            if (!stepList[stepList.Count -1].move.checking)
             {
-                MovePiece(killer);
-                bool notChecked = (CheckedBy(1 - sdPlayer) == 0);
-                killer.checking = CheckedBy(sdPlayer) > 0;
-                UndoMovePiece(killer);
-                if (notChecked)
-                    if (wantAll || wantCheck && IsChecking(killer) || wantCapture && killer.pcDst > 0)
-                    {
-                        movesDone.Add(killer);
-                        killer.killer = 2;
-                        yield return killer;
-                    }
+                killer = MateKiller[sdPlayer];
+                if (!(killer is null) && killer.pcSrc == pcSquares[killer.sqSrc] && killer.pcDst == pcSquares[killer.sqDst]
+    && IsLegalMove(killer.sqSrc, killer.sqDst))
+                {
+                    MovePiece(killer);
+                    bool notChecked = (CheckedBy(1 - sdPlayer) == 0);
+                    killer.checking = CheckedBy(sdPlayer) > 0;
+                    UndoMovePiece(killer);
+                    if (notChecked)
+                        if (wantAll || wantCheck && IsChecking(killer) || wantCapture && killer.pcDst > 0)
+                        {
+                            movesDone.Add(killer);
+                            killer.killer = 2;
+                            yield return killer;
+                        }
+                }
             }
 
             List<MOVE> moves = GenerateMoves(false);
