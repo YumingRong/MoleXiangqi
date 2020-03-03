@@ -157,6 +157,35 @@ namespace MoleXiangqi
                     break;
             }
 
+            for (int i = 0; i < moves.Count; i++)
+            {
+                MOVE mv = moves[i];
+                int s = SEE(mv, AttackMap[sdPlayer, mv.sqDst], AttackMap[1 - sdPlayer, mv.sqDst]);
+                mv.score += s;
+                if (s > 0)
+                {
+                    mv.score += GoodScore;
+                    mv.killer = 5;
+                }
+                else if (s == 0)
+                {
+                    int sqHist = GetHistoryIndex(mv);
+                    Debug.Assert(HistHit[sqHist] <= HistTotal[sqHist]);
+                    mv.score += HistHit[sqHist] * History[sqHist] / (HistTotal[sqHist] + 1) + HistoryScore;
+                    Debug.Assert(mv.score < 0);
+                    mv.killer = 6;
+                }
+                else
+                {
+                    mv.score += BadScore;
+                    Debug.Assert(mv.score < HistoryScore);
+                    mv.killer = 7;
+                }
+            }
+            //don't extend bad capture in quiescence search
+            if (!wantAll)
+                moves.RemoveAll(x => x.score < BadScore);
+
             //assign killer bonus 目前来看，MateKiller在生成着法之前跑命中率比较高，而普通Killer则不是
             if (!(Killers[height, 0] is null) && Killers[height, 0].sqSrc > 0)
             {
@@ -173,30 +202,6 @@ namespace MoleXiangqi
                     }
                 }
             }
-
-            for (int i = 0; i < moves.Count; i++)
-            {
-                MOVE mv = moves[i];
-                int s = SEE(mv, AttackMap[sdPlayer, mv.sqDst], AttackMap[1 - sdPlayer, mv.sqDst]);
-                mv.score += s;
-                if (s > 0)
-                    mv.score += GoodScore;
-                else if (s == 0)
-                {
-                    int sqHist = GetHistoryIndex(mv);
-                    Debug.Assert(HistHit[sqHist] <= HistTotal[sqHist]);
-                    mv.score += HistHit[sqHist] * History[sqHist] / (HistTotal[sqHist] + 1) + HistoryScore;
-                    Debug.Assert(mv.score < 0);
-                }
-                else
-                {
-                    mv.score += BadScore;
-                    Debug.Assert(mv.score < HistoryScore);
-                }
-            }
-            //don't extend bad capture in quiescence search
-            if (!wantAll)
-                moves.RemoveAll(x => x.score < BadScore);
             moves.Sort(Large2Small);
             foreach (var mv in moves)
                 yield return mv;

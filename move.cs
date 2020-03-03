@@ -14,8 +14,6 @@ namespace MoleXiangqi
         {
             switch(killer)
             {
-                case 0:
-                    return "normal";
                 case 1:
                     return "trans";
                 case 2:
@@ -24,6 +22,12 @@ namespace MoleXiangqi
                     return "killer1";
                 case 4:
                     return "killer2";
+                case 5:
+                    return "good capture";
+                case 6:
+                    return "normal";
+                case 7:
+                    return "bad";
                 default:
                     return "";
             }
