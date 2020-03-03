@@ -1,4 +1,9 @@
-﻿using System;
+﻿#define NULL_MOVE
+#define FUTILITY_PRUNING
+#define NULL_VERIFICATION
+#define LATE_MOVE_REDUCTION
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -152,6 +157,7 @@ namespace MoleXiangqi
             rootMoves.RemoveAll(x => x.score < -G.WIN);
             rootMoves.Sort(Large2Small);
 
+#if LATE_MOVE_REDUCTION
             //late move reduction
             for (int i = rootMoves.Count - 1; alpha - rootMoves[i].score > FUTILITY_MARGIN; i--)
             {
@@ -159,6 +165,7 @@ namespace MoleXiangqi
                 Console.WriteLine($"Prune move: {rootMoves[i]}, score {rootMoves[i].score}");
                 rootMoves.RemoveAt(i);
             }
+#endif
             Console.WriteLine("Root move\tScore");
             foreach (MOVE mv in rootMoves)
                 Console.WriteLine($"{mv}\t{mv.score}");
@@ -250,12 +257,13 @@ namespace MoleXiangqi
                 else
                     HistoryBad(mv);
             }
-            if (G.UseHash && best > -G.WIN)
+            if (best > -G.WIN)
             {
+#if USE_HASH
                 TT.WriteHash(Key, hashFlag, best, depth, mvBest);
+#endif
                 SetBestMove(mvBest, best, depth, height);
             }
-
             return best;
         }
 
@@ -275,51 +283,54 @@ namespace MoleXiangqi
             if (best > -G.WIN)
                 return best;
 
-            if (G.UseHash)
+#if USE_HASH
+            HashStruct t = TT.ReadHash(Key);
+            if (t.Move.sqSrc == 0)
+                TransKiller = null;
+            else
             {
-                HashStruct t = TT.ReadHash(Key);
-                if (t.Move.sqSrc == 0)
-                    TransKiller = null;
-                else
+                if (t.AlphaDepth >= depth)
                 {
-                    if (t.AlphaDepth >= depth)
+                    if (t.Alpha < beta)
+                        return t.Alpha;
+                }
+                if (t.BetaDepth >= depth)
+                {
+                    if (t.Beta >= beta)
+                        return t.Beta;
+                }
+                TransKiller = t.Move;
+                TransKiller.pcSrc = pcSquares[TransKiller.sqSrc];
+                TransKiller.pcDst = pcSquares[TransKiller.sqDst];
+            }
+#endif
+#if NULL_MOVE
+            if (allowNull && depth >= G.NullDepth)
+            {
+                MOVE lastMove = stepList[stepList.Count - 1].move;
+                if (!lastMove.checking && lastMove.score > HistoryScore && beta < G.WIN)
+                {
+                    int eval;
+                    if (depth <= G.NullReduction || (eval = Simple_Evaluate()) >= beta)
                     {
-                        if (t.Alpha < beta)
-                            return t.Alpha;
+                        MakeNullMove();
+                        int vl = -SearchCut(1 - beta, depth - G.NullDepth - 1, height + 1, false);
+                        UnmakeNullMove();
+#if NULL_VERIFICATION
+                        if (depth > G.VerReduction && vl >= beta)
+                        {
+                            vl = SearchCut(beta, depth - G.VerReduction, height + 1, false);
+                        }
+#endif
+                        if (vl >= beta)
+                        {
+                            //TT.WriteHash(Key, G.HASH_BETA, vl, depth, new MOVE());
+                            return vl;
+                        }
                     }
-                    if (t.BetaDepth >= depth)
-                    {
-                        if (t.Beta >= beta)
-                            return t.Beta;
-                    }
-                    TransKiller = t.Move;
-                    TransKiller.pcSrc = pcSquares[TransKiller.sqSrc];
-                    TransKiller.pcDst = pcSquares[TransKiller.sqDst];
                 }
             }
-
-            if(G.UseNullMovePruning && allowNull && depth >= G.NullDepth)
-                if (!stepList[stepList.Count-1].move.checking && beta < G.WIN)
-                {
-                    MakeNullMove();
-                    int vl = SearchCut(1 - beta, depth - G.NullDepth - 1, height + 1, false);
-                    UnmakeNullMove();
-
-                    if (vl>= beta)
-                    {
-                        if (Simple_Evaluate() > G.NullSafeMargin)
-                        {
-                            TT.WriteHash(Key, G.HASH_BETA, vl, depth - G.NullDepth, new MOVE());
-                            return vl;
-                        }
-                        else if (SearchCut(beta, depth - G.NullDepth, height+1, false)>=beta)
-                        {
-                            TT.WriteHash(Key, G.HASH_BETA, vl, depth, new MOVE());
-                            return vl;
-                        }
-                    }
-                }
-
+#endif
             IEnumerable<MOVE> moves = GetNextMove(7, height);
             MOVE mvBest = new MOVE();
             int opt_value = G.MATE;
@@ -328,7 +339,8 @@ namespace MoleXiangqi
                 Debug.Write(new string('\t', height));
                 Debug.WriteLine($"{mv} {beta - 1}, {beta}, {best} {mv.PrintKiller()}");
                 int new_depth = depth - 1;
-                if (G.UseFutilityPruning && depth == 1)
+#if FUTILITY_PRUNING
+                if (depth == 1)
                 {
                     if (!stepList[stepList.Count - 1].move.checking && new_depth == 0 && mv.pcSrc == 0)
                     {
@@ -338,7 +350,7 @@ namespace MoleXiangqi
                             continue;
                     }
                 }
-
+#endif
                 MakeMove(mv, false);
                 int vl = -SearchCut(1 - beta, new_depth, height + 1);
                 UnmakeMove();
@@ -350,8 +362,9 @@ namespace MoleXiangqi
                     if (vl >= beta)
                     {
                         SetBestMove(mvBest, best, depth, height);
-                        if (G.UseHash)
-                            TT.WriteHash(Key, G.HASH_BETA, best, depth, mvBest);
+#if USE_HASH
+                        TT.WriteHash(Key, G.HASH_BETA, best, depth, mvBest);
+#endif
                         stat.Cutoffs++;
                         return vl;
                     }
@@ -359,8 +372,9 @@ namespace MoleXiangqi
                 else
                     HistoryBad(mv);
             }
-            if (G.UseHash)
-                TT.WriteHash(Key, G.HASH_ALPHA, best, depth, mvBest);
+#if USE_HASH
+            TT.WriteHash(Key, G.HASH_ALPHA, best, depth, mvBest);
+#endif
             return best;
         }
 

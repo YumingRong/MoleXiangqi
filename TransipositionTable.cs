@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#if USE_HASH
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace MoleXiangqi
@@ -129,3 +130,4 @@ namespace MoleXiangqi
         }
     }
 }
+#endif
