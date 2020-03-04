@@ -119,8 +119,8 @@ namespace MoleXiangqi
 
         public int SearchRoot(int depth)
         {
-            int alpha = -G.MATE + 2;
-            int beta = G.MATE - 2;
+            int alpha = -G.MATE;
+            int beta = G.MATE;
             MOVE mvBest = new MOVE();
             List<MOVE> subpv = null;
             for (int i = 0; i < rootMoves.Count; i++)
@@ -192,12 +192,12 @@ namespace MoleXiangqi
             if (rep != RepititionResult.NONE)
                 return (int)rep;
 
-            return - G.MATE + height + 1;
+            return -G.MATE + height - 1;
         }
 
         int SearchPV(int alpha, int beta, int depth, int height, out List<MOVE> pvs)
         {
-            beta = Math.Min(beta, G.MATE - height - 2);
+            beta = Math.Min(beta, G.MATE - height);
             pvs = new List<MOVE>();
             if (depth <= 0)
             {
@@ -229,7 +229,7 @@ namespace MoleXiangqi
                 MakeMove(mv, false);
                 int vl;
                 if (mvBest.sqSrc == 0)
-                    vl = -SearchPV(Math.Max(-beta, height +2 - G.MATE), Math.Min(-alpha, G.MATE-height -2), new_depth, height + 1, out subpv);
+                    vl = -SearchPV(Math.Max(-beta, height + 2 - G.MATE), Math.Min(-alpha, G.MATE - height - 2), new_depth, height + 1, out subpv);
                 else
                 {
                     vl = -SearchCut(-alpha, new_depth, height + 1);
@@ -279,7 +279,7 @@ namespace MoleXiangqi
 
         int SearchCut(int beta, int depth, int height, bool allowNull = true)
         {
-            beta = Math.Min(beta, G.MATE - height - 2);
+            beta = Math.Min(beta, G.MATE - height);
             if (depth <= 0)
             {
                 if (stepList[stepList.Count - 1].move.checking)
@@ -391,7 +391,7 @@ namespace MoleXiangqi
 
         public int SearchQuiesce(int alpha, int beta, int qheight, int height, int depth)
         {
-            beta = Math.Min(beta, G.MATE - height - 2);
+            beta = Math.Min(beta, G.MATE - height);
             stat.QuiesceNodes++;
             bool isChecked = stepList[stepList.Count - 1].move.checking;
             if (qheight > G.MAX_QUEISCE_DEPTH)
