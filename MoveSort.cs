@@ -1,4 +1,5 @@
-﻿using System;
+﻿#define USE_MATEKILLER
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -10,7 +11,7 @@ namespace MoleXiangqi
         internal int[] History = new int[14 * 90]; //there are 7 kinds of pieces in each side
         internal int[] HistTotal = new int[14 * 90];
         internal int[] HistHit = new int[14 * 90];
-        internal MOVE[] MateKiller = new MOVE[2];
+        internal MOVE[] MateKiller = new MOVE[G.MAX_PLY];
         MOVE TransKiller;
 
         const int HistoryMax = 0x4000;
@@ -41,9 +42,12 @@ namespace MoleXiangqi
             //吃送吃的子没有必要记录，简单起见，所有吃子都不记入History
             if (mv.pcDst > 0)
                 return;
+#if USE_MATEKILLER
             if (score > G.RULEWIN)
-                MateKiller[SIDE(mv.pcSrc)] = mv;
-            else if (Killers[height, 0] != mv)
+                MateKiller[height] = mv;
+            else 
+#endif
+            if (Killers[height, 0] != mv)
             {
                 Killers[height, 1] = Killers[height, 0];
                 Killers[height, 0] = mv;
@@ -100,9 +104,10 @@ namespace MoleXiangqi
             }
 #endif
             MOVE killer;
+#if USE_MATEKILLER
             if (!stepList[stepList.Count -1].move.checking)
             {
-                killer = MateKiller[sdPlayer];
+                killer = MateKiller[height];
                 if (!(killer is null) && killer.pcSrc == pcSquares[killer.sqSrc] && killer.pcDst == pcSquares[killer.sqDst]
     && IsLegalMove(killer.sqSrc, killer.sqDst))
                 {
@@ -119,7 +124,7 @@ namespace MoleXiangqi
                         }
                 }
             }
-
+#endif
             List<MOVE> moves = GenerateMoves(false);
             GenAttackMap(true);
 
@@ -164,18 +169,19 @@ namespace MoleXiangqi
             for (int i = 0; i < moves.Count; i++)
             {
                 MOVE mv = moves[i];
-                int s = SEE(mv, AttackMap[sdPlayer, mv.sqDst], AttackMap[1 - sdPlayer, mv.sqDst]);
-                mv.score += s;
-                if (s > 0)
+                int vl = SEE(mv, AttackMap[sdPlayer, mv.sqDst], AttackMap[1 - sdPlayer, mv.sqDst]);
+                mv.score += vl;
+                mv.score += PieceValue(mv.pcSrc, mv.sqDst) - PieceValue(mv.pcSrc, mv.sqSrc);
+                if (vl > 0)
                 {
                     mv.score += GoodScore;
                     mv.killer = 5;
                 }
-                else if (s == 0)
+                else if (vl == 0)
                 {
                     int sqHist = GetHistoryIndex(mv);
                     Debug.Assert(HistHit[sqHist] <= HistTotal[sqHist]);
-                    mv.score += HistHit[sqHist] * History[sqHist] / (HistTotal[sqHist] + 1) + HistoryScore;
+                    mv.score += (HistHit[sqHist] + 1) * History[sqHist] / (HistTotal[sqHist] + 1) + HistoryScore;
                     Debug.Assert(mv.score < 0);
                     mv.killer = 6;
                 }
@@ -209,6 +215,50 @@ namespace MoleXiangqi
             moves.Sort(Large2Small);
             foreach (var mv in moves)
                 yield return mv;
+
+            int PieceValue(int pc, int sq)
+            {
+                Debug.Assert(pc < 48 && pc > 15);
+                int sd = SIDE(pc);
+                int sqMirror = sd == 0 ? sq : SQUARE_FLIP(sq);
+                int sqOppKing;
+                switch (cnPieceKinds[pc])
+                {
+                    case ROOK:
+                        sqOppKing = sqPieces[OPP_SIDE_TAG(sd) + KING_FROM]; 
+                        if (SAME_FILE(sq, sqOppKing) || SAME_RANK(sq, sqOppKing))
+                            return 5;
+                        break;
+                    case CANNON:
+                        sqOppKing = sqPieces[OPP_SIDE_TAG(sd) + KING_FROM];
+                        if (SAME_FILE(sq, sqOppKing))
+                            return 10;
+                        else if (SAME_RANK(sq, sqOppKing))
+                            return 8;
+                        break;
+                    case KNIGHT:
+                        int vl = cKnightValue[sqMirror];
+                        //检查绊马腿
+                        for (int j = 0; j < 4; j++)
+                        {
+                            int sqPin = sq + ccKingDelta[j];
+                            if (pcSquares[sqPin] != 0)
+                                vl -= 8;
+                        }
+                        return vl;
+                    case PAWN:
+                        return cKingPawnValue[sqMirror];
+                    case KING:
+                        return cKingPawnValue[sqMirror];
+                    case BISHOP:
+                    case GUARD:
+                        return cBishopGuardValue[sqMirror];
+                    default:
+                        Debug.Fail("Unknown piece type");
+                        break;
+                }
+                return 0;
+            }
         }
 
         int Large2Small(MOVE a, MOVE b)
@@ -289,11 +339,18 @@ namespace MoleXiangqi
                     }
                 }
                 //cancel defending cannon behind the piece
-                if (defs.Count > 0 && cnPieceKinds[defs[0]] == CANNON)
+                for (int i = 0; i < defs.Count; i++)
                 {
-                    int sqCannon = sqPieces[defs[0]];
-                    if ((SAME_FILE(sqCannon, mv.sqSrc) || SAME_RANK(sqCannon, mv.sqDst)) && Math.Sign(sqDst - mv.sqSrc) == Math.Sign(mv.sqSrc - sqCannon))
-                        defs.RemoveAt(0);
+                    int pc = defs[i];
+                    if (cnPieceKinds[pc] == CANNON)
+                    {
+                        int sq = sqPieces[pc];
+                        if ((SAME_FILE(sq, mv.sqSrc) || SAME_RANK(sq, mv.sqDst)) && Math.Sign(sqDst - mv.sqSrc) == Math.Sign(mv.sqSrc - sq))
+                        {
+                            defs.RemoveAt(i);
+                            break;
+                        }
+                    }
                 }
             }
             if (defs.Count == 0)
@@ -319,11 +376,18 @@ namespace MoleXiangqi
                     }
                 }
                 //cancel attacking cannon behind the piece
-                if (atts.Count > 0 && cnPieceKinds[atts[0]] == CANNON)
+                for (int i = 0; i < atts.Count; i++)
                 {
-                    int sqCannon = sqPieces[atts[0]];
-                    if ((SAME_FILE(sqCannon, mv.sqSrc) || SAME_RANK(sqCannon, mv.sqDst)) && Math.Sign(sqDst - mv.sqSrc) == Math.Sign(mv.sqSrc - sqCannon))
-                        atts.RemoveAt(0);
+                    int pc = atts[i];
+                    if (cnPieceKinds[pc] == CANNON)
+                    {
+                        int sq = sqPieces[pc];
+                        if ((SAME_FILE(sq, mv.sqSrc) || SAME_RANK(sq, mv.sqDst)) && Math.Sign(sqDst - mv.sqSrc) == Math.Sign(mv.sqSrc - sq))
+                        {
+                            atts.RemoveAt(i);
+                            break;
+                        }
+                    }
                 }
             }
             MOVE dmv = new MOVE(sqPieces[defs[0]], sqDst, defs[0], mv.pcSrc);
@@ -369,11 +433,18 @@ namespace MoleXiangqi
                     }
                 }
                 //cancel defending cannon behind the piece
-                if (defs.Count > 0 && cnPieceKinds[defs[0]] == CANNON)
+                for (int i = 0; i < defs.Count; i++)
                 {
-                    int sqCannon = sqPieces[defs[0]];
-                    if ((SAME_FILE(sqCannon, mv.sqSrc) || SAME_RANK(sqCannon, mv.sqDst)) && Math.Sign(sqDst - mv.sqSrc) == Math.Sign(mv.sqSrc - sqCannon))
-                        defs.RemoveAt(0);
+                    int pc = defs[i];
+                    if (cnPieceKinds[pc] == CANNON)
+                    {
+                        int sq = sqPieces[pc];
+                        if ((SAME_FILE(sq, mv.sqSrc) || SAME_RANK(sq, mv.sqDst)) && Math.Sign(sqDst - mv.sqSrc) == Math.Sign(mv.sqSrc - sq))
+                        {
+                            defs.RemoveAt(i);
+                            break;
+                        }
+                    }
                 }
             }
             if (defs.Count == 0)
@@ -398,11 +469,18 @@ namespace MoleXiangqi
                     }
                 }
                 //cancel attacking cannon behind the piece
-                if (atts.Count > 0 && cnPieceKinds[atts[0]] == CANNON)
+                for (int i = 0; i < atts.Count; i++)
                 {
-                    int sqCannon = sqPieces[atts[0]];
-                    if ((SAME_FILE(sqCannon, mv.sqSrc) || SAME_RANK(sqCannon, mv.sqDst)) && Math.Sign(sqDst - mv.sqSrc) == Math.Sign(mv.sqSrc - sqCannon))
-                        atts.RemoveAt(0);
+                    int pc = atts[i];
+                    if (cnPieceKinds[pc] == CANNON)
+                    {
+                        int sq = sqPieces[pc];
+                        if ((SAME_FILE(sq, mv.sqSrc) || SAME_RANK(sq, mv.sqDst)) && Math.Sign(sqDst - mv.sqSrc) == Math.Sign(mv.sqSrc - sq))
+                        {
+                            atts.RemoveAt(i);
+                            break;
+                        }
+                    }
                 }
             }
             MOVE dmv = new MOVE(sqPieces[defs[0]], sqDst, defs[0], mv.pcSrc);

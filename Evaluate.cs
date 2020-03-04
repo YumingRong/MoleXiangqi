@@ -42,8 +42,8 @@ namespace MoleXiangqi
 
             int[] cKingPawnHalfValue = {
             1,   3,   5,   7,   9,
-            15,  20,  28,  35,  43,
-            15,  20,  25,  29,  35,
+            15,  20,  28,  36,  43,
+            15,  20,  25,  30,  35,
             14,  18,  23,  25,  29,
             10,  14,  19,  22,  25,
             3,   0,  14,  0,   15,
@@ -98,7 +98,6 @@ namespace MoleXiangqi
         //以下数组都是Complex_Evaluate的输出
         public int[,] ivpc; //统计每一步各个棋子的位置分 300 * 48，供调试用
         public int[,] connectivityMap; //供统计调试用
-        //public int[,] AttackMap;
         /*Complex_evaluate可以顺便创建吃子走法并打分，虽然可能不全，比如两个子同时攻击同一个格子
          但是这种情况较少，且一般情况下总是优先用低价值的棋子去吃对方。
          而且调用captureMoves的静态搜素并不需要严格考虑所用局面。          */
@@ -491,6 +490,7 @@ namespace MoleXiangqi
             return sdPlayer == 0 ? total : -total;
         }
 
+
         public int Simple_Evaluate()
         {
             int totalPieces = 0;
@@ -518,7 +518,7 @@ namespace MoleXiangqi
                             case ROOK:
                                 if (SAME_FILE(sq, sqOppKing) || SAME_RANK(sq, sqOppKing))
                                     positionValue[sd] += 5;
-                                positionValue[sd] += cRookValue[sqMirror];
+                                //positionValue[sd] += cRookValue[sqMirror];
                                 break;
                             case CANNON:
                                 if (SAME_FILE(sq, sqOppKing))

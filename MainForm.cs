@@ -366,7 +366,7 @@ namespace MoleXiangqi
         private void MenuActivePositionTest_Click(object sender, EventArgs e)
         {
             App_inGame = false;
-            string fen = @"2b1ka3/1R2aR3/4b1n2/9/9/C8/9/4r4/4A1p1r/4KA3 w - - 0 1";
+            string fen = @"2b1ka3/4aR3/4b1n2/9/1R7/4C4/9/4r4/4Ap2r/4KA3 b - - 0 2";
             pos.FromFEN(fen);
             engine.FromFEN(fen);
             PanelBoard.Refresh();
@@ -385,9 +385,9 @@ namespace MoleXiangqi
 
         private void MenuEvaluate_Click(object sender, EventArgs e)
         {
-            string fen = //@"2b1ka3/1R2aR3/4b1n2/9/9/C8/9/4r4/4A1p1r/4KA3 w - - 0 1"; //双车胁士2
-                         @"3a5/4ak3/9/3R5/5P3/r8/9/7C1/r2p5/4K4 w - - 0 1";//对面笑2
-                        //@"r4k3/9/9/9/9/4R4/9/9/9/4K4 w - - 0 1";//对面笑1
+            string fen = @"2b1ka3/1R2aR3/4b1n2/9/9/C8/9/4r4/4A1p1r/4KA3 w - - 0 1"; //双车胁士2
+                         //@"3a5/4ak3/9/3R5/5P3/r8/9/7C1/r2p5/4K4 w - - 0 1";//对面笑2
+                         //@"r4k3/9/9/9/9/4R4/9/9/9/4K4 w - - 0 1";//对面笑1
 
             if (pos.FromFEN(fen))
             {

@@ -65,7 +65,7 @@ namespace MoleXiangqi
             Debug.Assert(maxDepth > 0);
             stat = new STATISTIC();
             PVLine = new List<MOVE>();
-            Array.Clear(MateKiller, 0, 2);
+            Array.Clear(MateKiller, 0, G.MAX_PLY);
             Array.Clear(Killers, 0, G.MAX_PLY * 2);
             Array.Clear(History, 0, 14 * 90);
             Array.Clear(HistHit, 0, 14 * 90);
@@ -104,7 +104,8 @@ namespace MoleXiangqi
                 {
                     Debug.WriteLine("Null move start-----------------");
                     MakeNullMove();
-                    vlOpp = -SearchQuiesce(-G.MATE + 2, G.MATE - 2, 0, 1, RootDepth);
+                    //vlOpp = SearchQuiesce(-G.MATE + 2, G.MATE - 2, 0, 1, RootDepth);
+                    vlOpp = SearchPV(-G.MATE + 2, G.MATE - 2, RootDepth - 1, 1, out List<MOVE> pvs);
                     UnmakeNullMove();
                     Debug.WriteLine("Null move end-------------------");
                 }
@@ -251,7 +252,6 @@ namespace MoleXiangqi
                         stat.Cutoffs++;
                         mvBest = mv;
                         hashFlag = G.HASH_BETA;
-                        Debug.WriteLine("Beta cut off");
                         break;
                     }
                     if (vl > alpha)
@@ -272,7 +272,8 @@ namespace MoleXiangqi
 #if USE_HASH
                 TT.WriteHash(Key, hashFlag, best, depth, mvBest);
 #endif
-                SetBestMove(mvBest, best, depth, height);
+                if (mvBest.pcSrc != 0)
+                    SetBestMove(mvBest, best, depth, height);
             }
             return best;
         }
@@ -391,7 +392,7 @@ namespace MoleXiangqi
 
         public int SearchQuiesce(int alpha, int beta, int qheight, int height, int depth)
         {
-            beta = Math.Min(beta, G.MATE - height);
+            beta = Math.Min(beta, G.WIN);
             stat.QuiesceNodes++;
             bool isChecked = stepList[stepList.Count - 1].move.checking;
             if (qheight > G.MAX_QUEISCE_DEPTH)
@@ -406,7 +407,6 @@ namespace MoleXiangqi
                 if (best > beta)
                 {
                     stat.Cutoffs++;
-                    Debug.WriteLine("Beta cut off");
                     return best;
                 }
                 if (best > alpha)
@@ -425,7 +425,7 @@ namespace MoleXiangqi
                     RepititionResult rep = Repitition();
                     if (rep != RepititionResult.NONE)
                         return (int)rep;
-                    best = height - G.MATE;
+                    best = height - G.MATE - 1;
                 }
                 else
                 {
@@ -471,7 +471,6 @@ namespace MoleXiangqi
                 if (vl >= beta)
                 {
                     stat.Cutoffs++;
-                    Debug.WriteLine("Beta cut off");
                     SetBestMove(mv, vl, 0, height);
                     return vl;
                 }
