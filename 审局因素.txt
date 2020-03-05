@@ -34,3 +34,46 @@
 
 下一步测试双车胁仕2和钓鱼马2。
 Quiesce延伸条件
+
+null move 思路一
+
+int search(int alhpa, int beta, int depth)
+{
+	foreach(MOVE m in moves)
+	{
+		if (m is capture || m is check)
+			continue
+		make_move(m)
+			make_null_move()	//opponent side
+			int vl1 = search(alpha, beta, depth - 4)
+			unmake_null_move()
+		unmake_move(m)
+		if (vl1 + MARGIN < alpha)
+			cut_move(m)
+	}
+}
+
+null move 思路二
+int search(int alhpa, int beta, int depth)
+{
+	int vl0 = eval()
+
+	//find opp threat move
+	make_null_move()
+		foreach(MOVE m in moves)	//opp side
+		{
+			make_move(m)
+			int vl1 = search(alpha, beta, 1)
+			unmake_move(m)
+			if (vl1 - vl0 > MARGIN)
+				record_killer(m)
+		}
+	unmake_null_move()
+
+	foreach(MOVE m in moves) //my side
+	{
+		make_move(m)
+		int vl2 = -search(-beta,-alpha, depth)
+		unmake_move(m)
+	}
+}

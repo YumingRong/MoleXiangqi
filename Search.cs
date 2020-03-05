@@ -1,6 +1,6 @@
-﻿#undef NULL_MOVE
+﻿#define NULL_MOVE
 #define FUTILITY_PRUNING
-#define NULL_VERIFICATION
+#undef NULL_VERIFICATION
 #undef LATE_MOVE_REDUCTION
 
 using System;
@@ -76,7 +76,6 @@ namespace MoleXiangqi
 
 
             int vl = 0;
-            int vlOpp = 0;
             // 6. 做迭代加深搜索
             for (RootDepth = 1; RootDepth <= maxDepth; RootDepth++)
             {
@@ -100,15 +99,6 @@ namespace MoleXiangqi
                 if (Math.Abs(vl) > G.WIN)
                     break;
 
-                if (Math.Abs(vlOpp) < G.WIN)
-                {
-                    Debug.WriteLine("Null move start-----------------");
-                    MakeNullMove();
-                    //vlOpp = SearchQuiesce(-G.MATE + 2, G.MATE - 2, 0, 1, RootDepth);
-                    vlOpp = SearchPV(-G.MATE + 2, G.MATE - 2, RootDepth - 1, 1, out List<MOVE> pvs);
-                    UnmakeNullMove();
-                    Debug.WriteLine("Null move end-------------------");
-                }
             }
             if (vl < -G.WIN)
                 Console.WriteLine("Resign");
@@ -224,8 +214,7 @@ namespace MoleXiangqi
                 Debug.Write(new string('\t', height));
                 Debug.WriteLine($"{mv} {alpha}, {beta}, {best},{mv.PrintKiller()}");
                 int new_depth = depth - 1;
-                if (mv.sqDst == stepList[stepList.Count - 1].move.sqDst && mv.score > 0
-                    || mv.checking)
+                if (mv.sqDst == stepList[stepList.Count - 1].move.sqDst && mv.score > 0 || mv.checking)
                     new_depth++;
                 MakeMove(mv, false);
                 int vl;
@@ -320,25 +309,23 @@ namespace MoleXiangqi
             if (allowNull && depth >= G.NullDepth)
             {
                 MOVE lastMove = stepList[stepList.Count - 1].move;
-                if (!lastMove.checking && lastMove.score > HistoryScore && beta < G.WIN)
+                //for any opponent pure loss and bad capture, it's better to take it and see the accurate score
+                //for any opponent good capture, we are already so bad, it makes no sense to do null move
+                //for those equal material exchange, we must finish recapture
+                //for mating and checking moves, we can not skip the moves
+                if (!lastMove.checking && lastMove.score > HistoryScore && lastMove.score<GoodScore && lastMove.pcDst==0 && Math.Abs(beta) < G.WIN)
                 {
-                    int eval;
-                    if (depth <= G.NullReduction || (eval = Simple_Evaluate()) >= beta)
-                    {
-                        MakeNullMove();
-                        int vl = -SearchCut(1 - beta, depth - G.NullDepth - 1, height + 1, false);
-                        UnmakeNullMove();
+                    MakeNullMove();
+                    int vl = -SearchCut(1 - beta, depth - G.NullDepth - 1, height + 1, false);
+                    UnmakeNullMove();
 #if NULL_VERIFICATION
-                        if (depth > G.VerReduction && vl >= beta)
-                        {
-                            vl = SearchCut(beta, depth - G.VerReduction, height + 1, false);
-                        }
+                    if (depth > G.VerReduction && vl >= beta)
+                        vl = SearchCut(beta, depth - G.VerReduction, height + 1, false);
 #endif
-                        if (vl >= beta)
-                        {
-                            //TT.WriteHash(Key, G.HASH_BETA, vl, depth, new MOVE());
-                            return vl;
-                        }
+                    if (vl >= beta)
+                    {
+                        TT.WriteHash(Key, G.HASH_BETA, vl, depth, new MOVE());
+                        return vl;
                     }
                 }
             }
