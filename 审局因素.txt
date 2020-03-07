@@ -53,27 +53,12 @@ int search(int alhpa, int beta, int depth)
 	}
 }
 
-null move 思路二
-int search(int alhpa, int beta, int depth)
-{
-	int vl0 = eval()
-
-	//find opp threat move
-	make_null_move()
-		foreach(MOVE m in moves)	//opp side
-		{
-			make_move(m)
-			int vl1 = search(alpha, beta, 1)
-			unmake_move(m)
-			if (vl1 - vl0 > MARGIN)
-				record_killer(m)
-		}
-	unmake_null_move()
-
-	foreach(MOVE m in moves) //my side
-	{
-		make_move(m)
-		int vl2 = -search(-beta,-alpha, depth)
-		unmake_move(m)
-	}
-}
+要想提高搜索效率，无非两点：
+1. 排序
+2. 剪枝
+目前困境的解决方法：
+1. 启发局面评估。诱导AI走子位置。设置车在中局的位置分数。
+2. 对于评分较低的走法，减少其搜索深度。
+3. 当局面落后较多时，鼓励攻杀速决。给先手权更高分数。
+4. 当领先时，不鼓励兑子。
+5. 
