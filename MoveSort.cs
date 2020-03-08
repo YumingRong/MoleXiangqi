@@ -179,9 +179,9 @@ namespace MoleXiangqi
                 }
                 else if (vl == 0)
                 {
-                    int sqHist = GetHistoryIndex(mv);
-                    Debug.Assert(HistHit[sqHist] <= HistTotal[sqHist]);
-                    mv.score += (HistHit[sqHist] + 1) * History[sqHist] / (HistTotal[sqHist] + 1) + HistoryScore;
+                    int index = GetHistoryIndex(mv);
+                    Debug.Assert(HistHit[index] <= HistTotal[index]);
+                    mv.score += (HistHit[index] + 1) * History[index] / (HistTotal[index] + 1) + HistoryScore;
                     Debug.Assert(mv.score < 0);
                     mv.killer = 6;
                 }
@@ -222,13 +222,15 @@ namespace MoleXiangqi
                 int sd = SIDE(pc);
                 int sqMirror = sd == 0 ? sq : SQUARE_FLIP(sq);
                 int sqOppKing;
+                int vl;
                 switch (cnPieceKinds[pc])
                 {
                     case ROOK:
-                        sqOppKing = sqPieces[OPP_SIDE_TAG(sd) + KING_FROM]; 
+                        sqOppKing = sqPieces[OPP_SIDE_TAG(sd) + KING_FROM];
+                        vl = cRookValue[sqMirror];
                         if (SAME_FILE(sq, sqOppKing) || SAME_RANK(sq, sqOppKing))
-                            return 5;
-                        break;
+                            vl+= 5;
+                        return vl;
                     case CANNON:
                         sqOppKing = sqPieces[OPP_SIDE_TAG(sd) + KING_FROM];
                         if (SAME_FILE(sq, sqOppKing))
@@ -237,7 +239,7 @@ namespace MoleXiangqi
                             return 8;
                         break;
                     case KNIGHT:
-                        int vl = cKnightValue[sqMirror];
+                        vl = cKnightValue[sqMirror];
                         //检查绊马腿
                         for (int j = 0; j < 4; j++)
                         {

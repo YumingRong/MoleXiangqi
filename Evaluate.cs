@@ -28,24 +28,24 @@ namespace MoleXiangqi
         {
             //只列出左半边位置分数数组，以方便修改
             int[] cRookHalfValue = {
-            10,  13,  13,  23,  22,
-            8,   15,  15,  23,  25,
-            8,   15,  13,  20,  22,
-            13,  18,  23,  23,  22,
-            17,  17,  19,  22,  22,
-            15,  18,  15,  18,  15,
-            8,   15,  15,  16,  14,
-            0,   12,  10,  15,  10,
-            7,   12,   8,  13,   2,
-            0,   10,   8,  14, -10,
+            10,  13,  13,  20,  20,
+            10,  16,  15,  21,  25,
+            10,  15,  13,  20,  20,
+            15,  18,  20,  20,  20,
+            15,  18,  19,  20,  20,
+            15,  17,  18,  18,  18,
+            8,   15,  14,  16,  15,
+            0,   10,   8,  12,  10,
+            7,   12,   8,  10,   2,
+            0,   10,   8,  13, -10,
         };
 
             int[] cKingPawnHalfValue = {
             1,   3,   5,   7,   9,
             15,  20,  28,  36,  43,
-            15,  20,  25,  30,  35,
-            14,  18,  23,  25,  29,
-            10,  14,  19,  22,  25,
+            15,  20,  25,  30,  34,
+            14,  18,  24,  26,  29,
+            10,  15,  19,  22,  25,
             3,   0,  14,  0,   15,
             0,   0,   5,   0,   10,
             0,   0,   0,   0,   0,
@@ -518,7 +518,7 @@ namespace MoleXiangqi
                             case ROOK:
                                 if (SAME_FILE(sq, sqOppKing) || SAME_RANK(sq, sqOppKing))
                                     positionValue[sd] += 5;
-                                //positionValue[sd] += cRookValue[sqMirror];
+                                positionValue[sd] += cRookValue[sqMirror];
                                 break;
                             case CANNON:
                                 if (SAME_FILE(sq, sqOppKing))
@@ -572,15 +572,16 @@ namespace MoleXiangqi
                 //缺仕怕车
                 pair[sd] += (nP[sd, GUARD] - nP[1 - sd, ROOK]) * 15;
             }
+
             int scoreRed = materialValue[0] + positionValue[0] + pair[0];
             int scoreBlack = materialValue[1] + positionValue[1] + pair[1];
 
             int total = scoreRed - scoreBlack;
-            //assume turn value to be a pawn
+            //assume turn value to be 1.5 pawn
             if (sdPlayer == 0)
-                total += 10;
+                total += 15;
             else
-                total -= 10;
+                total -= 15;
             //ivpc[nStep, 0] = nStep;
             //ivpc[nStep, 1] = total;
             //ivpc[nStep, 2] = scoreRed;
@@ -593,6 +594,38 @@ namespace MoleXiangqi
             //ivpc[nStep, 11] = pair[1];
 
             return sdPlayer == 0 ? total : -total;
+        }
+
+        int winning(int side)
+        {
+            int[] attackForce = new int[2];
+            int[] defendForce = new int[2];
+            for (int sd = 0; sd < 2; sd++)
+            {
+                int bas = SIDE_TAG(sd);
+                for (int pc = bas + ROOK_FROM; pc <= bas + KNIGHT_TO; pc++)
+                {
+                    if (sqPieces[pc] > 0)
+                        attackForce[sd] += cnPieceValue[pc];
+                }
+                for (int pc = bas + PAWN_FROM; pc <= bas + PAWN_TO; pc++)
+                {
+                    int sq;
+                    if ((sq = sqPieces[pc]) > 0)
+                    {
+                        if (HOME_HALF[sd, sq])
+                            attackForce[sd] += MAT_PAWN;
+                        else
+                            attackForce[sd] += 3 * MAT_PAWN;
+                    }
+                }
+                for (int pc = bas + BISHOP_FROM; pc <= bas + GUARD_TO; pc++)
+                    defendForce[sd] += cnPieceValue[pc];
+            }
+            int[] winning = new int[2];
+            for (int sd = 0; sd < 2; sd++)
+                winning[sd] = attackForce[sd] - defendForce[1 - sd];
+            return winning[side];
         }
 
         public void TestEval()
@@ -662,7 +695,7 @@ namespace MoleXiangqi
                         }
                     }
 
-                    MakeMove(step,true);
+                    MakeMove(step, true);
                     Console.WriteLine("-------------------");
                 }
                 for (int i = 1; i < nSteps; i += 2)

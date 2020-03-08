@@ -315,15 +315,17 @@ namespace MoleXiangqi
             MenuAIRed.Checked = !MenuAIRed.Checked;
             MenuPonder.Checked = false;
             //bFlipped = true;
-            if (MenuAIRed.Checked && pos.sdPlayer == 0 || MenuAIBlack.Checked && pos.sdPlayer == 1)
+            if (MenuAIRed.Checked && pos.sdPlayer == 0)
                 await GoAsync();
         }
 
-        private void MenuAIBlack_Click(object sender, EventArgs e)
+        private async void MenuAIBlack_Click(object sender, EventArgs e)
         {
             MenuAIBlack.Checked = !MenuAIBlack.Checked;
             MenuPonder.Checked = false;
             //bFlipped = false;
+            if (MenuAIBlack.Checked && pos.sdPlayer == 1)
+                await GoAsync();
         }
 
         private void MenuPonder_Click(object sender, EventArgs e)
@@ -385,9 +387,10 @@ namespace MoleXiangqi
 
         private void MenuEvaluate_Click(object sender, EventArgs e)
         {
-            string fen = @"2b1ka3/1R2aR3/4b1n2/9/9/C8/9/4r4/4A1p1r/4KA3 w - - 0 1"; //双车胁士2
-                         //@"3a5/4ak3/9/3R5/5P3/r8/9/7C1/r2p5/4K4 w - - 0 1";//对面笑2
-                         //@"r4k3/9/9/9/9/4R4/9/9/9/4K4 w - - 0 1";//对面笑1
+            string fen = @"C1baka3/3R1R3/4b1n2/9/9/9/9/9/4r1p1r/4KA3 w - - 0 3";
+            //@"2b1ka3/1R2aR3/4b1n2/9/9/C8/9/4r4/4A1p1r/4KA3 w - - 0 1"; //双车胁士2
+            //@"3a5/4ak3/9/3R5/5P3/r8/9/7C1/r2p5/4K4 w - - 0 1";//对面笑2
+            //@"r4k3/9/9/9/9/4R4/9/9/9/4K4 w - - 0 1";//对面笑1
 
             if (pos.FromFEN(fen))
             {

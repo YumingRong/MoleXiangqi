@@ -9,7 +9,7 @@
         public const int MAX_Depth = 4;
         public const int MAX_QUEISCE_DEPTH = 30;
 
-        public const int FutilityMargin = 10;
+        public const int FutilityMargin = 20;
         public const int NullOKMargin = 20;
         public const int NullSafeMargin = 40;
         public const int NullReduction = 3;

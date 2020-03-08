@@ -103,7 +103,7 @@ namespace MoleXiangqi
             RECORD step;
             step.move = new MOVE(0, 0, 0, 0);
             step.zobrist = Key;
-            //step.checking = CheckedBy(sdPlayer);
+            step.move.checking = CheckedBy(sdPlayer) > 0;
             step.halfMoveClock = HalfMoveClock;
             stepList.Add(step);
             return true;

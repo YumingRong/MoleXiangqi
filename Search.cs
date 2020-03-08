@@ -74,7 +74,6 @@ namespace MoleXiangqi
             TransKiller = null;
             rootMoves = new List<MOVE>(GetNextMove(7, 0));
 
-
             int vl = 0;
             // 6. 做迭代加深搜索
             for (RootDepth = 1; RootDepth <= maxDepth; RootDepth++)
@@ -213,6 +212,27 @@ namespace MoleXiangqi
             int hashFlag = 0;
             List<MOVE> subpv = null;
             TransKiller = null;
+#if USE_HASH
+            HashStruct t = TT.ReadHash(Key);
+            if (t.Move.sqSrc == 0)
+                TransKiller = null;
+            else
+            {
+                if (t.AlphaDepth >= depth)
+                {
+                    if (t.Alpha <= alpha)
+                        return t.Alpha;
+                }
+                if (t.BetaDepth >= depth)
+                {
+                    if (t.Beta >= beta)
+                        return t.Beta;
+                }
+                TransKiller = t.Move;
+                TransKiller.pcSrc = pcSquares[TransKiller.sqSrc];
+                TransKiller.pcDst = pcSquares[TransKiller.sqDst];
+            }
+#endif   
             IEnumerable<MOVE> moves = GetNextMove(7, height);
             foreach (MOVE mv in moves)
             {
@@ -341,15 +361,13 @@ namespace MoleXiangqi
             int opt_value = G.MATE;
             foreach (MOVE mv in moves)
             {
-                Debug.Write(new string('\t', height));
-                Debug.WriteLine($"{mv} {beta - 1}, {beta}, {best} {mv.PrintKiller()}");
                 int new_depth = depth - 1;
                 if (mv.checking)
                     new_depth++;
 #if FUTILITY_PRUNING
-                if (depth == 1)
+                else if (depth == 1)
                 {
-                    if (!stepList[stepList.Count - 1].move.checking && new_depth == 0 && mv.pcSrc == 0)
+                    if (!stepList[stepList.Count - 1].move.checking && new_depth == 0 && mv.pcDst == 0)
                     {
                         if (opt_value == G.MATE)
                             opt_value = Simple_Evaluate() + G.FutilityMargin;
@@ -358,6 +376,8 @@ namespace MoleXiangqi
                     }
                 }
 #endif
+                Debug.Write(new string('\t', height));
+                Debug.WriteLine($"{mv} {beta - 1}, {beta}, {best} {mv.PrintKiller()}");
                 MakeMove(mv, false);
                 int vl = -SearchCut(1 - beta, new_depth, height + 1);
                 UnmakeMove();
