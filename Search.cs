@@ -162,8 +162,9 @@ namespace MoleXiangqi
             rootMoves.Sort(Large2Small);
 
 #if LATE_MOVE_REDUCTION
+            int vlBase = Simple_Evaluate();
             //late move reduction
-            for (int i = rootMoves.Count - 1; alpha - rootMoves[i].score > 50; i--)
+            for (int i = rootMoves.Count - 1; vlBase - rootMoves[i].score > 50; i--)
             {
                 //lose a cannon/knight for nothing
                 Console.WriteLine($"Prune move: {rootMoves[i]}, score {rootMoves[i].score}");
@@ -417,21 +418,25 @@ namespace MoleXiangqi
             TransKiller = null;
             if (qheight % 2 == 0)
             {
-                best = Simple_Evaluate();
-                if (best > beta && mvLast.pcDst == 0)
-                {
-                    stat.Cutoffs++;
-                    return best;
-                }
-                if (qheight > G.MAX_QUEISCE_DEPTH && stepList[stepList.Count - 1].move.pcDst == 0)
-                    return best;
-                if (best > alpha)
-                    alpha = best;
                 if (isChecked)
+                {
+                    best = -G.MATE + height - 1;
                     moves = GetNextMove(7, height);
+                }
                 else
                 {
+                    best = Simple_Evaluate();
                     moves = GetNextMove(3, height);
+
+                    if (best > beta && mvLast.pcDst == 0)
+                    {
+                        stat.Cutoffs++;
+                        return best;
+                    }
+                    if (qheight > G.MAX_QUEISCE_DEPTH && stepList[stepList.Count - 1].move.pcDst == 0)
+                        return best;
+                    if (best > alpha)
+                        alpha = best;
                 }
             }
             else
