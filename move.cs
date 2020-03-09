@@ -3,36 +3,15 @@ using System.Diagnostics;
 
 namespace MoleXiangqi
 {
+    public enum KILLER { Unknown, Trans, Mate, Killer1, Killer2, GoodCapture, Normal, BadCapture };
+
     public class MOVE : IEquatable<MOVE>
     {
         public int sqSrc, sqDst;      // 起始格和目标格
         public int pcSrc, pcDst;
         public int score;
         public bool checking;
-        public int killer;
-        public string PrintKiller()
-        {
-            switch(killer)
-            {
-                case 1:
-                    return "trans";
-                case 2:
-                    return "mate";
-                case 3:
-                    return "killer1";
-                case 4:
-                    return "killer2";
-                case 5:
-                    return "good capture";
-                case 6:
-                    return "normal";
-                case 7:
-                    return "bad";
-                default:
-                    return "";
-            }
-        }
-
+        public KILLER killer;
 
         public MOVE(int sqFrom = 0, int sqTo = 0, int pcFrom = 0, int pcTo = 0)
         {
@@ -42,7 +21,7 @@ namespace MoleXiangqi
             pcDst = pcTo;
             score = 0;
             checking = false;
-            killer = 0;
+            killer = KILLER.Unknown;
         }
 
         public override string ToString()

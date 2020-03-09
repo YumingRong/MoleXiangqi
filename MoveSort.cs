@@ -40,7 +40,7 @@ namespace MoleXiangqi
             Debug.Assert(depth >= 0);
 
             //吃送吃的子没有必要记录，简单起见，所有吃子都不记入History
-            if (mv.pcDst > 0)
+            if (mv.pcDst > 0 && mv.sqDst == stepList[stepList.Count-1].move.sqDst)
                 return;
 #if USE_MATEKILLER
             if (score > G.RULEWIN)
@@ -57,22 +57,22 @@ namespace MoleXiangqi
 
         void HistoryGood(MOVE mv, int depth)
         {
-            int sq = GetHistoryIndex(mv);
-            HistHit[sq]++;
-            HistTotal[sq]++;
+            int i = GetHistoryIndex(mv);
+            HistHit[i]++;
+            HistTotal[i]++;
 
-            History[sq] += depth * depth;
-            if (History[sq] > HistoryMax)
+            History[i] += depth * depth;
+            if (History[i] > HistoryMax)
             {
-                for (int i = 0; i < 14 * 90; i++)
-                    History[i] /= 2;
+                for (int j = 0; j < 14 * 90; j++)
+                    History[j] /= 2;
             }
         }
 
         void HistoryBad(MOVE mv)
         {
-            int sq = GetHistoryIndex(mv);
-            HistTotal[sq]++;
+            int i = GetHistoryIndex(mv);
+            HistTotal[i]++;
         }
 
         /*该函数首先返回matekiller，其次返回killer move，然后生成所有着法，过滤不需要的着法后SEE，排序
@@ -97,7 +97,7 @@ namespace MoleXiangqi
                 Debug.Assert(TransKiller.pcSrc == pcSquares[TransKiller.sqSrc]);
                 Debug.Assert(TransKiller.pcDst == pcSquares[TransKiller.sqDst]);
                 Debug.Assert(IsLegalMove(TransKiller.sqSrc, TransKiller.sqDst));
-                TransKiller.killer = 1;
+                TransKiller.killer = KILLER.Trans;
                 TransKiller.score = TransScore; //unnecessary
                 movesDone.Add(TransKiller);
                 yield return TransKiller;
@@ -119,7 +119,7 @@ namespace MoleXiangqi
                         if (wantAll || wantCheck && IsChecking(killer) || wantCapture && killer.pcDst > 0)
                         {
                             movesDone.Add(killer);
-                            killer.killer = 2;
+                            killer.killer = KILLER.Mate;
                             yield return killer;
                         }
                 }
@@ -171,25 +171,25 @@ namespace MoleXiangqi
                 MOVE mv = moves[i];
                 int vl = SEE(mv, AttackMap[sdPlayer, mv.sqDst], AttackMap[1 - sdPlayer, mv.sqDst]);
                 mv.score += vl;
-                mv.score += PieceValue(mv.pcSrc, mv.sqDst) - PieceValue(mv.pcSrc, mv.sqSrc);
+                mv.score += PiecePositionValue(mv.pcSrc, mv.sqDst) - PiecePositionValue(mv.pcSrc, mv.sqSrc);
                 if (vl > 0)
                 {
                     mv.score += GoodScore;
-                    mv.killer = 5;
+                    mv.killer = KILLER.GoodCapture;
                 }
                 else if (vl == 0)
                 {
-                    int index = GetHistoryIndex(mv);
-                    Debug.Assert(HistHit[index] <= HistTotal[index]);
-                    mv.score += (HistHit[index] + 1) * History[index] / (HistTotal[index] + 1) + HistoryScore;
+                    int j = GetHistoryIndex(mv);
+                    Debug.Assert(HistHit[j] <= HistTotal[j]);
+                    mv.score += (HistHit[j] + 1) * History[j] / (HistTotal[j] + 1) + HistoryScore;
                     Debug.Assert(mv.score < 0);
-                    mv.killer = 6;
+                    mv.killer = KILLER.Normal;
                 }
                 else
                 {
                     mv.score += BadScore;
                     Debug.Assert(mv.score < HistoryScore);
-                    mv.killer = 7;
+                    mv.killer = KILLER.BadCapture;
                 }
             }
             //don't extend bad capture in quiescence search
@@ -203,11 +203,11 @@ namespace MoleXiangqi
                 if (!(killer is null))
                 {
                     killer.score += KillerScore;
-                    killer.killer = 3;
+                    killer.killer = KILLER.Killer1;
                     killer = moves.Find(x => x == Killers[height, 1]);
                     if (!(killer is null))
                     {
-                        killer.killer = 4;
+                        killer.killer = KILLER.Killer2;
                         killer.score += KillerScore - 1;
                     }
                 }
@@ -216,7 +216,7 @@ namespace MoleXiangqi
             foreach (var mv in moves)
                 yield return mv;
 
-            int PieceValue(int pc, int sq)
+            int PiecePositionValue(int pc, int sq)
             {
                 Debug.Assert(pc < 48 && pc > 15);
                 int sd = SIDE(pc);
@@ -303,6 +303,19 @@ namespace MoleXiangqi
             Console.WriteLine("End of moves");
         }
 
+        int PieceValue(int pc)
+        {
+            if (cnPieceKinds[pc] == PAWN)
+            {
+                int sq = sqPieces[pc];
+                if (HOME_HALF[SIDE(pc), sq])
+                    return MAT_PAWN;
+                else
+                    return MAT_PASSED_PAWN;
+            }
+            else
+                return cnPieceValue[pc];
+        }
 
         //Static Exchange Evaluation
         //SEE is basically as same as SubSEE. But it copy the attack and defend list to make them mutable
@@ -319,7 +332,6 @@ namespace MoleXiangqi
             List<int> defs = new List<int>(defenders);
 
             int sqDst = mv.sqDst;
-            int vlDst = cnPieceValue[pcSquares[sqDst]];
             MovePiece(mv);
             Debug.Assert(CheckedBy(1 - sdPlayer) == 0);
             //find defending slider piece behind the attacking piece
@@ -355,6 +367,7 @@ namespace MoleXiangqi
                     }
                 }
             }
+            int vlDst = PieceValue(mv.pcDst);
             if (defs.Count == 0)
             {
                 UndoMovePiece(mv);
@@ -408,7 +421,6 @@ namespace MoleXiangqi
                 Debug.Assert(atts.Contains(mv.pcSrc));
 
             int sqDst = mv.sqDst;
-            int vlDst = cnPieceValue[pcSquares[sqDst]];
             MovePiece(mv);
             if (cnPieceKinds[mv.pcSrc] == KING)
                 if (defs.Count > 0 || KingsFace2Face())
@@ -449,6 +461,7 @@ namespace MoleXiangqi
                     }
                 }
             }
+            int vlDst = PieceValue(mv.pcDst);
             if (defs.Count == 0)
             {
                 UndoMovePiece(mv);

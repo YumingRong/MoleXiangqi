@@ -238,7 +238,7 @@ namespace MoleXiangqi
             foreach (MOVE mv in moves)
             {
                 Debug.Write(new string('\t', height));
-                Debug.WriteLine($"{mv} {alpha}, {beta}, {best},{mv.PrintKiller()}");
+                Debug.WriteLine($"{mv} {alpha}, {beta}, {best},{mv.killer}");
                 int new_depth = depth - 1;
                 if (mv.sqDst == stepList[stepList.Count - 1].move.sqDst && mv.score > 0
                     || mv.checking )
@@ -363,7 +363,7 @@ namespace MoleXiangqi
             foreach (MOVE mv in moves)
             {
                 int new_depth = depth - 1;
-                if (mv.checking)
+                if (mv.checking) 
                     new_depth++;
 #if FUTILITY_PRUNING
                 else if (depth == 1)
@@ -378,7 +378,7 @@ namespace MoleXiangqi
                 }
 #endif
                 Debug.Write(new string('\t', height));
-                Debug.WriteLine($"{mv} {beta - 1}, {beta}, {best} {mv.PrintKiller()}");
+                Debug.WriteLine($"{mv} {beta - 1}, {beta}, {best} {mv.killer}");
                 MakeMove(mv, false);
                 int vl = -SearchCut(1 - beta, new_depth, height + 1);
                 UnmakeMove();
@@ -428,12 +428,12 @@ namespace MoleXiangqi
                     best = Simple_Evaluate();
                     moves = GetNextMove(3, height);
 
-                    if (best > beta && mvLast.pcDst == 0)
+                    if (best > beta && mvLast.pcDst == 0 && stepList[stepList.Count - 2].move.pcDst == 0)
                     {
                         stat.Cutoffs++;
                         return best;
                     }
-                    if (qheight > G.MAX_QUEISCE_DEPTH && stepList[stepList.Count - 1].move.pcDst == 0)
+                    if (qheight > G.MAX_QUEISCE_DEPTH && mvLast.pcDst == 0)
                         return best;
                     if (best > alpha)
                         alpha = best;
@@ -451,7 +451,7 @@ namespace MoleXiangqi
                 else
                 {
                     best = Simple_Evaluate();
-                    if (best > beta && mvLast.pcDst == 0)
+                    if (best > beta && mvLast.pcDst == 0 && stepList[stepList.Count-2].move.pcDst==0)
                     {
                         stat.Cutoffs++;
                         return best;

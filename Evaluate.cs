@@ -16,6 +16,7 @@ namespace MoleXiangqi
         const int MAT_PAWN = 10;
         const int MAT_BISHOP = 25;
         const int MAT_ADVISOR = 20;
+        const int MAT_PASSED_PAWN = 30;
 
         static readonly int[] cnPieceValue =
             { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -44,8 +45,8 @@ namespace MoleXiangqi
             1,   3,   5,   7,   9,
             15,  20,  28,  36,  43,
             15,  20,  25,  30,  34,
-            14,  18,  24,  26,  29,
-            10,  15,  19,  22,  25,
+            11,  18,  24,  26,  29,
+            7,  12,  19,  22,  25,
             3,   0,  14,  0,   15,
             0,   0,   5,   0,   10,
             0,   0,   0,   0,   0,
