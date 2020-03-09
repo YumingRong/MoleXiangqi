@@ -1,7 +1,8 @@
 ﻿#define NULL_MOVE
 #define FUTILITY_PRUNING
 #undef NULL_VERIFICATION
-#define LATE_MOVE_REDUCTION
+#undef LATE_MOVE_REDUCTION
+#define IID //internal iterative deepening
 
 using System;
 using System.Collections.Generic;
@@ -65,7 +66,8 @@ namespace MoleXiangqi
             Debug.Assert(maxDepth > 0);
             stat = new STATISTIC();
             PVLine = new List<MOVE>();
-            Array.Clear(MateKiller, 0, G.MAX_PLY);
+            for (int i = 0; i < G.MAX_PLY; i++)
+                MateKiller[i] = new MOVE();
             Array.Clear(Killers, 0, G.MAX_PLY * 2);
             Array.Clear(History, 0, 14 * 90);
             Array.Clear(HistHit, 0, 14 * 90);
@@ -164,7 +166,7 @@ namespace MoleXiangqi
 #if LATE_MOVE_REDUCTION
             int vlBase = Simple_Evaluate();
             //late move reduction
-            for (int i = rootMoves.Count - 1; vlBase - rootMoves[i].score > 50; i--)
+            for (int i = rootMoves.Count - 1; i >= 0 && vlBase - rootMoves[i].score > 50; i--)
             {
                 //lose a cannon/knight for nothing
                 Console.WriteLine($"Prune move: {rootMoves[i]}, score {rootMoves[i].score}");
@@ -233,7 +235,19 @@ namespace MoleXiangqi
                 TransKiller.pcSrc = pcSquares[TransKiller.sqSrc];
                 TransKiller.pcDst = pcSquares[TransKiller.sqDst];
             }
-#endif   
+#endif
+#if IID
+            if (depth>=G.IIDDepth && !(TransKiller is null))
+            {
+                int new_depth = depth - G.IIDReduction;
+                Debug.Assert(new_depth > 0);
+                int vl = SearchPV(alpha, beta, new_depth, height, out subpv);
+                if (vl < alpha)
+                    vl = SearchPV(-G.MATE, beta, new_depth, height, out subpv);
+                TransKiller = subpv[0];
+            }
+#endif
+
             IEnumerable<MOVE> moves = GetNextMove(7, height);
             foreach (MOVE mv in moves)
             {
@@ -308,7 +322,7 @@ namespace MoleXiangqi
 
             stat.CutNodes++;
             int best = HarmlessPruning(height);
-            if (best > -G.WIN)
+            if (best >= beta)
                 return best;
 
 #if USE_HASH
@@ -327,11 +341,14 @@ namespace MoleXiangqi
                     if (t.Beta >= beta)
                         return t.Beta;
                 }
+                if (t.Alpha == t.Beta)
+                    return t.Alpha;
                 TransKiller = t.Move;
                 TransKiller.pcSrc = pcSquares[TransKiller.sqSrc];
                 TransKiller.pcDst = pcSquares[TransKiller.sqDst];
             }
 #endif
+            Debug.Assert(height < G.MAX_PLY);
 #if NULL_MOVE
             if (allowNull && depth >= G.NullDepth)
             {
@@ -343,7 +360,7 @@ namespace MoleXiangqi
                 if (!lastMove.checking && lastMove.score > HistoryScore && lastMove.score < GoodScore && lastMove.pcDst == 0 && Math.Abs(beta) < G.WIN)
                 {
                     MakeNullMove();
-                    int vl = -SearchCut(1 - beta, depth - G.NullDepth - 1, height + 1, false);
+                    int vl = -SearchCut(1 - beta, depth - G.NullReduction - 1, height + 1, false);
                     UnmakeNullMove();
 #if NULL_VERIFICATION
                     if (depth > G.VerReduction && vl >= beta)
@@ -351,6 +368,7 @@ namespace MoleXiangqi
 #endif
                     if (vl >= beta)
                     {
+                        Debug.Assert(vl < G.WIN);   // do not return unproven mates
                         TT.WriteHash(Key, G.HASH_BETA, vl, depth, new MOVE());
                         return vl;
                     }

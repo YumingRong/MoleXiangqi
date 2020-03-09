@@ -529,8 +529,11 @@ namespace MoleXiangqi
 
             foreach (Tuple<int, int> pin in pinexception)
             {
-                MOVE mv = new MOVE(pin.Item1, pin.Item2, pcSquares[pin.Item1], pcSquares[pin.Item2]);
-                mvs.Add(mv);
+                if (SIDE(pcSquares[pin.Item1]) == sdPlayer)
+                {
+                    MOVE mv = new MOVE(pin.Item1, pin.Item2, pcSquares[pin.Item1], pcSquares[pin.Item2]);
+                    mvs.Add(mv);
+                }
             }
             return mvs;
         }

@@ -44,7 +44,13 @@ namespace MoleXiangqi
                 return;
 #if USE_MATEKILLER
             if (score > G.RULEWIN)
-                MateKiller[height] = mv;
+            {
+                Debug.Assert(sdPlayer == SIDE(mv.pcSrc));
+                MateKiller[height].sqSrc = MateKiller[height + 2].sqSrc = mv.sqSrc;
+                MateKiller[height].sqDst = MateKiller[height + 2].sqDst =  mv.sqDst;
+                MateKiller[height].pcSrc = MateKiller[height + 2].pcSrc = mv.pcSrc;
+                MateKiller[height].pcDst = MateKiller[height + 2].pcDst = mv.pcDst;
+            }
             else 
 #endif
             if (Killers[height, 0] != mv)
@@ -107,7 +113,7 @@ namespace MoleXiangqi
 #if USE_MATEKILLER
             if (!stepList[stepList.Count -1].move.checking)
             {
-                killer = MateKiller[height];
+                killer = MateKiller[sdPlayer];
                 if (!(killer is null) && killer.pcSrc == pcSquares[killer.sqSrc] && killer.pcDst == pcSquares[killer.sqDst]
     && IsLegalMove(killer.sqSrc, killer.sqDst))
                 {

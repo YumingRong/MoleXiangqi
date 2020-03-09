@@ -70,6 +70,9 @@ namespace MoleXiangqi
             Debug.Assert(vl < G.MATE && vl > -G.MATE);
             if (vl > G.WIN && vl <= G.RULEWIN || vl < -G.WIN && vl >= -G.RULEWIN)
                 return;
+            //Mate value is accurate regardless of the searching depth.
+            if (vl > G.WIN || vl < -G.WIN)
+                depth = G.MAX_PLY;
             nWrite++;
             if (Trans.TryGetValue(key, out HashStruct entry))
             {
