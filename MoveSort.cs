@@ -1,4 +1,4 @@
-﻿#define USE_MATEKILLER
+﻿#undef USE_MATEKILLER
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
