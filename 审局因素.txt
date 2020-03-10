@@ -62,3 +62,6 @@ int search(int alhpa, int beta, int depth)
 3. 当局面落后较多时，鼓励攻杀速决。给先手权更高分数。
 4. 当领先时，不鼓励兑子。
 5. 
+
+当depth == 0, 且best<alpha时，传给quiesce的beta用-best代替-alpha，可以避免eval()>beta过早返回。返回的值和最佳着法只是因为搜索深度浅而貌似高于best。后续重新搜索时这个非最佳着法被首先搜索，降低了效率。
+使用fail-soft，当search cut nodes返回的值高于alhpa时，一般会用searchPV来重新搜索，但是除了提供PV line以外，似乎并没有别的价值。感觉这种再搜索比较浪费。可以在search cut时加入best line 或者等所有节点都搜索完，再searchPV best move 

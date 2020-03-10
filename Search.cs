@@ -2,7 +2,7 @@
 #define FUTILITY_PRUNING
 #undef NULL_VERIFICATION
 #undef LATE_MOVE_REDUCTION
-#define IID //internal iterative deepening
+#define INTERNAL_ITERATIVE_DEEPENING 
 
 using System;
 using System.Collections.Generic;
@@ -138,6 +138,7 @@ namespace MoleXiangqi
                         stat.PVChanged++;
                         Debug.WriteLine("Root re-search");
                         Debug.WriteLine($"{mv} {alpha}, {beta}");
+                        //research on fail-soft seems to only provide the new PV line. I cannot see any other usage
                         vl = -SearchPV(-beta, -alpha, new_depth, 1, out subpv);
                     }
                 }
@@ -236,7 +237,7 @@ namespace MoleXiangqi
                 TransKiller.pcDst = pcSquares[TransKiller.sqDst];
             }
 #endif
-#if IID
+#if INTERNAL_ITERATIVE_DEEPENING
             if (depth>=G.IIDDepth && !(TransKiller is null))
             {
                 int new_depth = depth - G.IIDReduction;
@@ -263,7 +264,10 @@ namespace MoleXiangqi
                     vl = -SearchPV(-beta, -alpha, new_depth, height + 1, out subpv);
                 else
                 {
-                    vl = -SearchCut(-alpha, new_depth, height + 1);
+                    if (new_depth == 0)
+                        vl = -SearchCut(-best, new_depth, height + 1);
+                    else
+                        vl = -SearchCut(-alpha, new_depth, height + 1);
                     if (vl > alpha && vl < beta)
                     {
                         Debug.WriteLine("Re-search");
@@ -398,7 +402,12 @@ namespace MoleXiangqi
                 Debug.Write(new string('\t', height));
                 Debug.WriteLine($"{mv} {beta - 1}, {beta}, {best} {mv.killer}");
                 MakeMove(mv, false);
-                int vl = -SearchCut(1 - beta, new_depth, height + 1);
+                int vl;
+                //to avoid quiesce search beta cut off too early, use -best instead of -alpha as new beta
+                if (new_depth == 0)
+                    vl = -SearchCut(-best, 0, height + 1);
+                else
+                    vl = -SearchCut(1 - beta, new_depth, height + 1);
                 UnmakeMove();
 
                 if (vl > best)
