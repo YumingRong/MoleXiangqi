@@ -46,10 +46,10 @@ namespace MoleXiangqi
             if (score > G.RULEWIN)
             {
                 Debug.Assert(sdPlayer == SIDE(mv.pcSrc));
-                MateKiller[height].sqSrc = MateKiller[height + 2].sqSrc = mv.sqSrc;
-                MateKiller[height].sqDst = MateKiller[height + 2].sqDst =  mv.sqDst;
-                MateKiller[height].pcSrc = MateKiller[height + 2].pcSrc = mv.pcSrc;
-                MateKiller[height].pcDst = MateKiller[height + 2].pcDst = mv.pcDst;
+                MateKiller[height].sqSrc = mv.sqSrc;
+                MateKiller[height].sqDst = mv.sqDst;
+                MateKiller[height].pcSrc = mv.pcSrc;
+                MateKiller[height].pcDst = mv.pcDst;
             }
             else 
 #endif

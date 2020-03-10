@@ -17,6 +17,8 @@
         public const int NullDepth = 2;    // 空着裁剪的深度
         public const int IIDDepth = 3;
         public const int IIDReduction = 2;
+        public const int HistoryDepth = 3;
+        public const int HistoryMoveNb = 3;
 
         public const int HASH_BETA = 1;
         public const int HASH_ALPHA = 2;

@@ -2,8 +2,9 @@
 #define FUTILITY_PRUNING
 #undef NULL_VERIFICATION
 #undef LATE_MOVE_REDUCTION
-#undef INTERNAL_ITERATIVE_DEEPENING 
+#define INTERNAL_ITERATIVE_DEEPENING 
 #undef USE_MATEKILLER
+#define HISTORY_PRUNING
 
 using System;
 using System.Collections.Generic;
@@ -125,7 +126,7 @@ namespace MoleXiangqi
                 Debug.WriteLine($"{mv} {alpha}, {beta}");
                 int new_depth = depth - 1;
                 if (mv.sqDst == stepList[stepList.Count - 1].move.sqDst && mv.score > 0
-                    || mv.checking || stepList[stepList.Count-1].move.checking && firstMove)
+                    || mv.checking || stepList[stepList.Count - 1].move.checking && firstMove)
                     new_depth++;
                 firstMove = false;
                 MakeMove(mv, false);
@@ -206,7 +207,7 @@ namespace MoleXiangqi
                     //被照将时，推迟进入静态搜索
                     depth++;
                 else
-                    return SearchQuiesce(alpha, beta, 0, height, RootDepth);
+                    return SearchQuiesce(alpha, beta, 0, height);
             }
 
             stat.PVNodes++;
@@ -240,7 +241,7 @@ namespace MoleXiangqi
             }
 #endif
 #if INTERNAL_ITERATIVE_DEEPENING
-            if (depth>=G.IIDDepth && !(TransKiller is null))
+            if (depth >= G.IIDDepth && TransKiller is null)
             {
                 int new_depth = depth - G.IIDReduction;
                 Debug.Assert(new_depth > 0);
@@ -258,7 +259,7 @@ namespace MoleXiangqi
                 Debug.WriteLine($"{mv} {alpha}, {beta}, {best},{mv.killer}");
                 int new_depth = depth - 1;
                 if (mv.sqDst == stepList[stepList.Count - 1].move.sqDst && mv.score > 0
-                    || mv.checking )
+                    || mv.checking)
                     new_depth++;
                 MakeMove(mv, false);
                 int vl;
@@ -323,7 +324,7 @@ namespace MoleXiangqi
                     //被照将时，推迟进入静态搜索
                     depth++;
                 else
-                    return SearchQuiesce(beta - 1, beta, 0, height, RootDepth);
+                    return SearchQuiesce(beta - 1, beta, 0, height);
             }
 
             stat.CutNodes++;
@@ -355,10 +356,10 @@ namespace MoleXiangqi
             }
 #endif
             Debug.Assert(height < G.MAX_PLY);
+            MOVE lastMove = stepList[stepList.Count - 1].move;
 #if NULL_MOVE
             if (allowNull && depth >= G.NullDepth)
             {
-                MOVE lastMove = stepList[stepList.Count - 1].move;
                 //for any opponent pure loss and bad capture, it's better to take it and see the accurate score
                 //for any opponent good capture, we are already so bad, it makes no sense to do null move
                 //for those equal material exchange, we must finish recapture
@@ -387,18 +388,21 @@ namespace MoleXiangqi
             foreach (MOVE mv in moves)
             {
                 int new_depth = depth - 1;
-                if (mv.checking) 
+                if (mv.checking)
                     new_depth++;
-#if FUTILITY_PRUNING
-                else if (depth == 1)
+#if HISTORY_PRUNING
+                if (depth >= G.HistoryDepth && !lastMove.checking && new_depth < depth)
                 {
-                    if (!stepList[stepList.Count - 1].move.checking && new_depth == 0 && mv.pcDst == 0)
-                    {
-                        if (opt_value == G.MATE)
-                            opt_value = Simple_Evaluate() + G.FutilityMargin;
-                        if (opt_value < beta)
-                            continue;
-                    }
+
+                }
+#endif
+#if FUTILITY_PRUNING
+                if (depth == 1 && !lastMove.checking && !mv.checking && new_depth == 0 && mv.pcDst == 0)
+                {
+                    if (opt_value == G.MATE)
+                        opt_value = Simple_Evaluate() + G.FutilityMargin;
+                    if (opt_value < beta)
+                        continue;
                 }
 #endif
                 Debug.Write(new string('\t', height));
@@ -435,7 +439,7 @@ namespace MoleXiangqi
             return best;
         }
 
-        public int SearchQuiesce(int alpha, int beta, int qheight, int height, int depth)
+        public int SearchQuiesce(int alpha, int beta, int qheight, int height)
         {
             beta = Math.Min(beta, G.WIN);
             stat.QuiesceNodes++;
@@ -480,7 +484,7 @@ namespace MoleXiangqi
                 else
                 {
                     best = Simple_Evaluate();
-                    if (best > beta && mvLast.pcDst == 0 && stepList[stepList.Count-2].move.pcDst==0)
+                    if (best > beta && mvLast.pcDst == 0 && stepList[stepList.Count - 2].move.pcDst == 0)
                     {
                         stat.Cutoffs++;
                         return best;
@@ -494,11 +498,10 @@ namespace MoleXiangqi
                 else
                     moves = GetNextMove(2, height);
             }
-            bool first_move = true;
             int vl;
             foreach (MOVE mv in moves)
             {
-                if (!isChecked && depth <= 0 && mv.pcDst == 0)
+                if (!isChecked && height >= RootDepth * 2 && mv.pcDst == 0)
                     continue;
                 Debug.Write(new string('\t', height));
                 Debug.WriteLine($"{mv} {alpha}, {beta}, {best}, {height}");
@@ -510,13 +513,7 @@ namespace MoleXiangqi
                     else
                         stat.CaptureExtensions++;
                 }
-                if (first_move)
-                {
-                    vl = -SearchQuiesce(-beta, -alpha, qheight + 1, height + 1, depth);
-                    first_move = false;
-                }
-                else
-                    vl = -SearchQuiesce(-beta, -alpha, qheight + 1, height + 1, depth - 1);
+                vl = -SearchQuiesce(-beta, -alpha, qheight + 1, height + 1);
                 UnmakeMove();
                 if (vl >= beta)
                 {
