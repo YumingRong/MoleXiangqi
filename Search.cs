@@ -2,7 +2,7 @@
 #define FUTILITY_PRUNING
 #undef NULL_VERIFICATION
 #undef LATE_MOVE_REDUCTION
-#define INTERNAL_ITERATIVE_DEEPENING 
+#undef INTERNAL_ITERATIVE_DEEPENING 
 
 using System;
 using System.Collections.Generic;
@@ -132,14 +132,14 @@ namespace MoleXiangqi
                     vl = -SearchPV(-beta, -alpha, new_depth, 1, out subpv);
                 else
                 {
-                    vl = -SearchCut(-alpha, new_depth, 1);
+                    vl = -SearchCut(-alpha, new_depth, 1, out subpv);
                     if (vl > alpha)
                     {
                         stat.PVChanged++;
                         Debug.WriteLine("Root re-search");
                         Debug.WriteLine($"{mv} {alpha}, {beta}");
                         //research on fail-soft seems to only provide the new PV line. I cannot see any other usage
-                        vl = -SearchPV(-beta, -alpha, new_depth, 1, out subpv);
+                        //vl = -SearchPV(-beta, -alpha, new_depth, 1, out subpv);
                     }
                 }
                 UnmakeMove();
@@ -265,15 +265,15 @@ namespace MoleXiangqi
                 else
                 {
                     if (new_depth == 0)
-                        vl = -SearchCut(-best, new_depth, height + 1);
+                        vl = -SearchCut(-best, new_depth, height + 1, out subpv);
                     else
-                        vl = -SearchCut(-alpha, new_depth, height + 1);
+                        vl = -SearchCut(-alpha, new_depth, height + 1, out subpv);
                     if (vl > alpha && vl < beta)
                     {
                         Debug.WriteLine("Re-search");
                         Debug.Write(new string('\t', height));
                         Debug.WriteLine($"{mv} {alpha}, {beta}, {best}");
-                        vl = -SearchPV(-beta, -alpha, new_depth, height + 1, out subpv);
+                        //vl = -SearchPV(-beta, -alpha, new_depth, height + 1, out subpv);
                         stat.PVChanged++;
                     }
                 }
@@ -312,9 +312,10 @@ namespace MoleXiangqi
             return best;
         }
 
-        int SearchCut(int beta, int depth, int height, bool allowNull = true)
+        int SearchCut(int beta, int depth, int height, out List<MOVE> pvs, bool allowNull = true)
         {
             beta = Math.Min(beta, G.MATE - height);
+            pvs = new List<MOVE>();
             if (depth <= 0)
             {
                 if (stepList[stepList.Count - 1].move.checking)
@@ -328,6 +329,7 @@ namespace MoleXiangqi
             int best = HarmlessPruning(height);
             if (best >= beta)
                 return best;
+            List<MOVE> subpv = null;
 
 #if USE_HASH
             HashStruct t = TT.ReadHash(Key);
@@ -364,7 +366,7 @@ namespace MoleXiangqi
                 if (!lastMove.checking && lastMove.score > HistoryScore && lastMove.score < GoodScore && lastMove.pcDst == 0 && Math.Abs(beta) < G.WIN)
                 {
                     MakeNullMove();
-                    int vl = -SearchCut(1 - beta, depth - G.NullReduction - 1, height + 1, false);
+                    int vl = -SearchCut(1 - beta, depth - G.NullReduction - 1, height + 1, out subpv, false);
                     UnmakeNullMove();
 #if NULL_VERIFICATION
                     if (depth > G.VerReduction && vl >= beta)
@@ -405,15 +407,18 @@ namespace MoleXiangqi
                 int vl;
                 //to avoid quiesce search beta cut off too early, use -best instead of -alpha as new beta
                 if (new_depth == 0)
-                    vl = -SearchCut(-best, 0, height + 1);
+                    vl = -SearchCut(-best, 0, height + 1, out subpv);
                 else
-                    vl = -SearchCut(1 - beta, new_depth, height + 1);
+                    vl = -SearchCut(1 - beta, new_depth, height + 1, out subpv);
                 UnmakeMove();
 
                 if (vl > best)
                 {
                     best = vl;
                     mvBest = mv;
+                    pvs.Clear();
+                    pvs.Add(mv);
+                    pvs.AddRange(subpv);
                     if (vl >= beta)
                     {
                         SetBestMove(mvBest, best, depth, height);
