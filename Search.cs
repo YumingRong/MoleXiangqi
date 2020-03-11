@@ -15,9 +15,9 @@ namespace MoleXiangqi
 {
     public struct STATISTIC
     {
-        public int QuiesceNodes, PVNodes, CutNodes;
+        public int QuiesceNodes, PVNodes, ZeroWindowNodes;
         public long ElapsedTime;
-        public int Cutoffs, PVChanged;
+        public int BetaCutoffs, NullCutoffs, PVChanged;
         public int CaptureExtensions, CheckExtesions;
 
         public static void DisplayTimerProperties()
@@ -36,11 +36,11 @@ namespace MoleXiangqi
 
         public override string ToString()
         {
-            int totalNodes = QuiesceNodes + PVNodes + CutNodes;
+            int totalNodes = QuiesceNodes + PVNodes + ZeroWindowNodes;
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"Nodes: total {totalNodes}， PV {PVNodes}, Cut {CutNodes}, Quiesce {QuiesceNodes}");
+            sb.AppendLine($"Nodes: total {totalNodes}， PV {PVNodes}, Cut {ZeroWindowNodes}, Quiesce {QuiesceNodes}");
             sb.AppendLine($"Elapsed time: {ElapsedTime} millisecond. Nodes per second: {totalNodes * 1000 / ElapsedTime}");
-            sb.AppendLine($"Cutoffs: {Cutoffs}, PV re-searched: {PVChanged}");
+            sb.AppendLine($"BetaCutoffs: {BetaCutoffs}, NullCutoffs: {NullCutoffs}, PV re-searched: {PVChanged}");
             sb.AppendLine($"Extesions: Check {CheckExtesions}, Capture {CaptureExtensions}");
             return sb.ToString();
         }
@@ -56,7 +56,7 @@ namespace MoleXiangqi
         internal Stopwatch stopwatch;
         int RootDepth;
 
-        public void InitSearch()
+        void InitSearch()
         {
             TT = new TransipositionTable(128);
             stopwatch = new Stopwatch();
@@ -109,6 +109,7 @@ namespace MoleXiangqi
                 Console.WriteLine("Resign");
             else if (vl > G.WIN)
                 Console.WriteLine("MATE in {0} steps!", G.MATE - vl);
+            ProbeHistory();
             return PVLine[0];
         }
 
@@ -159,7 +160,7 @@ namespace MoleXiangqi
                     Console.WriteLine("PV:" + PopPVLine());
                     if (vl >= beta)
                     {
-                        stat.Cutoffs++;
+                        stat.BetaCutoffs++;
                         break;
                     }
                 }
@@ -286,7 +287,7 @@ namespace MoleXiangqi
                     best = vl;
                     if (vl >= beta)
                     {
-                        stat.Cutoffs++;
+                        stat.BetaCutoffs++;
                         mvBest = mv;
                         hashFlag = G.HASH_BETA;
                         break;
@@ -327,7 +328,7 @@ namespace MoleXiangqi
                     return SearchQuiesce(beta - 1, beta, 0, height);
             }
 
-            stat.CutNodes++;
+            stat.ZeroWindowNodes++;
             int best = HarmlessPruning(height);
             if (best >= beta)
                 return best;
@@ -377,6 +378,7 @@ namespace MoleXiangqi
                     {
                         Debug.Assert(vl < G.WIN);   // do not return unproven mates
                         TT.WriteHash(Key, G.HASH_BETA, vl, depth, new MOVE());
+                        stat.NullCutoffs++;
                         return vl;
                     }
                 }
@@ -385,15 +387,18 @@ namespace MoleXiangqi
             IEnumerable<MOVE> moves = GetNextMove(7, height);
             MOVE mvBest = new MOVE();
             int opt_value = G.MATE;
+            List<MOVE> mvPlayed = new List<MOVE>();
             foreach (MOVE mv in moves)
             {
                 int new_depth = depth - 1;
                 if (mv.checking)
                     new_depth++;
 #if HISTORY_PRUNING
-                if (depth >= G.HistoryDepth && !lastMove.checking && new_depth < depth)
+                if (depth >= G.HistoryDepth && !lastMove.checking && new_depth < depth && mvPlayed.Count >= G.HistoryMoveNb)
                 {
-
+                    int k = GetHistoryIndex(mv);
+                    if ((float)(HistHit[k]) / HistTotal[k] < 0.6)
+                        new_depth--;
                 }
 #endif
 #if FUTILITY_PRUNING
@@ -423,15 +428,16 @@ namespace MoleXiangqi
                     if (vl >= beta)
                     {
                         SetBestMove(mvBest, best, depth, height);
+                        foreach (MOVE m1 in mvPlayed)
+                            HistoryBad(m1);
 #if USE_HASH
                         TT.WriteHash(Key, G.HASH_BETA, best, depth, mvBest);
 #endif
-                        stat.Cutoffs++;
+                        stat.BetaCutoffs++;
                         return vl;
                     }
                 }
-                else
-                    HistoryBad(mv);
+                mvPlayed.Add(mv);
             }
 #if USE_HASH
             TT.WriteHash(Key, G.HASH_ALPHA, best, depth, mvBest);
@@ -463,7 +469,7 @@ namespace MoleXiangqi
 
                     if (best > beta && mvLast.pcDst == 0 && stepList[stepList.Count - 2].move.pcDst == 0)
                     {
-                        stat.Cutoffs++;
+                        stat.BetaCutoffs++;
                         return best;
                     }
                     if (qheight > G.MAX_QUEISCE_DEPTH && mvLast.pcDst == 0)
@@ -486,7 +492,7 @@ namespace MoleXiangqi
                     best = Simple_Evaluate();
                     if (best > beta && mvLast.pcDst == 0 && stepList[stepList.Count - 2].move.pcDst == 0)
                     {
-                        stat.Cutoffs++;
+                        stat.BetaCutoffs++;
                         return best;
                     }
                     if (best > alpha)
@@ -517,7 +523,7 @@ namespace MoleXiangqi
                 UnmakeMove();
                 if (vl >= beta)
                 {
-                    stat.Cutoffs++;
+                    stat.BetaCutoffs++;
                     SetBestMove(mv, vl, 0, height);
                     return vl;
                 }

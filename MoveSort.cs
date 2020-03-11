@@ -39,8 +39,8 @@ namespace MoleXiangqi
             Debug.Assert(score > -G.MATE && score < G.MATE);
             Debug.Assert(depth >= 0);
 
-            //吃送吃的子没有必要记录，简单起见，所有吃子都不记入History
-            if (mv.pcDst > 0 && mv.sqDst == stepList[stepList.Count-1].move.sqDst)
+            //吃送吃的子没有必要记录
+            if (mv.pcDst > 0 && mv.sqDst == stepList[stepList.Count - 1].move.sqDst)
                 return;
 #if USE_MATEKILLER
             if (score > G.RULEWIN)
@@ -68,11 +68,6 @@ namespace MoleXiangqi
             HistTotal[i]++;
 
             History[i] += depth * depth;
-            if (History[i] > HistoryMax)
-            {
-                for (int j = 0; j < 14 * 90; j++)
-                    History[j] /= 2;
-            }
         }
 
         void HistoryBad(MOVE mv)
@@ -81,10 +76,56 @@ namespace MoleXiangqi
             HistTotal[i]++;
         }
 
-        /*该函数首先返回matekiller，其次返回killer move，然后生成所有着法，过滤不需要的着法后SEE，排序
+        void ProbeHistory()
+        {
+            int[] top = new int[16];
+            for (int i = 0; i < 14 * 90; i++)
+            {
+                int j = top.Length - 1;
+                if (GetValue(i) > GetValue(top[j]))
+                {
+                    while (j > 0 && GetValue(i) > GetValue(top[j - 1]))
+                    {
+                        top[j] = top[j - 1];
+                        j--;
+                    }
+                    top[j] = i;
+                }
+            }
+            Console.WriteLine("Top history:");
+            Console.WriteLine("\tScore\tHistory\tHit\tTotal");
+            for (int i = 0; i < top.Length; i++)
+            {
+                int j = top[i];
+                Console.WriteLine($"{Index2String(j)}\t{GetValue(j)}\t{History[j]}\t{HistHit[j]}\t{HistTotal[j]}");
+            }
+
+            int GetValue(int i)
+            {
+                if (HistTotal[i] > 0)
+                    return History[i] * HistHit[i] / HistTotal[i];
+                else
+                    return 0;
+            }
+
+            string Index2String(int i)
+            {
+                int pc = i / 90;
+                int sq = i % 90;
+                Debug.Assert(pc >= 0 && pc <= 13);
+                string s = pc > 6 ? "B" : "R";
+                string PC = "KRCNPBG";
+                s += PC[pc % 7] + " ";
+                s += Coord2ICCS(cboard90[sq]);
+                return s;
+
+            }
+        }
+
+        /*该函数首先返回Transkiller，然后生成所有着法，过滤不需要的着法后SEE，排序
          * 参数moveType: 
          * 1 - 生成所有照将
-         * 2 - 生成所有吃子，不包括吃仕相和未过河的兵
+         * 2 - 生成所有吃子
          * 3 - 生成所有照将和吃子
          * 7 - 生成所有合法着法
         */
@@ -235,7 +276,7 @@ namespace MoleXiangqi
                         sqOppKing = sqPieces[OPP_SIDE_TAG(sd) + KING_FROM];
                         vl = cRookValue[sqMirror];
                         if (SAME_FILE(sq, sqOppKing) || SAME_RANK(sq, sqOppKing))
-                            vl+= 5;
+                            vl += 5;
                         return vl;
                     case CANNON:
                         sqOppKing = sqPieces[OPP_SIDE_TAG(sd) + KING_FROM];
