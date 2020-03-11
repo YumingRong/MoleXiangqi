@@ -250,7 +250,8 @@ namespace MoleXiangqi
                 int vl = SearchPV(alpha, beta, new_depth, height, out subpv);
                 if (vl < alpha)
                     vl = SearchPV(-G.MATE, beta, new_depth, height, out subpv);
-                TransKiller = subpv[0];
+                if (subpv.Count > 0)
+                    TransKiller = subpv[0];
             }
 #endif
 
@@ -394,6 +395,7 @@ namespace MoleXiangqi
                 int new_depth = depth - 1;
                 if (mv.checking)
                     new_depth++;
+                bool mate_threat = best < -G.WIN && mvPlayed.Count > 0;
 #if HISTORY_PRUNING
                 bool reduced = false;
                 if (depth >= G.HistoryDepth && !lastMove.checking && new_depth < depth && mvPlayed.Count >= G.HistoryMoveNb)

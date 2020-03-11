@@ -66,4 +66,6 @@ int search(int alhpa, int beta, int depth)
 1. 当depth == 0, 且best<alpha时，传给quiesce的beta用-best代替-alpha，可以避免eval()>beta过早返回。返回的值和最佳着法只是因为搜索深度浅而貌似高于best。后续重新搜索时这个非最佳着法被首先搜索，降低了效率。
 2. 当甲方有杀棋时，乙方通过将军等方法拖延步数。一般情况下，会在甲方应将后且乙方没有新的吃子照将着法时返回一个不算太差的分数。
 但实际上，这时候乙方还没有通过甲方的杀招检验。
-甲方有杀棋的判定：乙方之前所有搜索的分数<-G.WIN，杀招在killer[height+1]里。
+甲方有杀棋的判定：乙方之前所有搜索的分数<-G.WIN，杀招在killer[height+1,0]里。
+因此，SearchCut应该延伸，推迟进入SearchQuiesce.直至甲方的杀招已走或不合法再允许返回。
+
