@@ -17,7 +17,7 @@ namespace MoleXiangqi
     {
         public int QuiesceNodes, PVNodes, ZeroWindowNodes;
         public long ElapsedTime;
-        public int BetaCutoffs, NullCutoffs, PVChanged;
+        public int BetaCutoffs, NullCutoffs, PVChanged, HistoryResearched, HistoryReduced;
         public int CaptureExtensions, CheckExtesions;
 
         public static void DisplayTimerProperties()
@@ -41,6 +41,7 @@ namespace MoleXiangqi
             sb.AppendLine($"Nodes: total {totalNodes}， PV {PVNodes}, Cut {ZeroWindowNodes}, Quiesce {QuiesceNodes}");
             sb.AppendLine($"Elapsed time: {ElapsedTime} millisecond. Nodes per second: {totalNodes * 1000 / ElapsedTime}");
             sb.AppendLine($"BetaCutoffs: {BetaCutoffs}, NullCutoffs: {NullCutoffs}, PV re-searched: {PVChanged}");
+            sb.AppendLine($"History: reduced {HistoryReduced}, researched {HistoryResearched}");
             sb.AppendLine($"Extesions: Check {CheckExtesions}, Capture {CaptureExtensions}");
             return sb.ToString();
         }
@@ -394,11 +395,16 @@ namespace MoleXiangqi
                 if (mv.checking)
                     new_depth++;
 #if HISTORY_PRUNING
+                bool reduced = false;
                 if (depth >= G.HistoryDepth && !lastMove.checking && new_depth < depth && mvPlayed.Count >= G.HistoryMoveNb)
                 {
                     int k = GetHistoryIndex(mv);
                     if ((float)(HistHit[k]) / HistTotal[k] < 0.6)
+                    {
                         new_depth--;
+                        reduced = true;
+                        stat.HistoryReduced++;
+                    }
                 }
 #endif
 #if FUTILITY_PRUNING
@@ -419,6 +425,14 @@ namespace MoleXiangqi
                     vl = -SearchCut(-best, 0, height + 1);
                 else
                     vl = -SearchCut(1 - beta, new_depth, height + 1);
+#if HISTORY_PRUNING
+                if (vl >= beta && reduced)
+                {
+                    new_depth++;
+                    vl = -SearchCut(1 - beta, new_depth, height + 1);
+                    stat.HistoryResearched++;
+                }
+#endif
                 UnmakeMove();
 
                 if (vl > best)
