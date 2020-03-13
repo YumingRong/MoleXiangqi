@@ -162,13 +162,13 @@ namespace MoleXiangqi
 
         public static int FILE_X(int sq)
         {
-            Debug.Assert(IN_BOARD[sq]);
+            //Debug.Assert(IN_BOARD[sq]);
             return sq & 15;
         }
 
         public static int RANK_Y(int sq)
         {
-            Debug.Assert(IN_BOARD[sq]);
+            //Debug.Assert(IN_BOARD[sq]);
             return sq >> 4;
         }
 

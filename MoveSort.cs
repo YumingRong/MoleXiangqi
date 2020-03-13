@@ -129,7 +129,7 @@ namespace MoleXiangqi
          * 3 - 生成所有照将和吃子
          * 7 - 生成所有合法着法
         */
-        public IEnumerable<MOVE> GetNextMove(int moveType, int height)
+        public IEnumerable<MOVE> GetNextMove(int moveType, int height, int mate_threat = -1)
         {
             Debug.Assert(moveType < 8);
             Debug.Assert(height >= 0);
@@ -243,7 +243,16 @@ namespace MoleXiangqi
             if (!wantAll)
                 moves.RemoveAll(x => x.score < BadScore);
 
-            //assign killer bonus 目前来看，MateKiller在生成着法之前跑命中率比较高，而普通Killer则不是
+            //assign killer bonus 
+            if (mate_threat > 0)
+            {
+                killer = moves.Find(x => x == Killers[mate_threat + 1, 0]);
+                if (!(killer is null))
+                {
+                    killer.score += TransScore - 1;
+                    killer.killer = KILLER.Mate;
+                }
+            }
             if (!(Killers[height, 0] is null) && Killers[height, 0].sqSrc > 0)
             {
                 killer = moves.Find(x => x == Killers[height, 0]);

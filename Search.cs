@@ -138,7 +138,7 @@ namespace MoleXiangqi
                     vl = -SearchPV(-beta, -alpha, new_depth, 1, out subpv);
                 else
                 {
-                    vl = -SearchCut(-alpha, new_depth, 1);
+                    vl = -SearchCut(-alpha, new_depth, 1, -1);
                     if (vl > alpha)
                     {
                         stat.PVChanged++;
@@ -271,9 +271,9 @@ namespace MoleXiangqi
                 else
                 {
                     if (new_depth == 0)
-                        vl = -SearchCut(-best, new_depth, height + 1);
+                        vl = -SearchCut(-best, new_depth, height + 1, -1);
                     else
-                        vl = -SearchCut(-alpha, new_depth, height + 1);
+                        vl = -SearchCut(-alpha, new_depth, height + 1, -1);
                     if (vl > alpha && vl < beta)
                     {
                         Debug.WriteLine("Re-search");
@@ -318,7 +318,7 @@ namespace MoleXiangqi
             return best;
         }
 
-        int SearchCut(int beta, int depth, int height, bool allowNull = true)
+        int SearchCut(int beta, int depth, int height, int mate_threat, bool allowNull = true)
         {
             beta = Math.Min(beta, G.MATE - height);
             if (depth <= 0)
@@ -370,7 +370,7 @@ namespace MoleXiangqi
                 if (!lastMove.checking && lastMove.score > HistoryScore && lastMove.score < GoodScore && lastMove.pcDst == 0 && Math.Abs(beta) < G.WIN)
                 {
                     MakeNullMove();
-                    int vl = -SearchCut(1 - beta, depth - G.NullReduction - 1, height + 1, false);
+                    int vl = -SearchCut(1 - beta, depth - G.NullReduction - 1, height + 1, mate_threat, false);
                     UnmakeNullMove();
 #if NULL_VERIFICATION
                     if (depth > G.VerReduction && vl >= beta)
@@ -386,7 +386,7 @@ namespace MoleXiangqi
                 }
             }
 #endif
-            IEnumerable<MOVE> moves = GetNextMove(7, height);
+            IEnumerable<MOVE> moves = GetNextMove(7, height, mate_threat);
             MOVE mvBest = new MOVE();
             int opt_value = G.MATE;
             List<MOVE> mvPlayed = new List<MOVE>();
@@ -395,7 +395,14 @@ namespace MoleXiangqi
                 int new_depth = depth - 1;
                 if (mv.checking)
                     new_depth++;
-                bool mate_threat = best < -G.WIN && mvPlayed.Count > 0;
+                if (mate_threat < 0)
+                    mate_threat = best < -G.WIN && mvPlayed.Count > 0 ? height : -1;
+                else
+                {
+                    MOVE matekiller = Killers[mate_threat + 1, 0];
+                    if (mv == matekiller || mate_threat == height && best > -G.WIN || !IsLegalMove(matekiller.sqSrc, matekiller.sqDst))
+                        mate_threat = -1;
+                }
 #if HISTORY_PRUNING
                 bool reduced = false;
                 if (depth >= G.HistoryDepth && !lastMove.checking && new_depth < depth && mvPlayed.Count >= G.HistoryMoveNb)
@@ -418,20 +425,23 @@ namespace MoleXiangqi
                         continue;
                 }
 #endif
+                //if the opponent is delaying mate by checking, do not enter quiesce until the mate killer move is tried
+                if (new_depth == 0 && mate_threat > 0)
+                    new_depth = 1;
                 Debug.Write(new string('\t', height));
                 Debug.WriteLine($"{mv} {beta - 1}, {beta}, {best} {mv.killer}");
                 MakeMove(mv, false);
                 int vl;
                 //to avoid quiesce search beta cut off too early, use -best instead of -alpha as new beta
                 if (new_depth == 0)
-                    vl = -SearchCut(-best, 0, height + 1);
+                    vl = -SearchCut(-best, 0, height + 1, mate_threat);
                 else
-                    vl = -SearchCut(1 - beta, new_depth, height + 1);
+                    vl = -SearchCut(1 - beta, new_depth, height + 1, mate_threat);
 #if HISTORY_PRUNING
                 if (vl >= beta && reduced)
                 {
                     new_depth++;
-                    vl = -SearchCut(1 - beta, new_depth, height + 1);
+                    vl = -SearchCut(1 - beta, new_depth, height + 1, mate_threat);
                     stat.HistoryResearched++;
                 }
 #endif
@@ -523,8 +533,8 @@ namespace MoleXiangqi
             int vl;
             foreach (MOVE mv in moves)
             {
-                if (!isChecked && height >= RootDepth * 2 && mv.pcDst == 0)
-                    continue;
+                //if (!isChecked && height >= RootDepth * 2 && mv.pcDst == 0)
+                //    continue;
                 Debug.Write(new string('\t', height));
                 Debug.WriteLine($"{mv} {alpha}, {beta}, {best}, {height}");
                 MakeMove(mv, false);

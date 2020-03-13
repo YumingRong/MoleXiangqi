@@ -69,3 +69,16 @@ int search(int alhpa, int beta, int depth)
 甲方有杀棋的判定：乙方之前所有搜索的分数<-G.WIN，杀招在killer[height+1,0]里。
 因此，SearchCut应该延伸，推迟进入SearchQuiesce.直至甲方的杀招已走或不合法再允许返回。
 
+
+2020/3/12
+目前已经加入了MateThreat参数，当发现杀棋且best<-G.Win时，对于所有兄弟分支，MateThreat=true。depth总是>=1。
+几个问题：
+1. 没有识别Relative pin
+2. MateThreat时，是否应禁止Futility Pruning?（都要输了，还剪枝）
+3. 完全依靠搜索发现最佳着法效率太低。才4层就要13000个节点，到5层又要翻好多倍。
+4. 在MateThreat时，零窗口搜索经常过早fail high返回，也就是吃了一个子就放弃了搜索杀棋。使顶层的节点原本应该是打-Win分数的，结果只是一般的fail low。
+	这样在下一次搜索时，不能有效去除输棋节点，搜索树过大。
+
+思路：
+1.SearchCut不一定非要零窗口。当发现MateThreat时，一方alpha=-WIN，另一方beta = WIN。这样可以避免问题4，以及部分解决问题1,2,3。
+2.要在审局函数中多加入一些引导搜索方向的信息，比如王的安全、棋型的弱点、捉子等等。
