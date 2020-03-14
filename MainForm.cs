@@ -554,6 +554,12 @@ namespace MoleXiangqi
             engine.GenMoveTest();
         }
 
+        private void menuBuildBook_Click(object sender, EventArgs e)
+        {
+            OpeningBook book = new OpeningBook();
+            book.Test();
+        }
+
         void Write2Csv(string csvPath, int[] array)
         {
             using (FileStream fs = new FileStream(csvPath.Trim(), FileMode.OpenOrCreate, FileAccess.ReadWrite))

@@ -82,6 +82,7 @@
     <Compile Include="FEN.cs" />
     <Compile Include="GenMoves.cs" />
     <Compile Include="Global.cs" />
+    <Compile Include="OpeningBook.cs" />
     <Compile Include="TransipositionTable.cs" />
     <Compile Include="Zobrist.cs" />
     <Compile Include="MainForm.cs">

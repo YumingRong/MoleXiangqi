@@ -57,6 +57,7 @@
             this.MenuContinuousEval = new System.Windows.Forms.ToolStripMenuItem();
             this.MenuBatchEval = new System.Windows.Forms.ToolStripMenuItem();
             this.MenuRuleTest = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuGenMoves = new System.Windows.Forms.ToolStripMenuItem();
             this.ilCPieces = new System.Windows.Forms.ImageList(this.components);
             this.openFENDialog = new System.Windows.Forms.OpenFileDialog();
             this.ListboxMove = new System.Windows.Forms.ListBox();
@@ -68,7 +69,7 @@
             this.labelPlayer = new System.Windows.Forms.Label();
             this.labelEvent = new System.Windows.Forms.Label();
             this.openPGNDialog = new System.Windows.Forms.OpenFileDialog();
-            this.MenuGenMoves = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuBuildBook = new System.Windows.Forms.ToolStripMenuItem();
             this.MenuStrip1.SuspendLayout();
             this.PanelBoard.SuspendLayout();
             this.SuspendLayout();
@@ -246,7 +247,8 @@
             this.MenuContinuousEval,
             this.MenuBatchEval,
             this.MenuRuleTest,
-            this.MenuGenMoves});
+            this.MenuGenMoves,
+            this.menuBuildBook});
             this.MenuBatchEvaluation.Name = "MenuBatchEvaluation";
             this.MenuBatchEvaluation.Size = new System.Drawing.Size(45, 20);
             this.MenuBatchEvaluation.Text = "测试";
@@ -285,6 +287,13 @@
             this.MenuRuleTest.Size = new System.Drawing.Size(180, 22);
             this.MenuRuleTest.Text = "棋规";
             this.MenuRuleTest.Click += new System.EventHandler(this.MenuRuleTest_Click);
+            // 
+            // MenuGenMoves
+            // 
+            this.MenuGenMoves.Name = "MenuGenMoves";
+            this.MenuGenMoves.Size = new System.Drawing.Size(180, 22);
+            this.MenuGenMoves.Text = "着法生成";
+            this.MenuGenMoves.Click += new System.EventHandler(this.MenuGenMoves_Click);
             // 
             // ilCPieces
             // 
@@ -403,12 +412,12 @@
             this.openPGNDialog.Filter = "象棋对局面文件(*.PGN)|*.PGN";
             this.openPGNDialog.InitialDirectory = "J:\\C#\\MoleXiangqi\\TestPGN\\SAMPLE.PGN";
             // 
-            // MenuGenMoves
+            // menuBuildBook
             // 
-            this.MenuGenMoves.Name = "MenuGenMoves";
-            this.MenuGenMoves.Size = new System.Drawing.Size(180, 22);
-            this.MenuGenMoves.Text = "着法生成";
-            this.MenuGenMoves.Click += new System.EventHandler(this.MenuGenMoves_Click);
+            this.menuBuildBook.Name = "menuBuildBook";
+            this.menuBuildBook.Size = new System.Drawing.Size(180, 22);
+            this.menuBuildBook.Text = "读谱制作开局库";
+            this.menuBuildBook.Click += new System.EventHandler(this.menuBuildBook_Click);
             // 
             // MainForm
             // 
@@ -475,5 +484,6 @@
         private System.Windows.Forms.ToolStripMenuItem MenuBatchEval;
         private System.Windows.Forms.ToolStripMenuItem MenuRuleTest;
         private System.Windows.Forms.ToolStripMenuItem MenuGenMoves;
+        private System.Windows.Forms.ToolStripMenuItem menuBuildBook;
     }
 }

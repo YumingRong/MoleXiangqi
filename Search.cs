@@ -138,7 +138,7 @@ namespace MoleXiangqi
                     vl = -SearchPV(-beta, -alpha, new_depth, 1, out subpv);
                 else
                 {
-                    vl = -SearchCut(-alpha-1, -alpha, new_depth, 1, -1);
+                    vl = -SearchCut(-alpha - 1, -alpha, new_depth, 1, -1);
                     if (vl > alpha)
                     {
                         stat.PVChanged++;
@@ -270,16 +270,18 @@ namespace MoleXiangqi
                     vl = -SearchPV(-beta, -alpha, new_depth, height + 1, out subpv);
                 else
                 {
-                    if (new_depth == 0)
-                        vl = -SearchCut(-best-1, -best, new_depth, height + 1, -1);
+                    //当depth == 0, 且best < alpha时，传给quiesce的beta用 -best代替 -alpha，可以避免eval() > beta过早返回。
+                    //返回的值和最佳着法只是因为搜索深度浅而貌似高于best。后续重新搜索时这个非最佳着法被首先搜索，降低了效率。
+                    if (new_depth == 0 && alpha < G.WIN)
+                        vl = -SearchCut(-alpha - 1, -best, new_depth, height + 1, -1);
                     else
-                        vl = -SearchCut(-alpha-1, -alpha, new_depth, height + 1, -1);
-                    if (vl > alpha && vl < beta)
+                        vl = -SearchCut(-alpha - 1, -alpha, new_depth, height + 1, -1);
+                    if (vl > alpha) // && vl < beta
                     {
                         Debug.WriteLine("Re-search");
                         Debug.Write(new string('\t', height));
-                        Debug.WriteLine($"{mv} {alpha}, {beta}, {best}");
-                        vl = -SearchPV(-beta, -alpha, new_depth, height + 1, out subpv);
+                        Debug.WriteLine($"{mv} {alpha}, {beta}, {vl}");
+                        vl = -SearchPV(-beta, -vl, new_depth, height + 1, out subpv);
                         stat.PVChanged++;
                     }
                 }
@@ -396,7 +398,13 @@ namespace MoleXiangqi
                 if (mv.checking)
                     new_depth++;
                 if (mate_threat < 0)
-                    mate_threat = best < -G.WIN && mvPlayed.Count > 0 ? height : -1;
+                {
+                    if (best < -G.WIN && mvPlayed.Count > 0)
+                    {
+                        mate_threat = height;
+                        alpha = -G.WIN;
+                    }
+                }
                 else
                 {
                     MOVE matekiller = Killers[mate_threat + 1, 0];
@@ -433,7 +441,7 @@ namespace MoleXiangqi
                 MakeMove(mv, false);
                 int vl;
                 //to avoid quiesce search beta cut off too early, use -best instead of -alpha as new beta
-                if (new_depth == 0)
+                if (new_depth == 0 && alpha < G.WIN)
                     vl = -SearchCut(-beta, -best, 0, height + 1, mate_threat);
                 else
                     vl = -SearchCut(-beta, -alpha, new_depth, height + 1, mate_threat);
@@ -461,6 +469,10 @@ namespace MoleXiangqi
 #endif
                         stat.BetaCutoffs++;
                         return vl;
+                    }
+                    if (vl > alpha)
+                    {
+                        alpha = vl;
                     }
                 }
                 mvPlayed.Add(mv);
