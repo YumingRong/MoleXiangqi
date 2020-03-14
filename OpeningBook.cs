@@ -11,12 +11,6 @@ namespace MoleXiangqi
     public struct BookEntry: ISerializable
     {
         public ushort win, loss, draw; //from the red side perspective
-        //public BookEntry(ushort w, ushort d, ushort l)
-        //{
-        //    win = w;
-        //    draw = d;
-        //    loss = l;
-        //}
 
         // The special constructor is used to deserialize values.
         private BookEntry(SerializationInfo info, StreamingContext context)
@@ -35,16 +29,17 @@ namespace MoleXiangqi
         }
     }
 
-    [Serializable]
-    public class OpeningDictionary: Dictionary<ulong, BookEntry>
+    public class OpeningDictionary
     {
-        public void WriteTest(string fileName)
+        Dictionary<ulong, BookEntry> Book = new Dictionary<ulong, BookEntry>();
+
+        public void BuildBook(string pgn_path, string bookfile, int maxHeight)
         {
-            BuildBook(@"J:\象棋\全局\1-23届五羊杯\18届五羊杯（1998年）\第一轮", 70);
-            using (FileStream fileStream = new FileStream(fileName, FileMode.OpenOrCreate,FileAccess.ReadWrite))
+            BatchReadPGN(pgn_path, maxHeight);
+            using (FileStream fileStream = new FileStream(bookfile, FileMode.OpenOrCreate,FileAccess.ReadWrite))
             {
                 IFormatter formatter = new BinaryFormatter();
-                formatter.Serialize(fileStream, this);
+                formatter.Serialize(fileStream, Book);
             }
             Console.WriteLine("Book is saved. ");
         }
@@ -54,13 +49,9 @@ namespace MoleXiangqi
             using (FileStream fileStream = new FileStream(fileName, FileMode.Open))
             {
                 IFormatter formatter = new BinaryFormatter();
-                formatter.Deserialize(fileStream);
+                Book = (Dictionary<ulong, BookEntry>)(formatter.Deserialize(fileStream));
             }
-        }
-
-        protected OpeningDictionary(SerializationInfo info, StreamingContext context)
-        {
-
+            Console.WriteLine("Book is loaded. ");
         }
 
         // 该数组很方便地实现了坐标的镜像(左右对称)
@@ -83,13 +74,14 @@ namespace MoleXiangqi
           0, 0, 0,    0,    0,    0,    0,    0,    0,    0,    0,    0, 0, 0, 0, 0,
         };
 
-        public void BuildBook(string foldername, int maxHeight)
+        //Read PGN files in a folder and store the opening into Book (in memory)
+        void BatchReadPGN(string foldername, int maxHeight)
         {
             Debug.Assert(foldername != null);
             IEnumerable<string> pgnFiles = Directory.EnumerateFiles(foldername, "*.pgn", SearchOption.AllDirectories);
             int nFile = 0;
             int nSuccess = 0;
-            Console.WriteLine($"Before building, book size is {this.Count}.");
+            Console.WriteLine($"Before building, book size is {Book.Count}.");
             foreach (string fileName in pgnFiles)
             {
                 Console.WriteLine(fileName.Substring(foldername.Length + 1));
@@ -100,7 +92,7 @@ namespace MoleXiangqi
                     Console.WriteLine("Fail to read!");
             }
             Console.WriteLine($"Read total {nFile} files. Pass {nSuccess}. Fail {nFile - nSuccess}. ");
-            Console.WriteLine($"After building, book size is {this.Count}.");
+            Console.WriteLine($"After building, book size is {Book.Count}.");
         }
 
         bool ReadPGN(string filename, int maxHeight)
@@ -146,7 +138,7 @@ namespace MoleXiangqi
                 mirror_pos.MakeMove(mirror_mv, false);
                 ulong mirror_key = mirror_pos.Key;
 
-                if (this.TryGetValue(key, out BookEntry entry))
+                if (Book.TryGetValue(key, out BookEntry entry))
                 {
                     switch (result)
                     {
@@ -166,9 +158,9 @@ namespace MoleXiangqi
                             Debug.Fail("Unknown result");
                             break;
                     }
-                    this[key] = entry;
+                    Book[key] = entry;
                 }
-                else if (this.TryGetValue(mirror_key, out entry))
+                else if (Book.TryGetValue(mirror_key, out entry))
                 {
                     switch (result)
                     {
@@ -188,7 +180,7 @@ namespace MoleXiangqi
                             Debug.Fail("Unknown result");
                             break;
                     }
-                    this[mirror_key] = entry;
+                    Book[mirror_key] = entry;
                 }
                 else
                 {
@@ -208,7 +200,7 @@ namespace MoleXiangqi
                             Debug.Fail("Unknown result");
                             return false;
                     }
-                    this.Add(key, entry);
+                    Book.Add(key, entry);
                 }
                 height++;
                 if (height > maxHeight)
