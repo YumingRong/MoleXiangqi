@@ -556,8 +556,8 @@ namespace MoleXiangqi
 
         private void menuBuildBook_Click(object sender, EventArgs e)
         {
-            OpeningBook book = new OpeningBook();
-            book.Test();
+            OpeningDictionary book = new OpeningDictionary();
+            book.Test(@"J:\C#\MoleXiangqi\Book");
         }
 
         void Write2Csv(string csvPath, int[] array)

@@ -2,12 +2,38 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Threading.Tasks;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace MoleXiangqi
 {
-    class OpeningBook
+    public struct BookEntry
     {
+        public ushort win, loss, draw; //from the red side
+    }
+
+    [Serializable]
+    public class OpeningDictionary: Dictionary<ulong, BookEntry>
+    {
+        protected OpeningDictionary(SerializationInfo info, StreamingContext context)
+        {
+
+        }
+
+
+        public void WriteFile()       // Serializer
+        {
+            IFormatter formatter = new BinaryFormatter();
+
+            foreach (KeyValuePair<ulong, BookEntry> kv in this)
+            {
+            }
+        }
+        public void ReadXml()       // Deserializer
+        {
+
+        }
+
         // 该数组很方便地实现了坐标的镜像(左右对称)
         static readonly int[] csqMirrorTab = {
           0, 0, 0,    0,    0,    0,    0,    0,    0,    0,    0,    0, 0, 0, 0, 0,
@@ -28,29 +54,24 @@ namespace MoleXiangqi
           0, 0, 0,    0,    0,    0,    0,    0,    0,    0,    0,    0, 0, 0, 0, 0,
         };
 
-        public struct BookEntry
-        {
-            public ushort win, loss, draw; //from the red side
-        }
-
-        public Dictionary<ulong, BookEntry> Book;
-
-        public OpeningBook()
-        {
-            Book = new Dictionary<ulong, BookEntry>();
-        }
-
-        public void Test()
+        public void Test(string fileName)
         {
             BuildBook(@"J:\象棋\全局\1-23届五羊杯\18届五羊杯（1998年）\第一轮");
+            using (FileStream fileStream = new FileStream(fileName, FileMode.OpenOrCreate))
+            {
+                XmlSerializer xmlFormatter = new XmlSerializer(typeof(OpeningDictionary));
+                xmlFormatter.Serialize(fileStream, this);
+            }
+            Console.WriteLine("Book is saved. ");
         }
 
         public void BuildBook(string foldername)
         {
+            Debug.Assert(foldername != null);
             IEnumerable<string> pgnFiles = Directory.EnumerateFiles(foldername, "*.pgn", SearchOption.AllDirectories);
             int nFile = 0;
             int nSuccess = 0;
-            Console.WriteLine($"Before building, book size is {Book.Count}.");
+            Console.WriteLine($"Before building, book size is {this.Count}.");
             foreach (string fileName in pgnFiles)
             {
                 Console.WriteLine(fileName.Substring(foldername.Length + 1));
@@ -61,7 +82,7 @@ namespace MoleXiangqi
                     Console.WriteLine("Fail to read!");
             }
             Console.WriteLine($"Read total {nFile} files. Pass {nSuccess}. Fail {nFile - nSuccess}. ");
-            Console.WriteLine($"After building, book size is {Book.Count}.");
+            Console.WriteLine($"After building, book size is {this.Count}.");
         }
 
         bool ReadPGN(string filename)
@@ -106,7 +127,7 @@ namespace MoleXiangqi
                 mirror_pos.MakeMove(mirror_mv, false);
                 ulong mirror_key = mirror_pos.Key;
 
-                if (Book.TryGetValue(key, out BookEntry entry))
+                if (this.TryGetValue(key, out BookEntry entry))
                 {
                     switch (result)
                     {
@@ -126,9 +147,9 @@ namespace MoleXiangqi
                             Debug.Fail("Unknown result");
                             break;
                     }
-                    Book[key] = entry;
+                    this[key] = entry;
                 }
-                else if (Book.TryGetValue(mirror_key, out entry))
+                else if (this.TryGetValue(mirror_key, out entry))
                 {
                     switch (result)
                     {
@@ -148,7 +169,7 @@ namespace MoleXiangqi
                             Debug.Fail("Unknown result");
                             break;
                     }
-                    Book[mirror_key] = entry;
+                    this[mirror_key] = entry;
                 }
                 else
                 {
@@ -168,7 +189,7 @@ namespace MoleXiangqi
                             Debug.Fail("Unknown result");
                             return false;
                     }
-                    Book.Add(key, entry);
+                    this.Add(key, entry);
                 }
             }
             return true;
