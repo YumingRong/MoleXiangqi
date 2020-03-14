@@ -7,29 +7,58 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace MoleXiangqi
 {
-    public struct BookEntry
+    [Serializable]
+    public struct BookEntry: ISerializable
     {
-        public ushort win, loss, draw; //from the red side
+        public ushort win, loss, draw; //from the red side perspective
+        //public BookEntry(ushort w, ushort d, ushort l)
+        //{
+        //    win = w;
+        //    draw = d;
+        //    loss = l;
+        //}
+
+        // The special constructor is used to deserialize values.
+        private BookEntry(SerializationInfo info, StreamingContext context)
+        {
+            win = info.GetUInt16("Win");
+            draw = info.GetUInt16("Draw");
+            loss = info.GetUInt16("Loss");
+        }
+
+        // Implement this method to serialize data. The method is called on serialization.
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue("Win", win);
+            info.AddValue("Draw", draw);
+            info.AddValue("Loss", loss);
+        }
     }
 
     [Serializable]
     public class OpeningDictionary: Dictionary<ulong, BookEntry>
     {
-        protected OpeningDictionary(SerializationInfo info, StreamingContext context)
+        public void WriteTest(string fileName)
         {
-
+            BuildBook(@"J:\象棋\全局\1-23届五羊杯\18届五羊杯（1998年）\第一轮", 70);
+            using (FileStream fileStream = new FileStream(fileName, FileMode.OpenOrCreate,FileAccess.ReadWrite))
+            {
+                IFormatter formatter = new BinaryFormatter();
+                formatter.Serialize(fileStream, this);
+            }
+            Console.WriteLine("Book is saved. ");
         }
 
-
-        public void WriteFile()       // Serializer
+        public void ReadTest(string fileName)
         {
-            IFormatter formatter = new BinaryFormatter();
-
-            foreach (KeyValuePair<ulong, BookEntry> kv in this)
+            using (FileStream fileStream = new FileStream(fileName, FileMode.Open))
             {
+                IFormatter formatter = new BinaryFormatter();
+                formatter.Deserialize(fileStream);
             }
         }
-        public void ReadXml()       // Deserializer
+
+        protected OpeningDictionary(SerializationInfo info, StreamingContext context)
         {
 
         }
@@ -54,18 +83,7 @@ namespace MoleXiangqi
           0, 0, 0,    0,    0,    0,    0,    0,    0,    0,    0,    0, 0, 0, 0, 0,
         };
 
-        public void Test(string fileName)
-        {
-            BuildBook(@"J:\象棋\全局\1-23届五羊杯\18届五羊杯（1998年）\第一轮");
-            using (FileStream fileStream = new FileStream(fileName, FileMode.OpenOrCreate))
-            {
-                XmlSerializer xmlFormatter = new XmlSerializer(typeof(OpeningDictionary));
-                xmlFormatter.Serialize(fileStream, this);
-            }
-            Console.WriteLine("Book is saved. ");
-        }
-
-        public void BuildBook(string foldername)
+        public void BuildBook(string foldername, int maxHeight)
         {
             Debug.Assert(foldername != null);
             IEnumerable<string> pgnFiles = Directory.EnumerateFiles(foldername, "*.pgn", SearchOption.AllDirectories);
@@ -76,7 +94,7 @@ namespace MoleXiangqi
             {
                 Console.WriteLine(fileName.Substring(foldername.Length + 1));
                 nFile++;
-                if (ReadPGN(fileName))
+                if (ReadPGN(fileName, maxHeight))
                     nSuccess++;
                 else
                     Console.WriteLine("Fail to read!");
@@ -85,7 +103,7 @@ namespace MoleXiangqi
             Console.WriteLine($"After building, book size is {this.Count}.");
         }
 
-        bool ReadPGN(string filename)
+        bool ReadPGN(string filename, int maxHeight)
         {
             POSITION pos = new POSITION();
             PgnFileStruct pgn = pos.ReadPgnFile(filename);
@@ -113,6 +131,7 @@ namespace MoleXiangqi
             POSITION mirror_pos = new POSITION();
             mirror_pos.FromFEN(pgn.StartFEN);
 
+            int height = 0;
             foreach (MOVE mv in pgn.MoveList)
             {
                 pos.MakeMove(mv, false);
@@ -191,6 +210,9 @@ namespace MoleXiangqi
                     }
                     this.Add(key, entry);
                 }
+                height++;
+                if (height > maxHeight)
+                    return true;
             }
             return true;
         }

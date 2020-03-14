@@ -7,6 +7,8 @@ using System.Media;
 using System.Text;
 using System.Windows.Forms;
 using System.Threading.Tasks;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
 
 namespace MoleXiangqi
 {
@@ -557,7 +559,17 @@ namespace MoleXiangqi
         private void menuBuildBook_Click(object sender, EventArgs e)
         {
             OpeningDictionary book = new OpeningDictionary();
-            book.Test(@"J:\C#\MoleXiangqi\Book");
+            book.WriteTest(@"J:\C#\MoleXiangqi\Book.dat");
+        }
+
+        private void menuReadOpeningBook_Click(object sender, EventArgs e)
+        {
+            string fileName = @"J:\C#\MoleXiangqi\Book.dat";
+            using (FileStream fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
+            {
+                IFormatter formatter = new BinaryFormatter();
+                OpeningDictionary book = (OpeningDictionary)(formatter.Deserialize(fileStream));
+            }
         }
 
         void Write2Csv(string csvPath, int[] array)

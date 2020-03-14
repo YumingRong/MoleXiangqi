@@ -70,6 +70,7 @@
             this.labelEvent = new System.Windows.Forms.Label();
             this.openPGNDialog = new System.Windows.Forms.OpenFileDialog();
             this.menuBuildBook = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuReadOpeningBook = new System.Windows.Forms.ToolStripMenuItem();
             this.MenuStrip1.SuspendLayout();
             this.PanelBoard.SuspendLayout();
             this.SuspendLayout();
@@ -248,7 +249,8 @@
             this.MenuBatchEval,
             this.MenuRuleTest,
             this.MenuGenMoves,
-            this.menuBuildBook});
+            this.menuBuildBook,
+            this.menuReadOpeningBook});
             this.MenuBatchEvaluation.Name = "MenuBatchEvaluation";
             this.MenuBatchEvaluation.Size = new System.Drawing.Size(45, 20);
             this.MenuBatchEvaluation.Text = "测试";
@@ -419,6 +421,13 @@
             this.menuBuildBook.Text = "读谱制作开局库";
             this.menuBuildBook.Click += new System.EventHandler(this.menuBuildBook_Click);
             // 
+            // menuReadOpeningBook
+            // 
+            this.menuReadOpeningBook.Name = "menuReadOpeningBook";
+            this.menuReadOpeningBook.Size = new System.Drawing.Size(180, 22);
+            this.menuReadOpeningBook.Text = "读取开局库";
+            this.menuReadOpeningBook.Click += new System.EventHandler(this.menuReadOpeningBook_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -485,5 +494,6 @@
         private System.Windows.Forms.ToolStripMenuItem MenuRuleTest;
         private System.Windows.Forms.ToolStripMenuItem MenuGenMoves;
         private System.Windows.Forms.ToolStripMenuItem menuBuildBook;
+        private System.Windows.Forms.ToolStripMenuItem menuReadOpeningBook;
     }
 }
