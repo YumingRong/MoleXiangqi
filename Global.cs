@@ -19,6 +19,8 @@
         public const int IIDReduction = 2;
         public const int HistoryDepth = 3;
         public const int HistoryMoveNb = 3;
+        public const float OpeningRandom = 0.6F; //Can be adjusted between 0~1. The larger the stronger, but less variance. 
+        public const int MaxBookHeight = 70;
 
         public const int HASH_BETA = 1;
         public const int HASH_ALPHA = 2;

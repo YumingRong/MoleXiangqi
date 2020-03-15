@@ -38,6 +38,7 @@ namespace MoleXiangqi
             FromFEN(cszStartFen);
             PGN.StartFEN = cszStartFen;
             PGN.MoveList = new List<MOVE>();
+            //PGN.MoveList.Add(new MOVE());   //pad a null move at the beginning 
             PGN.CommentList = new List<string>();
 
             using (StreamReader fp = new StreamReader(szFileName, Encoding.GetEncoding("GB2312")))
@@ -171,8 +172,8 @@ namespace MoleXiangqi
                                 return PGN;
                             }
                             MakeMove(mv);
-                            PGN.MoveList.Add(mv);
                             PGN.CommentList.Add(comment);
+                            PGN.MoveList.Add(mv);
                             comment = null;
                             //phase++;
                         }
@@ -181,19 +182,37 @@ namespace MoleXiangqi
                             Tuple<int, int> coord = ICCS2Move(s);
                             MOVE mv = new MOVE(coord.Item1, coord.Item2, pcSquares[coord.Item1], pcSquares[coord.Item2]);
                             MakeMove(mv);
+                            PGN.CommentList.Add(comment);
                             PGN.MoveList.Add(mv);
-                            PGN.CommentList.Add("");
                             comment = null;
                         }
                         else
                         {
+                            PGN.CommentList.Add(comment);
                             if (s != PGN.Result)
                                 Debug.WriteLine(s);
-                            return PGN;
+
+                            goto CHECK_RESULT;
                         }
                     }
 
                 } while (line.Length > 0 & index >= 0);
+            }
+
+            CHECK_RESULT:
+            //Sometime the result is recorded in the last comment
+            if (PGN.Result == "*")
+            {
+                string s = PGN.CommentList[PGN.CommentList.Count - 1];
+                if (s != null)
+                {
+                    if (s.Contains("红胜") || s.Contains("黑负"))
+                        PGN.Result = "1-0";
+                    else if (s.Contains("和"))
+                        PGN.Result = "1/2-1/2";
+                    else if (s.Contains("红负") || s.Contains("黑胜"))
+                        PGN.Result = "0-1";
+                }
             }
             return PGN;
         }

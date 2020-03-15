@@ -597,7 +597,7 @@ namespace MoleXiangqi
         MOVE SearchOpeningBook()
         {
             List<MOVE> nextmoves = new List<MOVE>();
-            int best = -2000;
+            int best = 0;
             if (Book.TryGetValue(Key, out BookEntry entry))
             {
                 List<MOVE> moves = GenerateMoves();
@@ -650,7 +650,7 @@ namespace MoleXiangqi
                 else
                     return null;
             }
-            nextmoves.RemoveAll(x => x.score < best * 0.6);
+            nextmoves.RemoveAll(x => x.score < best * G.OpeningRandom);
             Random rnd = new Random();
             return nextmoves[rnd.Next(0, nextmoves.Count)];
         }

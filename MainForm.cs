@@ -241,14 +241,14 @@ namespace MoleXiangqi
             else
                 ListboxMove.Items.Add("==开始==*");
 
-            for (FENStep = 1; FENStep < MoveList.Count; FENStep++)
+            for (FENStep = 0; FENStep < MoveList.Count; FENStep++)
             {
                 MOVE step = MoveList[FENStep];
                 string label = step.ToString();
-                if (FENStep % 2 == 1)
+                if (FENStep % 2 == 0)
                     label = ((FENStep / 2 + 1).ToString() + "." + label);
                 label = label.PadLeft(8);
-                if (!string.IsNullOrEmpty(CommentList[FENStep]))
+                if (!string.IsNullOrEmpty(CommentList[FENStep + 1]))
                     label += "*";
                 ListboxMove.Items.Add(label);
             }
@@ -350,19 +350,19 @@ namespace MoleXiangqi
             textBoxComment.Text = CommentList[ListboxMove.SelectedIndex];
             if (ListboxMove.SelectedIndex > FENStep)
             {
-                for (int i = FENStep + 1; i <= ListboxMove.SelectedIndex; i++)
+                for (int i = FENStep; i < ListboxMove.SelectedIndex; i++)
                     pos.MakeMove(MoveList[i]);
             }
             else
             {
-                for (int i = FENStep - 1; i >= ListboxMove.SelectedIndex; i--)
+                for (int i = FENStep; i > ListboxMove.SelectedIndex; i--)
                     pos.UnmakeMove();
             }
             FENStep = ListboxMove.SelectedIndex;
             if (FENStep > 0)
             {
-                ptLastFrom = POSITION.UI_Coord2XY(MoveList[ListboxMove.SelectedIndex].sqSrc, bFlipped);
-                ptLastTo = POSITION.UI_Coord2XY(MoveList[ListboxMove.SelectedIndex].sqDst, bFlipped);
+                ptLastFrom = POSITION.UI_Coord2XY(MoveList[ListboxMove.SelectedIndex - 1].sqSrc, bFlipped);
+                ptLastTo = POSITION.UI_Coord2XY(MoveList[ListboxMove.SelectedIndex - 1].sqDst, bFlipped);
             }
             PanelBoard.Refresh();
         }
@@ -559,7 +559,7 @@ namespace MoleXiangqi
         private void menuBuildBook_Click(object sender, EventArgs e)
         {
             OpeningBook book = new OpeningBook();
-            book.BuildBook(@"J:\象棋\全局\1-23届五羊杯", @"J:\C#\MoleXiangqi\Book.dat", 10);
+            book.BuildBook(@"J:\象棋\全局\1-23届五羊杯", @"J:\C#\MoleXiangqi\Book.dat", G.MaxBookHeight);
         }
 
         private void menuReadOpeningBook_Click(object sender, EventArgs e)
