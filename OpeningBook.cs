@@ -120,17 +120,24 @@ namespace MoleXiangqi
                     return false;
             }
             pos.FromFEN(pgn.StartFEN);
+            POSITION mirror_pos = new POSITION();
+            mirror_pos.FromFEN(pgn.StartFEN);
 
             int height = 0;
-            ulong key, mirror_key;
-            mirror_key = pos.Key;
             foreach (MOVE mv in pgn.MoveList)
             {
                 pos.MakeMove(mv, false);
-                key = pos.Key;
-                mirror_key ^= Zobrist.Get(mv.pcSrc, csqMirrorTab[mv.sqSrc]) ^ Zobrist.Get(mv.pcSrc, csqMirrorTab[mv.sqDst]) ^ Zobrist.turn;
-                if (mv.pcDst > 0)
-                    mirror_key ^= Zobrist.Get(mv.pcDst, csqMirrorTab[mv.sqDst]);
+                ulong key = pos.Key;
+
+                MOVE mirror_mv = new MOVE();
+                mirror_mv.sqSrc = csqMirrorTab[mv.sqSrc];
+                mirror_mv.sqDst = csqMirrorTab[mv.sqDst];
+                mirror_mv.pcSrc = mirror_pos.pcSquares[mirror_mv.sqSrc];
+                mirror_mv.pcDst = mirror_pos.pcSquares[mirror_mv.sqDst];
+                mirror_mv.checking = mv.checking;
+                mirror_pos.MakeMove(mirror_mv, false);
+                ulong mirror_key = mirror_pos.Key;
+
                 if (Book.TryGetValue(key, out BookEntry entry))
                 {
                     switch (result)
