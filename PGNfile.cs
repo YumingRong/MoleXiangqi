@@ -38,7 +38,6 @@ namespace MoleXiangqi
             FromFEN(cszStartFen);
             PGN.StartFEN = cszStartFen;
             PGN.MoveList = new List<MOVE>();
-            //PGN.MoveList.Add(new MOVE());   //pad a null move at the beginning 
             PGN.CommentList = new List<string>();
 
             using (StreamReader fp = new StreamReader(szFileName, Encoding.GetEncoding("GB2312")))
