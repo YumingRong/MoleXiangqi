@@ -4,7 +4,6 @@ using System.Diagnostics;
 
 namespace MoleXiangqi
 {
-    // 置换表结构，置换表信息夹在两个Zobrist校验锁中间，可以防止存取冲突
     struct HashStruct
     {
         public int AlphaDepth
@@ -50,7 +49,6 @@ namespace MoleXiangqi
     class TransipositionTable
     {
         public int nRead, nReadHit, nWrite, nWriteHit;
-        // 置换表标志，只用在"RecordHash()"函数中
 
         public TransipositionTable(int capacity = 512)
         {
@@ -64,7 +62,7 @@ namespace MoleXiangqi
         }
 
         readonly Dictionary<ulong, HashStruct> Trans;
-        // 存储置换表局面信息
+
         public void WriteHash(ulong key, int flag, int vl, int depth, MOVE mv)
         {
             Debug.Assert(vl < G.MATE && vl > -G.MATE);

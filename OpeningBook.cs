@@ -29,9 +29,14 @@ namespace MoleXiangqi
         }
     }
 
-    public class OpeningDictionary
+    public class OpeningBook
     {
         Dictionary<ulong, BookEntry> Book = new Dictionary<ulong, BookEntry>();
+
+        public bool TryGetValue(ulong key, out BookEntry entry)
+        {
+            return Book.TryGetValue(key, out entry);
+        }
 
         public void BuildBook(string pgn_path, string bookfile, int maxHeight)
         {
@@ -44,7 +49,7 @@ namespace MoleXiangqi
             Console.WriteLine("Book is saved. ");
         }
 
-        public void ReadTest(string fileName)
+        public void ReadBook(string fileName)
         {
             using (FileStream fileStream = new FileStream(fileName, FileMode.Open))
             {

@@ -53,7 +53,7 @@ namespace MoleXiangqi
         List<MOVE> PVLine;
         public List<MOVE> rootMoves;
         TransipositionTable TT;
-
+        OpeningBook Book;
         internal Stopwatch stopwatch;
         int RootDepth;
 
@@ -62,11 +62,17 @@ namespace MoleXiangqi
             TT = new TransipositionTable(128);
             stopwatch = new Stopwatch();
             rootMoves = new List<MOVE>();
+            Book = new OpeningBook();
+            Book.ReadBook(@"J:\C#\MoleXiangqi\Book.dat");
         }
 
         public MOVE SearchMain(int maxDepth)
         {
             Debug.Assert(maxDepth > 0);
+            MOVE book_move = SearchOpeningBook();
+            if (book_move != null)
+                return book_move;
+
             stat = new STATISTIC();
             PVLine = new List<MOVE>();
 #if USE_MATEKILLER
@@ -587,5 +593,45 @@ namespace MoleXiangqi
             return sb.ToString();
         }
 
+        MOVE SearchOpeningBook()
+        {
+            if (Book.TryGetValue(Key, out BookEntry entry))
+            {
+                List<MOVE> moves = GenerateMoves();
+                int best_score = -G.MATE;
+                MOVE best_move = null;
+                int myside = sdPlayer;
+                foreach (MOVE mv in moves)
+                {
+                    MakeMove(mv);
+                    if (Book.TryGetValue(Key, out BookEntry entry1))
+                    {
+                        if (myside == 0)
+                            mv.score = entry1.win * 1000 / (entry1.win + entry1.draw + entry1.loss);
+                        else
+                            mv.score = entry1.loss * 1000 / (entry1.win + entry1.draw + entry1.loss);
+                        if (mv.score > best_score)
+                        {
+                            best_score = mv.score;
+                            best_move = mv;
+                        }
+                    }
+                    UnmakeMove();
+                }
+                return best_move;
+            }
+            else
+            {
+                ulong mirror_key = GetMirrorKey();
+
+            }
+            else
+                return null;
+
+            ulong GetMirrorKey()
+            {
+
+            }
+        }
     }
 }
