@@ -596,11 +596,11 @@ namespace MoleXiangqi
 
         MOVE SearchOpeningBook()
         {
+            List<MOVE> nextmoves = new List<MOVE>();
+            int best = -2000;
             if (Book.TryGetValue(Key, out BookEntry entry))
             {
                 List<MOVE> moves = GenerateMoves();
-                int best_score = -G.MATE;
-                MOVE best_move = null;
                 int myside = sdPlayer;
                 foreach (MOVE mv in moves)
                 {
@@ -608,18 +608,17 @@ namespace MoleXiangqi
                     if (Book.TryGetValue(Key, out BookEntry entry1))
                     {
                         if (myside == 0)
-                            mv.score = entry1.win * 1000 / (entry1.win + entry1.draw + entry1.loss);
+                            mv.score = (entry1.win * 2 + entry1.draw) * 1000 / (entry1.win + entry1.draw + entry1.loss);
                         else
-                            mv.score = entry1.loss * 1000 / (entry1.win + entry1.draw + entry1.loss);
-                        if (mv.score > best_score)
+                            mv.score = (entry1.loss * 2 + entry1.draw) * 1000 / (entry1.win + entry1.draw + entry1.loss);
+                        if (mv.score > best)
                         {
-                            best_score = mv.score;
-                            best_move = mv;
+                            best = mv.score;
+                            nextmoves.Add(mv);
                         }
                     }
                     UnmakeMove();
                 }
-                return best_move;
             }
             else
             {
@@ -628,8 +627,6 @@ namespace MoleXiangqi
                 if (Book.TryGetValue(mirror_key, out entry))
                 {
                     List<MOVE> moves = GenerateMoves();
-                    int best_score = -G.MATE;
-                    MOVE best_move = null;
                     int myside = sdPlayer;
                     foreach (MOVE mv in moves)
                     {
@@ -641,20 +638,21 @@ namespace MoleXiangqi
                                 mv.score = entry1.win * 1000 / (entry1.win + entry1.draw + entry1.loss);
                             else
                                 mv.score = entry1.loss * 1000 / (entry1.win + entry1.draw + entry1.loss);
-                            if (mv.score > best_score)
+                            if (mv.score > best)
                             {
-                                best_score = mv.score;
-                                best_move = mv;
+                                best = mv.score;
+                                nextmoves.Add(mv);
                             }
                         }
                         UnmakeMove();
                     }
-                    return best_move;
                 }
                 else
                     return null;
             }
-
+            nextmoves.RemoveAll(x => x.score < best * 0.6);
+            Random rnd = new Random();
+            return nextmoves[rnd.Next(0, nextmoves.Count)];
         }
     }
 }
