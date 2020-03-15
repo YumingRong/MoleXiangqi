@@ -559,14 +559,17 @@ namespace MoleXiangqi
         private void menuBuildBook_Click(object sender, EventArgs e)
         {
             OpeningDictionary book = new OpeningDictionary();
-            book.BuildBook(@"J:\象棋\全局\1-23届五羊杯", @"J:\C#\MoleXiangqi\Book.dat", 70);
+            book.WriteTest(@"J:\C#\MoleXiangqi\Book.dat");
         }
 
         private void menuReadOpeningBook_Click(object sender, EventArgs e)
         {
             string fileName = @"J:\C#\MoleXiangqi\Book.dat";
-            OpeningDictionary book = new OpeningDictionary();
-            book.ReadTest(fileName);
+            using (FileStream fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
+            {
+                IFormatter formatter = new BinaryFormatter();
+                OpeningDictionary book = (OpeningDictionary)(formatter.Deserialize(fileStream));
+            }
         }
 
         void Write2Csv(string csvPath, int[] array)
