@@ -69,6 +69,7 @@ namespace MoleXiangqi
         public MOVE SearchMain(int maxDepth)
         {
             Debug.Assert(maxDepth > 0);
+
             MOVE book_move = SearchOpeningBook();
             if (book_move != null)
                 return book_move;
@@ -622,16 +623,45 @@ namespace MoleXiangqi
             }
             else
             {
-                ulong mirror_key = GetMirrorKey();
-
+                //Try mirror. Nearly same code. 
+                ulong mirror_key = CalculateZobrist(true);
+                if (Book.TryGetValue(mirror_key, out entry))
+                {
+                    List<MOVE> moves = GenerateMoves();
+                    int best_score = -G.MATE;
+                    MOVE best_move = null;
+                    int myside = sdPlayer;
+                    foreach (MOVE mv in moves)
+                    {
+                        MakeMove(mv);
+                        mirror_key = CalculateZobrist(true);
+                        if (Book.TryGetValue(mirror_key, out BookEntry entry1))
+                        {
+                            if (myside == 0)
+                                mv.score = entry1.win * 1000 / (entry1.win + entry1.draw + entry1.loss);
+                            else
+                                mv.score = entry1.loss * 1000 / (entry1.win + entry1.draw + entry1.loss);
+                            if (mv.score > best_score)
+                            {
+                                best_score = mv.score;
+                                best_move = mv;
+                            }
+                        }
+                        UnmakeMove();
+                    }
+                    if (best_move != null)
+                    {
+                        best_move.sqSrc = csqMirrorTab[best_move.sqSrc];
+                        best_move.sqDst = csqMirrorTab[best_move.sqDst];
+                        best_move.pcSrc = pcSquares[best_move.sqSrc];
+                        best_move.pcDst = pcSquares[best_move.sqDst];
+                    }
+                    return best_move;
+                }
+                else
+                    return null;
             }
-            else
-                return null;
 
-            ulong GetMirrorKey()
-            {
-
-            }
         }
     }
 }

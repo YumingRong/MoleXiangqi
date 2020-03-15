@@ -34,15 +34,22 @@ namespace MoleXiangqi
 
     public partial class POSITION
     {
-        ulong CalculateZobrist()
+        ulong CalculateZobrist(bool mirror = false)
         {
             ulong zob = 0;
-            foreach (int sq in cboard90)
+            for (int i = 16; i < 48; i++)
             {
-                int pc = pcSquares[sq];
-                if (pc > 0)
-                    zob ^= Zobrist.Get(pc, sq);
+                int sq = sqPieces[i];
+                if (sq > 0)
+                {
+                    int pc = pcSquares[sq];
+                    int sq1;
+                    sq1 = mirror ? csqMirrorTab[sq] : sq;
+                    zob ^= Zobrist.Get(pc, sq1);
+                }
             }
+            if (sdPlayer == 1)
+                zob ^= Zobrist.turn;
             return zob;
         }
     }
