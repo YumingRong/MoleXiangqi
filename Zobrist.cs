@@ -34,7 +34,7 @@ namespace MoleXiangqi
 
     public partial class POSITION
     {
-        ulong CalculateZobrist(bool mirror = false)
+        public ulong CalculateZobrist(bool mirror = false)
         {
             ulong zob = 0;
             for (int i = 16; i < 48; i++)

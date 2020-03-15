@@ -63,13 +63,13 @@ namespace MoleXiangqi
             stopwatch = new Stopwatch();
             rootMoves = new List<MOVE>();
             Book = new OpeningBook();
-            Book.ReadBook(@"J:\C#\MoleXiangqi\Book.dat");
         }
 
         public MOVE SearchMain(int maxDepth)
         {
             Debug.Assert(maxDepth > 0);
 
+            Book.ReadBook(@"J:\C#\MoleXiangqi\Book.dat");
             MOVE book_move = SearchOpeningBook();
             if (book_move != null)
                 return book_move;
@@ -648,13 +648,6 @@ namespace MoleXiangqi
                             }
                         }
                         UnmakeMove();
-                    }
-                    if (best_move != null)
-                    {
-                        best_move.sqSrc = csqMirrorTab[best_move.sqSrc];
-                        best_move.sqDst = csqMirrorTab[best_move.sqDst];
-                        best_move.pcSrc = pcSquares[best_move.sqSrc];
-                        best_move.pcDst = pcSquares[best_move.sqDst];
                     }
                     return best_move;
                 }

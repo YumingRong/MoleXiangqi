@@ -105,23 +105,12 @@ namespace MoleXiangqi
                     return false;
             }
             pos.FromFEN(pgn.StartFEN);
-            POSITION mirror_pos = new POSITION();
-            mirror_pos.FromFEN(pgn.StartFEN);
 
             int height = 0;
             foreach (MOVE mv in pgn.MoveList)
             {
                 pos.MakeMove(mv, false);
                 ulong key = pos.Key;
-
-                MOVE mirror_mv = new MOVE();
-                mirror_mv.sqSrc = POSITION.csqMirrorTab[mv.sqSrc];
-                mirror_mv.sqDst = POSITION.csqMirrorTab[mv.sqDst];
-                mirror_mv.pcSrc = mirror_pos.pcSquares[mirror_mv.sqSrc];
-                mirror_mv.pcDst = mirror_pos.pcSquares[mirror_mv.sqDst];
-                mirror_mv.checking = mv.checking;
-                mirror_pos.MakeMove(mirror_mv, false);
-                ulong mirror_key = mirror_pos.Key;
 
                 if (Book.TryGetValue(key, out BookEntry entry))
                 {
@@ -145,47 +134,51 @@ namespace MoleXiangqi
                     }
                     Book[key] = entry;
                 }
-                else if (Book.TryGetValue(mirror_key, out entry))
-                {
-                    switch (result)
-                    {
-                        case 1:
-                            entry.win++;
-                            Debug.Assert(entry.win < ushort.MaxValue);
-                            break;
-                        case 0:
-                            entry.draw++;
-                            Debug.Assert(entry.loss < ushort.MaxValue);
-                            break;
-                        case -1:
-                            entry.loss++;
-                            Debug.Assert(entry.draw < ushort.MaxValue);
-                            break;
-                        default:
-                            Debug.Fail("Unknown result");
-                            break;
-                    }
-                    Book[mirror_key] = entry;
-                }
                 else
                 {
-                    entry = new BookEntry();
-                    switch (result)
+                    ulong mirror_key = pos.CalculateZobrist(true);
+                    if (Book.TryGetValue(mirror_key, out entry))
                     {
-                        case 1:
-                            entry.win = 1;
-                            break;
-                        case 0:
-                            entry.draw = 1;
-                            break;
-                        case -1:
-                            entry.loss = 1;
-                            break;
-                        default:
-                            Debug.Fail("Unknown result");
-                            return false;
+                        switch (result)
+                        {
+                            case 1:
+                                entry.win++;
+                                Debug.Assert(entry.win < ushort.MaxValue);
+                                break;
+                            case 0:
+                                entry.draw++;
+                                Debug.Assert(entry.loss < ushort.MaxValue);
+                                break;
+                            case -1:
+                                entry.loss++;
+                                Debug.Assert(entry.draw < ushort.MaxValue);
+                                break;
+                            default:
+                                Debug.Fail("Unknown result");
+                                break;
+                        }
+                        Book[mirror_key] = entry;
                     }
-                    Book.Add(key, entry);
+                    else
+                    {
+                        entry = new BookEntry();
+                        switch (result)
+                        {
+                            case 1:
+                                entry.win = 1;
+                                break;
+                            case 0:
+                                entry.draw = 1;
+                                break;
+                            case -1:
+                                entry.loss = 1;
+                                break;
+                            default:
+                                Debug.Fail("Unknown result");
+                                return false;
+                        }
+                        Book.Add(key, entry);
+                    }
                 }
                 height++;
                 if (height > maxHeight)
