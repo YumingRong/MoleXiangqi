@@ -173,8 +173,8 @@ namespace MoleXiangqi
             MovePiece(mv);
             if (needCheckTest)
                 mv.checking = CheckedBy(sdPlayer) > 0;
-            //else
-            //    Debug.Assert(mv.checking == CheckedBy(sdPlayer) > 0);
+            else
+                Debug.Assert(mv.checking == CheckedBy(sdPlayer) > 0);
             Key ^= Zobrist.Get(mv.pcSrc, mv.sqSrc) ^ Zobrist.Get(mv.pcSrc, mv.sqDst) ^ Zobrist.turn;
             if (mv.pcDst > 0)
             {
